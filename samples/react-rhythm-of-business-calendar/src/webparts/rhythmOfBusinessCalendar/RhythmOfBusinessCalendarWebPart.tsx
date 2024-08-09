@@ -29,7 +29,7 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
     }
 
     private generatePDF = () => {
-        const input = this.domElement.querySelector('.ms-Shimmer-container.root-73') as HTMLElement;
+        const input = this.domElement.querySelector('div[class^="ms-Shimmer-container root-"]') as HTMLElement;
         console.log('input: ', input);
         if (input) {
             
