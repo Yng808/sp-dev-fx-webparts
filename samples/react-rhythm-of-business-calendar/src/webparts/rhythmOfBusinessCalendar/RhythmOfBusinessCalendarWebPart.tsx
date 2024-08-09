@@ -21,7 +21,7 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
     public render(): void {
         ReactDom.render(
             <div>
-              <button onClick={this.generatePDF} className="btn btn-primary mb-3">Download as PDF</button>
+              <button onClick={this.generatePDF} className="btn btn-primary mb-3 ms-3">Download as PDF</button>
               <RhythmOfBusinessCalendarApp webpart={this} />
             </div>,
             this.domElement
@@ -60,7 +60,7 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
             pdf.addImage(imgData, 'PNG', x, y, scaledWidth, scaledHeight);
             
             // Save the PDF
-            pdf.save('webpart.pdf');
+            pdf.save('BridgeCalendar.pdf');
           });
         }
       };
