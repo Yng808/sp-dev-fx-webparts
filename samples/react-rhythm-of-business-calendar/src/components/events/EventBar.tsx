@@ -11,14 +11,37 @@ import styles from './EventBar.module.scss';
 
 // Utility function to determine if a color is dark
 const isDarkColor = (color: string): boolean => {
-    const rgb = parseInt(color.slice(1), 16); 
-    const r = (rgb >> 16) & 0xff;
-    const g = (rgb >>  8) & 0xff;
-    const b = (rgb >>  0) & 0xff;
+    let r, g, b;
 
-    const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+    // Check if the color is in rgba format
+    if (color.startsWith('rgba') || color.startsWith('rgb')) {
+        // Extract the RGB values
+        const rgbValues = color.match(/\d+/g)?.map(Number) ?? [];
+        [r, g, b] = rgbValues;
+    } else {
+        // Assume it's a hex color and process accordingly
+        color = color.replace(/^#/, '');
 
-    return luminance < 128;
+        // Convert short form hex to full form
+        if (color.length === 3) {
+            color = color.split('').map(c => c + c).join('');
+        }
+
+        r = parseInt(color.substring(0, 2), 16);
+        g = parseInt(color.substring(2, 4), 16);
+        b = parseInt(color.substring(4, 6), 16);
+    }
+
+    // Normalize the RGB values to a 0-1 scale
+    r /= 255;
+    g /= 255;
+    b /= 255;
+
+    // Calculate relative luminance
+    const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+    // Return true if the luminance is below 0.5 (considered dark)
+    return luminance < 0.5;
 };
 
 export enum EventBarSize {
@@ -52,8 +75,15 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
     );
 
     const style: CSSProperties = useMemo(() => {
+        console.log('color is:', color);
+        const bgColor = color?.toCssString() || themePrimary;
+        const textColor = isDarkColor(bgColor) ? 'white' : 'black';
+
+        console.log('background color:', bgColor, 'text color:' ,textColor);
+
         return {
-            backgroundColor: color?.toCssString() || themePrimary
+            backgroundColor: bgColor,
+            color: textColor // Set the text color dynamically
         };
     }, [color, themePrimary]);
 
@@ -67,7 +97,7 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
         <Stack className={eventClassName} style={style} tokens={useConst({ childrenGap: 2 })}>
             <Stack horizontal verticalAlign="center" title={title} tokens={useConst({ childrenGap: 6 })}>
                 {tag && <span>[{tag}]</span>}
-                <StackItem className={styles.text}>
+                <StackItem className={styles.text} style={{ color: style.color }}>
                     {size === EventBarSize.Compact && startTimeString && `${startTimeString}, `}
                     {title}
                 </StackItem>
@@ -78,12 +108,12 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
             </Stack>
             {size === EventBarSize.Large && <>
                 <Stack horizontal verticalAlign='center' tokens={useConst({ childrenGap: 4 })}>
-                    <RecentIcon />
-                    <span className={styles.text}>{startTimeString}</span>
+                    <RecentIcon style={{ color: style.color }} />
+                    <span className={styles.text} style={{ color: style.color }}>{startTimeString}</span>
                 </Stack>
                 <Stack horizontal verticalAlign='center' tokens={useConst({ childrenGap: 4 })}>
-                    <POIIcon />
-                    <span className={styles.text}>{location || '-'}</span>
+                    <POIIcon style={{ color: style.color }} />
+                    <span className={styles.text} style={{ color: style.color }}>{location || '-'}</span>
                 </Stack>
             </>}
         </Stack>
