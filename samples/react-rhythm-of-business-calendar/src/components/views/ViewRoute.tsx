@@ -32,6 +32,9 @@ const addRefinerIconProps: IIconProps = { iconName: 'Add' };
 const collapseRefinerRailIconProps: IIconProps = { iconName: 'ClosePaneMirrored' };
 const expandRefinerRailIconProps: IIconProps = { iconName: 'ClosePane' };
 
+
+
+
 const ViewRoute: FC = () => {
     const { active: config } = useConfigurationService();
     const { currentUserIsSiteAdmin } = useDirectoryService();
@@ -54,6 +57,29 @@ const ViewRoute: FC = () => {
 
     const { eventsAsync, refinersAsync, refinerValuesAsync, approversAsync } = useEventsService();
     const [asyncWatchers] = useState([eventsAsync, refinersAsync, refinerValuesAsync, approversAsync]);
+
+    const [showOnlyCurrentMonth, setShowOnlyCurrentMonth] = useState<boolean>(false);
+
+    const filteredEvents = useMemo(() => {
+        if (showOnlyCurrentMonth) {
+            const startOfMonth = anchorDate.clone().startOf('month');
+            const endOfMonth = anchorDate.clone().endOf('month');
+            return eventsAsync.data.filter(event => {
+                const eventStart = event.start;
+                const eventEnd = event.end;
+                
+                return (
+                    eventStart.isBetween(startOfMonth, endOfMonth, null, '[]') ||
+                    eventEnd.isBetween(startOfMonth, endOfMonth, null, '[]') ||
+                    (eventStart.isBefore(startOfMonth) && eventEnd.isAfter(startOfMonth) && eventEnd.isBefore(endOfMonth)) ||
+                    (eventStart.isBefore(startOfMonth) && eventEnd.isAfter(endOfMonth))
+                );
+            });
+        }
+        return eventsAsync.data;
+    }, [eventsAsync.data, showOnlyCurrentMonth, anchorDate]);
+    
+
 
     const [
         hasRefiners,
@@ -145,9 +171,15 @@ const ViewRoute: FC = () => {
                 text: numberOfEventsNeedingApproval ? `${strings.Command_Approvals.Text} (${numberOfEventsNeedingApproval})` : strings.Command_Approvals.Text,
                 iconProps: { iconName: 'InboxCheck' },
                 onClick: () => openMyApprovalsPanel()
+            },
+            {
+                key: 'filter-current-month',
+                text: 'Show Only Current Month',
+                iconProps: { iconName: showOnlyCurrentMonth ? 'CheckboxComposite' : 'Checkbox' },
+                onClick: () => setShowOnlyCurrentMonth(!showOnlyCurrentMonth)
             }
         ] as ICommandBarItemProps[]).filter(Boolean);
-    }, [userCanManageSettings, userIsAnApprover, newEvent, editSettings, openMyApprovalsPanel]);
+    }, [userCanManageSettings, userIsAnApprover, newEvent, editSettings, openMyApprovalsPanel, showOnlyCurrentMonth]);
 
     const events = useEventsService();
     const addEventToOutlook = (event: IEvent) => { events.addToOutlook(event.getExceptionOrEvent()); };
@@ -260,7 +292,7 @@ const ViewRoute: FC = () => {
                                         <ViewNav />
                                     </Stack>
                                     <EventFilter
-                                        events={events}
+                                        events={filteredEvents}
                                         dateRange={dateRange}
                                         refiners={refiners}
                                         selectedRefinerValues={selectedRefinerValues}
