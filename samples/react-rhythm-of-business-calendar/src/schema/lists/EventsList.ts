@@ -149,10 +149,10 @@ const Field_ModerationMessage: ITextFieldDefinition = {
 
 const Field_COMDecision: IChoiceFieldDefinition = {
     type: FieldType.Choice,
-    name: 'COMDecision',
+    name: 'comDecision',
     displayName: 'COM Decision',
-    choices: ['Option 1', 'Option 2', 'Option 3'], // Customize these options
-    default: 'Option 1',
+    choices: ['Undecided', 'Tentative', 'Hold', 'Accept'], // Customize these options
+    default: 'Undecided',
     required: false
 };
 
@@ -181,7 +181,8 @@ const View_AllEvents: IViewDefinition = {
         Field_ModerationStatus,
         Field_Moderator,
         Field_ModerationTimestamp,
-        Field_ModerationMessage
+        Field_ModerationMessage,
+        Field_COMDecision
     ),
     // need to sort by ID ascending in order to ensure the series master is loaded before any exceptions to the series
     query: `

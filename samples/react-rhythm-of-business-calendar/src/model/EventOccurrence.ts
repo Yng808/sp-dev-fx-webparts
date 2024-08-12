@@ -28,6 +28,8 @@ export class EventOccurrence implements IEvent {
     public get isSeriesException() { return this.event.isRecurring; } // an event occurrence is always an exception if the event is recurring
     public get isConfidential() { return this.event.isConfidential; }
     public get refinerValues() { return this.event.refinerValues; }
+    public get comDecision() { return this.event.comDecision; }
+
 
     public getWrappedEvent(): Event {
         return this.event;

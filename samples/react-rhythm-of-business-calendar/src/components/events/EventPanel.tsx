@@ -305,8 +305,12 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     </GridRow>
                     <GridRow>
                         <GridCol sm={12}>
+                            
                             <LiveText label="COM Decision" {...liveProps} propertyName='comDecision'>
-                                {val => <Text data-is-focusable>{val || "-"}</Text>}
+                                {val => {
+                                    console.log("Display Mode - COM Decision:", val);
+                                    return <Text data-is-focusable>{val || "-"}</Text>;
+                                }}
                             </LiveText>
                         </GridCol>
                     </GridRow>
@@ -564,9 +568,10 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         label="COM Decision"
                         propertyName="comDecision"
                         options={[
-                            { key: 'Option 1', text: 'Option 1' },
-                            { key: 'Option 2', text: 'Option 2' },
-                            { key: 'Option 3', text: 'Option 3' }
+                            { key: 'Undecided', text: 'Undecided' },
+                            { key: 'Tentative', text: 'Tentative' },
+                            { key: 'Hold', text: 'Hold' },
+                            { key: 'Accept', text: 'Accept' }
                         ]}
                         required={false}
                         getKeyFromValue={(val) => val}  // This assumes that the value is the key itself

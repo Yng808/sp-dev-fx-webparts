@@ -75,11 +75,11 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
     );
 
     const style: CSSProperties = useMemo(() => {
-        console.log('color is:', color);
+        
         const bgColor = color?.toCssString() || themePrimary;
         const textColor = isDarkColor(bgColor) ? 'white' : 'black';
 
-        console.log('background color:', bgColor, 'text color:' ,textColor);
+        
 
         return {
             backgroundColor: bgColor,

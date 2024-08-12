@@ -20,6 +20,7 @@ export interface IEvent {
     readonly isSeriesException: boolean;
     readonly isConfidential: boolean;
     readonly refinerValues: IManyToManyRelationship<RefinerValue>;
+    readonly comDecision: string;
     getWrappedEvent(): Event;
     getSeriesMaster(): Event;
     getExceptionOrEvent(): Event;

@@ -28,6 +28,7 @@ interface IEventListItemResult extends IListItemResult {
     RecurrenceID: SPField.Query_DateTime;
     UID: SPField.Query_Guid;
     Duration: SPField.Query_Integer;
+    comDecision: SPField.Query_Text;
 }
 
 interface IEventUpdateListItem extends IUpdateListItem {
@@ -51,11 +52,15 @@ interface IEventUpdateListItem extends IUpdateListItem {
     RecurrenceID: SPField.Update_DateTime;
     UID: SPField.Update_Guid;
     Duration: SPField.Update_Integer;
+    comDecision: SPField.Update_Text;
 }
 
 const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: ITimeZone, refinerValueLoader: RefinerValueLoader, eventsById: ReadonlyEventMap): Promise<void> => {
+    console.log("Raw data from SharePoint:", row);
     event.title = decode(row.Title);
     event.description = decode(row.Description);
+    event.comDecision = decode(row.comDecision);
+    console.log("comDecision value:", event.comDecision);
     event.location = decode(row.Location);
     event.contacts = SPField.toUsers(row.Contacts);
     event.refinerValues.set(await SPField.fromLookupMultiAsync(row.RefinerValues, refinerValueLoader.getById));
@@ -79,6 +84,7 @@ const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: IT
     event.moderationMessage = decode(row.ModerationMessage);
     event.isRecurring = SPField.fromRecurrence(row, 'fRecurrence');
     event.recurrenceUID = SPField.fromGuid(row, 'UID');
+
 
     if (event.isRecurring) {
         const seriesMasterId = SPField.fromInteger(row, 'MasterSeriesItemID');
@@ -106,6 +112,7 @@ const toUpdateListItem = (event: Event, siteTimeZone: ITimeZone): IEventUpdateLi
     return {
         Title: event.title,
         Description: event.description,
+        comDecision: event.comDecision,
         Location: event.location,
         ContactsId: SPField.fromUsers(event.contacts),
         RefinerValuesId: SPField.toLookupMulti(event.refinerValues.get()),
