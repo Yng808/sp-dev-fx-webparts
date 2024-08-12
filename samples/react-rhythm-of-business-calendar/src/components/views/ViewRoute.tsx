@@ -68,6 +68,10 @@ const ViewRoute: FC = () => {
                 const eventStart = event.start;
                 const eventEnd = event.end;
                 
+                // Conditions:
+                // 1. the event is within the current month
+                // 2. the event starts before the current month and ends either within or after the month
+                // 3. the event starts before the current month and ends after the current month
                 return (
                     eventStart.isBetween(startOfMonth, endOfMonth, null, '[]') ||
                     eventEnd.isBetween(startOfMonth, endOfMonth, null, '[]') ||

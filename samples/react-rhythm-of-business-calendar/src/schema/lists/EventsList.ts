@@ -147,6 +147,15 @@ const Field_ModerationMessage: ITextFieldDefinition = {
     required: false
 };
 
+const Field_COMDecision: IChoiceFieldDefinition = {
+    type: FieldType.Choice,
+    name: 'COMDecision',
+    displayName: 'COM Decision',
+    choices: ['Option 1', 'Option 2', 'Option 3'], // Customize these options
+    default: 'Option 1',
+    required: false // Set to true if this field should be required
+};
+
 const View_AllEvents: IViewDefinition = {
     title: "All RoB Events",
     rowLimit: 600,
@@ -220,7 +229,8 @@ export const EventsList: IEventsListDefinition = {
         Field_ModerationStatus,
         Field_Moderator,
         Field_ModerationTimestamp,
-        Field_ModerationMessage
+        Field_ModerationMessage,
+        Field_COMDecision
     ],
     views: [
         View_AllEvents

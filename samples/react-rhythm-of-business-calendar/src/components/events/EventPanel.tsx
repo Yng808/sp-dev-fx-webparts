@@ -447,6 +447,8 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                     </>}
                                 </GridCol>
                             </GridRow>
+
+                            
                         </ResponsiveGrid>
                     </GridCol>
                 </GridRow>
@@ -546,6 +548,22 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             propertyName='contacts'
                             restrictPrincipalType={PrincipalType.User}
                         />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
+                    <GridCol sm={12}>
+                    <LiveDropdown
+                        {...liveProps}
+                        label="COM Decision"
+                        propertyName="comDecision"
+                        options={[
+                            { key: 'Option 1', text: 'Option 1' },
+                            { key: 'Option 2', text: 'Option 2' },
+                            { key: 'Option 3', text: 'Option 3' }
+                        ]}
+                        required={false}
+                        getKeyFromValue={(val) => val}  // This assumes that the value is the key itself
+                    />
                     </GridCol>
                 </GridRow>
                 <GridRow>

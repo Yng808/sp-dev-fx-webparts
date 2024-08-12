@@ -31,6 +31,7 @@ interface IState {
     moderator: User | undefined;
     moderationTimestamp: Moment | undefined;
     moderationMessage: string;
+    comDecision: string;
 }
 
 export class Event extends ListItemEntity<IState> implements IEvent {
@@ -296,6 +297,15 @@ export class Event extends ListItemEntity<IState> implements IEvent {
 
     public get moderationStatus(): EventModerationStatus { return this._seriesMasterOrThisState.moderationStatus; }
     public set moderationStatus(val: EventModerationStatus) { if (!this.isSeriesException) this.state.moderationStatus = val; }
+
+    public get comDecision(): string | undefined {
+        return this.state.comDecision;
+    }
+
+    public set comDecision(value: string | undefined) {
+        this.state.comDecision = value;
+    }
+
 
     public get isPendingApproval(): boolean { return this.moderationStatus === EventModerationStatus.Pending; }
     public get isApproved(): boolean { return this.moderationStatus === EventModerationStatus.Approved; }
