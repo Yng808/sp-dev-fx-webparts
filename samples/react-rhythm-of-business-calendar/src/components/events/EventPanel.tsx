@@ -304,6 +304,13 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         </GridCol>
                     </GridRow>
                     <GridRow>
+                        <GridCol sm={12}>
+                            <LiveText label="COM Decision" {...liveProps} propertyName='comDecision'>
+                                {val => <Text data-is-focusable>{val || "-"}</Text>}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow>
+                    <GridRow>
                         {refiners.map(refiner => {
                             const transformer = {
                                 transform: (values: RefinerValue[]) => values.filter(v => v.refiner.get() === refiner),

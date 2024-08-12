@@ -153,7 +153,7 @@ const Field_COMDecision: IChoiceFieldDefinition = {
     displayName: 'COM Decision',
     choices: ['Option 1', 'Option 2', 'Option 3'], // Customize these options
     default: 'Option 1',
-    required: false // Set to true if this field should be required
+    required: false
 };
 
 const View_AllEvents: IViewDefinition = {
