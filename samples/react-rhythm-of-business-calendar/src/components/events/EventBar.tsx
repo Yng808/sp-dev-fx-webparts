@@ -61,7 +61,7 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
     const { palette: { themePrimary } } = useTheme();
     const { active: { useApprovals } } = useConfigurationService();
 
-    const { isPendingApproval, isRejected, title, start, end, isAllDay, location, tag, color, isConfidential, isRecurring } = event;
+    const { isPendingApproval, isRejected, title, start, end, isAllDay, location, tag, color, isConfidential, isRecurring, comDecision } = event;
 
     const eventClassName = css(
         styles.event,
@@ -93,13 +93,17 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
             : isAllDay ? strings.AllDay : `${start?.format('LT')} - ${end?.format('LT')}`
         );
 
+    // Prepend the first character of comDecision to the title if it exists
+    const modifiedTitle = comDecision ? `(${comDecision.charAt(0)}) ${title}` : title;
+
+
     return (
         <Stack className={eventClassName} style={style} tokens={useConst({ childrenGap: 2 })}>
             <Stack horizontal verticalAlign="center" title={title} tokens={useConst({ childrenGap: 6 })}>
                 {tag && <span>[{tag}]</span>}
                 <StackItem className={styles.text} style={{ color: style.color }}>
                     {size === EventBarSize.Compact && startTimeString && `${startTimeString}, `}
-                    {title}
+                    {modifiedTitle}
                 </StackItem>
                 {isConfidential && <LockIcon />}
                 <StackItem grow className={styles.recur}>
