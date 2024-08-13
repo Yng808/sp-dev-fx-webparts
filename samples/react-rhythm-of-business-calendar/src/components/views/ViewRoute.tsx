@@ -60,29 +60,6 @@ const ViewRoute: FC = () => {
 
     const [showOnlyCurrentMonth, setShowOnlyCurrentMonth] = useState<boolean>(false);
 
-    const filteredEvents = useMemo(() => {
-        if (showOnlyCurrentMonth) {
-            const startOfMonth = anchorDate.clone().startOf('month');
-            const endOfMonth = anchorDate.clone().endOf('month');
-            return eventsAsync.data.filter(event => {
-                const eventStart = event.start;
-                const eventEnd = event.end;
-                
-                // Conditions:
-                // 1. the event is within the current month
-                // 2. the event starts before the current month and ends either within or after the month
-                // 3. the event starts before the current month and ends after the current month
-                return (
-                    eventStart.isBetween(startOfMonth, endOfMonth, null, '[]') ||
-                    eventEnd.isBetween(startOfMonth, endOfMonth, null, '[]') ||
-                    (eventStart.isBefore(startOfMonth) && eventEnd.isAfter(startOfMonth) && eventEnd.isBefore(endOfMonth)) ||
-                    (eventStart.isBefore(startOfMonth) && eventEnd.isAfter(endOfMonth))
-                );
-            });
-        }
-        return eventsAsync.data;
-    }, [eventsAsync.data, showOnlyCurrentMonth, anchorDate]);
-    
 
 
     const [
@@ -296,11 +273,12 @@ const ViewRoute: FC = () => {
                                         <ViewNav />
                                     </Stack>
                                     <EventFilter
-                                        events={filteredEvents}
+                                        events={events}
                                         dateRange={dateRange}
                                         refiners={refiners}
                                         selectedRefinerValues={selectedRefinerValues}
                                         approvers={approvers}
+                                        showOnlyCurrentMonth={showOnlyCurrentMonth}
                                     >
                                         {cccurrences =>
                                             <View

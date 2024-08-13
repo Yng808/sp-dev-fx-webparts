@@ -2,6 +2,7 @@ import { FC, ReactElement } from "react";
 import { Entity, MomentRange, User } from "common";
 import { Approvers, Event, EventOccurrence, Refiner, RefinerValue } from "model";
 import { useConfigurationService, useDirectoryService } from "services";
+import moment from "moment";
 
 interface IProps {
     events: readonly Event[];
@@ -9,13 +10,24 @@ interface IProps {
     refiners: readonly Refiner[];
     selectedRefinerValues: Set<RefinerValue>;
     approvers: readonly Approvers[];
+    showOnlyCurrentMonth: boolean;
     children: (cccurrences: readonly EventOccurrence[]) => ReactElement;
+    
 }
 
-export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedRefinerValues, approvers, children }) => {
+
+export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedRefinerValues, approvers, showOnlyCurrentMonth, children }) => {
     const { currentUser, currentUserIsSiteAdmin } = useDirectoryService();
     const { active: { useApprovals, useRefiners } } = useConfigurationService();
     const currentUserApprovers = approvers.filter(a => a.userIsAnApprover(currentUser));
+
+    // Use the current date to calculate the start and end of the current month
+    const now = moment();
+    const startOfMonth = now.clone().startOf('month'); 
+    const endOfMonth = now.clone().endOf('month'); 
+
+
+    console.log("Start of Month:", startOfMonth.format(), "End of Month:", endOfMonth.format());
 
     const filteredEventOccurrences = events
         .filter(event => !event.isSeriesException)
@@ -38,7 +50,59 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
                     return false;
             }
         })
-        .flatMap(event => event.expandOccurrences(dateRange))
+        .flatMap(event => {
+            if (showOnlyCurrentMonth) {
+                console.log("showOnlyCurrentMonth is true, processing event ID:", event.id);
+
+                if (event.isRecurring && event.isSeriesMaster) {
+                    const occurrences = event.expandOccurrences(dateRange);
+                    console.log(`Event ID: ${event.id} - Expanded Occurrences:`, occurrences);
+
+                    return occurrences.filter(occurrence => {
+                        const occurrenceStart = occurrence.start;
+                        const occurrenceEnd = occurrence.end;
+                        const isIncluded = (
+                            occurrenceStart.isBetween(startOfMonth, endOfMonth, null, '[]') ||
+                            occurrenceEnd.isBetween(startOfMonth, endOfMonth, null, '[]') ||
+                            (occurrenceStart.isBefore(startOfMonth) && occurrenceEnd.isAfter(endOfMonth))
+                        );
+
+                        if (isIncluded) {
+                            console.log(`Occurrence Included: Start: ${occurrenceStart.format()}, End: ${occurrenceEnd.format()}`);
+                        } else {
+                            console.log(`Occurrence Excluded: Start: ${occurrenceStart.format()}, End: ${occurrenceEnd.format()}`);
+                        }
+
+                        return isIncluded;
+                    });
+                }
+
+                // Handle non-recurring events
+                const eventStart = event.start;
+                const eventEnd = event.end;
+                const isIncluded = (
+                    eventStart.isBetween(startOfMonth, endOfMonth, null, '[]') ||
+                    eventEnd.isBetween(startOfMonth, endOfMonth, null, '[]') ||
+                    (eventStart.isBefore(startOfMonth) && eventEnd.isAfter(endOfMonth))
+                );
+
+                if (isIncluded) {
+                    console.log(`Non-recurring Event Included: ID: ${event.id}, Start: ${eventStart.format()}, End: ${eventEnd.format()}`);
+                    return [new EventOccurrence(event)];
+                } else {
+                    console.log(`Non-recurring Event Excluded: ID: ${event.id}, Start: ${eventStart.format()}, End: ${eventEnd.format()}`);
+                }
+                return [];
+            } else {
+                // If not filtering by current month, return all occurrences or the event itself
+                if (event.isRecurring && event.isSeriesMaster) {
+                    const occurrences = event.expandOccurrences(dateRange);
+                    console.log(`Event ID: ${event.id} - Expanded Occurrences:`, occurrences);
+                    return occurrences;
+                }
+                return [new EventOccurrence(event)];
+            }
+        })
         .filter(occurrence => {
             const valuesByRefiner = occurrence.event.valuesByRefiner();
             return !useRefiners || refiners.every(refiner => {
