@@ -28,7 +28,7 @@ interface IEventListItemResult extends IListItemResult {
     RecurrenceID: SPField.Query_DateTime;
     UID: SPField.Query_Guid;
     Duration: SPField.Query_Integer;
-    comDecision: SPField.Query_Text;
+    comDecision: SPField.Query_Choice;
 }
 
 interface IEventUpdateListItem extends IUpdateListItem {
@@ -52,15 +52,16 @@ interface IEventUpdateListItem extends IUpdateListItem {
     RecurrenceID: SPField.Update_DateTime;
     UID: SPField.Update_Guid;
     Duration: SPField.Update_Integer;
-    comDecision: SPField.Update_Text;
+    comDecision: SPField.Update_Choice;
 }
 
 const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: ITimeZone, refinerValueLoader: RefinerValueLoader, eventsById: ReadonlyEventMap): Promise<void> => {
     console.log("Raw data from SharePoint:", row);
     event.title = decode(row.Title);
     event.description = decode(row.Description);
-    event.comDecision = decode(row.comDecision);
-    console.log("comDecision value:", event.comDecision);
+    event.comDecision = row.comDecision;
+    console.log("row.comDecision value:", row.comDecision);
+    console.log("row.title value:", row.Title);
     event.location = decode(row.Location);
     event.contacts = SPField.toUsers(row.Contacts);
     event.refinerValues.set(await SPField.fromLookupMultiAsync(row.RefinerValues, refinerValueLoader.getById));
