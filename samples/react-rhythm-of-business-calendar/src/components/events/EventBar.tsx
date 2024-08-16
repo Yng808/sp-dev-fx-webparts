@@ -63,7 +63,7 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
 
     const { isPendingApproval, isRejected, title, start, end, isAllDay, location, tag, color, isConfidential, isRecurring, comDecision } = event;
 
-    console.log("startsIn:", startsIn, " endsIn:", endsIn);
+    //console.log("startsIn:", startsIn, " endsIn:", endsIn);
 
     const eventClassName = css(
         styles.event,

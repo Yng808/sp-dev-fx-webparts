@@ -155,7 +155,7 @@ const ViewRoute: FC = () => {
             },
             {
                 key: 'filter-current-month',
-                text: 'Show Only Current Month',
+                text: 'Hide events/trips outside current month',
                 iconProps: { iconName: showOnlyCurrentMonth ? 'CheckboxComposite' : 'Checkbox' },
                 onClick: () => setShowOnlyCurrentMonth(!showOnlyCurrentMonth)
             }

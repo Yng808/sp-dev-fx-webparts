@@ -27,7 +27,7 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
     const endOfMonth = now.clone().endOf('month'); 
 
     // Log the initial set of events
-    console.log('Initial Events:', events);
+    //console.log('Initial Events:', events);
     //console.log("Start of Month:", startOfMonth.format(), "End of Month:", endOfMonth.format());
 
     const filteredEventOccurrences = events
@@ -53,11 +53,11 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
         })
         .flatMap(event => {
             if (showOnlyCurrentMonth) {
-                console.log("showOnlyCurrentMonth is true, processing event ID:", event.id);
+                //console.log("showOnlyCurrentMonth is true, processing event ID:", event.id);
 
                 if (event.isRecurring && event.isSeriesMaster) {
                     const occurrences = event.expandOccurrences(dateRange);
-                    console.log(`Event ID: ${event.id} - Expanded Occurrences:`, occurrences);
+                    //console.log(`Event ID: ${event.id} - Expanded Occurrences:`, occurrences);
 
                     return occurrences.filter(occurrence => {
                         const occurrenceStart = occurrence.start;

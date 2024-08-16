@@ -91,8 +91,8 @@ class DailyCadenceGenerator implements ICadenceGenerator {
         const { every } = this._daily;
         const weekdaysOnly = false;
         const current = start.clone();
-        console.log("WeekdaysOnly:", weekdaysOnly);
-        console.log("Every:", );
+        //console.log("WeekdaysOnly:", weekdaysOnly);
+        //console.log("Every:", );
         while (true) {
             if (weekdaysOnly) {
                 if (current.day() === 0)
@@ -104,10 +104,10 @@ class DailyCadenceGenerator implements ICadenceGenerator {
 
             yield current.clone();
 
-            console.log("Yielding date:", current.format('YYYY-MM-DD'));
+            //console.log("Yielding date:", current.format('YYYY-MM-DD'));
 
             current.add(weekdaysOnly ? 1 : every, 'days');
-            console.log("Adding days, new date:", current.format('YYYY-MM-DD'));
+            //console.log("Adding days, new date:", current.format('YYYY-MM-DD'));
         }
     }
 }

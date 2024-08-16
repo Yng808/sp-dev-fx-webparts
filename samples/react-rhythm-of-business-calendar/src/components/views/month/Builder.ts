@@ -59,7 +59,7 @@ export class ContentRowInfo {
         const endPosition = endsInWeek ? end.day() + 1 : 7;
         const duration = endPosition - startPosition;
         
-        console.log('Event:', cccurrence.title);
+        /* console.log('Event:', cccurrence.title);
         console.log('Start Position:', startPosition);
         console.log('End Position:', endPosition);
         console.log('Duration:', duration);
@@ -68,7 +68,8 @@ export class ContentRowInfo {
         console.log('this.startdate:', this._startDate);
         console.log('start', start);
         console.log('this.endDate:', this._endDate);
-        console.log('occurence:', cccurrence);
+        console.log('occurence:', cccurrence); */
+
         const shimDuration = startPosition - this.lastUsedPosition();
         if (shimDuration > 0) {
             this.items.push(new ShimItemInfo(shimDuration));

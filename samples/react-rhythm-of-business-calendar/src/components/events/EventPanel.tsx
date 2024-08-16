@@ -282,13 +282,13 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             </GridCol>
                         </GridRow>
                     }
-                    <GridRow>
+                    {/* <GridRow>
                         <GridCol sm={12}>
                             <LiveText label={strings.Field_Location.Label} {...liveProps} propertyName='location'>
                                 {val => <Text data-is-focusable>{val || "-"}</Text>}
                             </LiveText>
                         </GridCol>
-                    </GridRow>
+                    </GridRow> */}
                     <GridRow>
                         <GridCol sm={12}>
                             <LiveText label={strings.Field_Description.Label} {...liveProps} propertyName='description'>
@@ -529,7 +529,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         </GridCol>
                     </GridRow>
                 }
-                <GridRow>
+                {/* <GridRow>
                     <GridCol sm={12}>
                         <LiveTextField
                             {...liveProps}
@@ -538,7 +538,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             rules={Event.LocationValidations}
                         />
                     </GridCol>
-                </GridRow>
+                </GridRow> */}
                 <GridRow>
                     <GridCol sm={12}>
                         <LiveTextField

@@ -56,7 +56,7 @@ interface IEventUpdateListItem extends IUpdateListItem {
 }
 
 const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: ITimeZone, refinerValueLoader: RefinerValueLoader, eventsById: ReadonlyEventMap): Promise<void> => {
-    console.log("Raw data from SharePoint:", row);
+    //console.log("Raw data from SharePoint:", row);
     event.title = decode(row.Title);
     event.description = decode(row.Description);
     event.comDecision = row.comDecision;
