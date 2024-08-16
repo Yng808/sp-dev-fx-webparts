@@ -1,8 +1,8 @@
 {
     "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
     "solution": {
-        "name": "LOCAL Rhythm of Business Calendar",
-        "id": "37df9a1c-b53e-46ad-9efb-2e4da77a724f",
+        "name": "Rhythm of Business Calendar",
+        "id": "8588904e-d33f-40ac-9ee0-2fcfcfb0ebc2",
         "version": "1.0.0.0",
         "includeClientSideAssets": true,
         "skipFeatureDeployment": true,
@@ -15,6 +15,6 @@
         }
     },
     "paths": {
-        "zippedPackage": "solution/RhythmOfBusinessCalendar-LOCAL.sppkg"
+        "zippedPackage": "solution/RhythmOfBusinessCalendar.sppkg"
     }
 }

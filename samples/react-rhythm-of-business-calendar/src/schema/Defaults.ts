@@ -6,7 +6,7 @@ const Environments = {
     PROD: { Prefix: '' }
 };
 
-const Environment = Environments.LOCAL;
+const Environment = Environments.PROD;
 const AppPrefix = "RoB Calendar";
 
 const combine = (...segments: string[]) => segments.join(' ').trim();

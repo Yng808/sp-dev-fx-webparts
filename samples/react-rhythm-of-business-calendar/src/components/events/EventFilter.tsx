@@ -26,8 +26,9 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
     const startOfMonth = now.clone().startOf('month'); 
     const endOfMonth = now.clone().endOf('month'); 
 
-
-    console.log("Start of Month:", startOfMonth.format(), "End of Month:", endOfMonth.format());
+    // Log the initial set of events
+    console.log('Initial Events:', events);
+    //console.log("Start of Month:", startOfMonth.format(), "End of Month:", endOfMonth.format());
 
     const filteredEventOccurrences = events
         .filter(event => !event.isSeriesException)
@@ -116,5 +117,6 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
             });
         });
 
+    console.log("filteredEvents from EventFilter.tsx: ", filteredEventOccurrences);
     return children(filteredEventOccurrences);
 };

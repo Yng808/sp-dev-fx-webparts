@@ -84,6 +84,7 @@ export class AsyncData<T, K = any> extends AsyncDataBase<T> {
             this.data = data || this.data;
             this.done = true;
             this._promiseResolveFn(this.data);
+            console.log("Data loaded from asyncData:", this.data);
             this.notifyHandlers();
         }
     }

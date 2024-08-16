@@ -58,7 +58,17 @@ export class ContentRowInfo {
         const startPosition = startsInWeek ? start.day() : 0;
         const endPosition = endsInWeek ? end.day() + 1 : 7;
         const duration = endPosition - startPosition;
-
+        
+        console.log('Event:', cccurrence.title);
+        console.log('Start Position:', startPosition);
+        console.log('End Position:', endPosition);
+        console.log('Duration:', duration);
+        console.log('startsInWeek:', startsInWeek);
+        console.log('endsInWeek:', endsInWeek);
+        console.log('this.startdate:', this._startDate);
+        console.log('start', start);
+        console.log('this.endDate:', this._endDate);
+        console.log('occurence:', cccurrence);
         const shimDuration = startPosition - this.lastUsedPosition();
         if (shimDuration > 0) {
             this.items.push(new ShimItemInfo(shimDuration));
@@ -83,15 +93,21 @@ export class WeekInfo {
     }
 
     public include(cccurrence: EventOccurrence) {
+        console.log('Processing Event:', cccurrence.title, 'Start:', cccurrence.start.format(), 'End:', cccurrence.end.format());
+    
         if (MomentRange.overlaps(cccurrence, this)) {
-            let availableRow = this.contentRows.find(row => row.canInclude(cccurrence));
-
-            if (!availableRow) {
-                availableRow = new ContentRowInfo(this.start, this.end);
-                this.contentRows.push(availableRow);
+            // Ensure the event is only included in the correct week
+            const isEventInCurrentWeek = cccurrence.start.isSameOrBefore(this.end) && cccurrence.end.isSameOrAfter(this.start);
+            if (isEventInCurrentWeek) {
+                let availableRow = this.contentRows.find(row => row.canInclude(cccurrence));
+    
+                if (!availableRow) {
+                    availableRow = new ContentRowInfo(this.start, this.end);
+                    this.contentRows.push(availableRow);
+                }
+    
+                availableRow.include(cccurrence);
             }
-
-            availableRow.include(cccurrence);
         }
     }
 }
@@ -100,6 +116,8 @@ export class Builder {
     public static dateRange(anchorDate: Moment): MomentRange {
         const start = anchorDate.clone().startOf('month').startOf('week');
         const end = anchorDate.clone().endOf('month').endOf('week');
+        console.log("Start (from Builder): ", start);
+        console.log("End (from Builder): ", end);
         return { start, end };
     }
 
