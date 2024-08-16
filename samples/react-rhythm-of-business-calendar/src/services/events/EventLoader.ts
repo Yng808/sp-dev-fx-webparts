@@ -60,7 +60,7 @@ const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: IT
     event.title = decode(row.Title);
     event.description = decode(row.Description);
     event.comDecision = row.comDecision;
-    console.log("comDecision value:", event.comDecision);
+
     event.location = decode(row.Location);
     event.contacts = SPField.toUsers(row.Contacts);
     event.refinerValues.set(await SPField.fromLookupMultiAsync(row.RefinerValues, refinerValueLoader.getById));
