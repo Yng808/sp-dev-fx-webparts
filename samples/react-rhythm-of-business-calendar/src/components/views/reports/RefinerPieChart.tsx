@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { EventOccurrence } from 'model';
-import { DetailsList, DetailsListLayoutMode, IColumn } from '@fluentui/react';
+import { DetailsList, DetailsListLayoutMode, IColumn, Stack } from '@fluentui/react';
 
 interface RefinerPieChartProps {
     cccurrences: readonly EventOccurrence[];
@@ -49,7 +49,7 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             fieldName: 'refinerValue',
             minWidth: 100,
             maxWidth: 200,
-            isResizable: true,
+            isResizable: false,
         },
         {
             key: 'column2',
@@ -57,7 +57,7 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             fieldName: 'count',
             minWidth: 50,
             maxWidth: 100,
-            isResizable: true,
+            isResizable: false,
         },
         {
             key: 'column3',
@@ -65,45 +65,90 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             fieldName: 'percentage',
             minWidth: 100,
             maxWidth: 150,
-            isResizable: true,
+            isResizable: false,
         }
     ];
 
+    const renderChartAndTable = () => (
+        <div>
+                    <Plot
+                        data={[
+                            {
+                                type: 'pie',
+                                labels: data.labels,
+                                values: data.values,
+                                textinfo: 'label+value+percent',  
+                                textposition: 'outside',
+                                pull: 0.05,
+                                marker: {
+                                    line: {
+                                        color: '#000000', // Optional: color of slice borders
+                                        width: 1
+                                    }
+                                },
+                                hoverinfo: 'label+value+percent',  
+                                automargin: true,
+                            },
+                        ]}
+                        layout={{ 
+                            title: {
+                                text:'Event Types Distribution',
+                                pad: {
+                                    b: 20
+                                }
+                                
+                            }, 
+                            showlegend: true,
+                            legend: {
+                                orientation: 'h',  // Horizontal legend
+                                x: 0.5,            // Center the legend horizontally
+                                xanchor: 'center', // Align legend center to x position
+                                y: -0.4            // Move the legend below the chart
+                            },
+                            margin: { t: 80, b: 70, l: 30, r: 30 } 
+                        }}
+                        style={{ width: '100%', height: '100%' }}
+                    />
+                    <DetailsList
+                            items={data.items}
+                            columns={columns}
+                            setKey="set"
+                            layoutMode={DetailsListLayoutMode.fixedColumns}
+                            selectionPreservedOnEmptyClick={true}
+                            ariaLabelForSelectionColumn="Toggle selection"
+                            checkButtonAriaLabel="Row checkbox"
+                    />
+            </div>
+    );
 
     return (
-        <div>
-        <Plot
-            data={[
-                {
-                    type: 'pie',
-                    labels: data.labels,
-                    values: data.values,
-                    textinfo: 'label+value+percent',  
-                    textposition: 'outside',
-                    pull: 0.05,
-                    marker: {
-                        line: {
-                            color: '#000000', // Optional: color of slice borders
-                            width: 1
-                        }
+        <Stack
+            horizontal
+            wrap
+            tokens={{ childrenGap: 10 }}
+            styles={{
+                root: {
+                    marginTop: 20,
+                    '@media (max-width: 1024px)': { // Medium screens (e.g., tablets)
+                        flexDirection: 'column',
+                        alignItems: 'center',
                     },
-                    hoverinfo: 'label+value+percent',  
-                    automargin: true,
+                    '@media (min-width: 1025px)': { // Larger screens
+                        justifyContent: 'space-between',
+                    },
                 },
-            ]}
-            layout={{ title: 'Refiner Values Distribution', showlegend: true }}
-            style={{ width: '100%', height: '100%' }}
-        />
-        <DetailsList
-                items={data.items}
-                columns={columns}
-                setKey="set"
-                layoutMode={DetailsListLayoutMode.fixedColumns}
-                selectionPreservedOnEmptyClick={true}
-                ariaLabelForSelectionColumn="Toggle selection"
-                checkButtonAriaLabel="Row checkbox"
-            />
-        </div>
+            }}
+        >
+            <Stack.Item grow styles={{ root: { width: 400, textAlign: 'center' } }}>
+                {renderChartAndTable()}
+            </Stack.Item>
+            <Stack.Item grow styles={{ root: { width: 400, textAlign: 'center' } }}>
+                {renderChartAndTable()}
+            </Stack.Item>
+            <Stack.Item grow styles={{ root: { width: 400, textAlign: 'center' } }}>
+                {renderChartAndTable()}
+            </Stack.Item>
+        </Stack>
     );
 };
 
