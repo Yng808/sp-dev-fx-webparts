@@ -27,7 +27,7 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
     const endOfMonth = now.clone().endOf('month'); 
 
     // Log the initial set of events
-    //console.log('Initial Events:', events);
+    console.log('Initial Events:', events);
     //console.log("Start of Month:", startOfMonth.format(), "End of Month:", endOfMonth.format());
 
     const filteredEventOccurrences = events

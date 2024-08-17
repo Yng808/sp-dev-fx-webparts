@@ -4,12 +4,14 @@ import { IViewDescriptor } from "./IViewDescriptor";
 //import { WeekViewDescriptor } from "./week/WeekView";
 import { MonthViewDescriptor } from "./month/MonthView";
 import { QuarterViewDescriptor } from "./quarter/QuarterView";
+import { PieChartViewDescriptor } from "./reports/PieChartView";
 
 export const ViewDescriptors: IViewDescriptor[] = [
     //DayViewDescriptor,
     //WeekViewDescriptor,
     MonthViewDescriptor,
-    QuarterViewDescriptor
+    QuarterViewDescriptor,
+    PieChartViewDescriptor
 ];
 
 export const ViewDescriptorsById = arrayToMap(ViewDescriptors, v => v.id);
