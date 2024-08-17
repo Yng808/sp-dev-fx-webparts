@@ -14,17 +14,23 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
         items: []
     });
 
+    const [sortColumn, setSortColumn] = useState<string | undefined>(undefined);
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+
     useEffect(() => {
         const refinerValueCounts: { [key: string]: number } = {};
-
+        
         // Count the occurrences by refiner value
         cccurrences.forEach(cccurrence => {
             const valuesByRefiner = cccurrence.event.valuesByRefiner();
-            valuesByRefiner.forEach((values) => {
-                values.forEach(value => {
-                    const refinerValue = value.title;
-                    refinerValueCounts[refinerValue] = (refinerValueCounts[refinerValue] || 0) + 1;
-                });
+            valuesByRefiner.forEach((values, refiner) => {
+                if (refiner.id === 1) {
+                    values.forEach(value => {
+                        const refinerValue = value.title;
+                        refinerValueCounts[refinerValue] = (refinerValueCounts[refinerValue] || 0) + 1;
+                    });
+                }                
             });
         });
 
@@ -42,6 +48,22 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
         setData({ labels, values, items });
     }, [cccurrences]);
 
+
+    const onColumnClick = (ev: React.MouseEvent<HTMLElement>, column: IColumn): void => {
+        const newDirection = sortColumn === column.key && sortDirection === 'asc' ? 'desc' : 'asc';
+        const sortedItems = [...data.items].sort((a, b) => {
+            if (newDirection === 'asc') {
+                return a[column.fieldName as keyof typeof a] > b[column.fieldName as keyof typeof a] ? 1 : -1;
+            } else {
+                return a[column.fieldName as keyof typeof a] < b[column.fieldName as keyof typeof a] ? 1 : -1;
+            }
+        });
+
+        setData({ ...data, items: sortedItems });
+        setSortColumn(column.key);
+        setSortDirection(newDirection);
+    };
+
     const columns: IColumn[] = [
         {
             key: 'column1',
@@ -50,6 +72,9 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             minWidth: 100,
             maxWidth: 200,
             isResizable: false,
+            isSorted: sortColumn === 'refinerValue',
+            isSortedDescending: sortColumn === 'refinerValue' && sortDirection === 'desc',
+            onColumnClick: onColumnClick,
         },
         {
             key: 'column2',
@@ -58,14 +83,20 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             minWidth: 50,
             maxWidth: 100,
             isResizable: false,
+            isSorted: sortColumn === 'count',
+            isSortedDescending: sortColumn === 'count' && sortDirection === 'desc',
+            onColumnClick: onColumnClick,
         },
         {
             key: 'column3',
             name: 'Percentage',
             fieldName: 'percentage',
-            minWidth: 100,
+            minWidth: 50,
             maxWidth: 150,
             isResizable: false,
+            isSorted: sortColumn === 'percentage',
+            isSortedDescending: sortColumn === 'percentage' && sortDirection === 'desc',
+            onColumnClick: onColumnClick,
         }
     ];
 
