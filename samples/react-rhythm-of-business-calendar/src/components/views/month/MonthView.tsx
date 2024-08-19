@@ -24,7 +24,7 @@ const MonthView: FC<IViewProps> = ({ anchorDate, eventCommands, viewCommands, cc
             valuesByRefiner.forEach((values, refiner) => {
                 console.log(`Refiner ID: ${refiner.id}, Order: ${refiner.order}, Required: ${refiner.required}`);
                 values.forEach(value => {
-                    console.log(` - Value: ${value.title}, Tag: ${value.tag}, Color: ${value.color.toString()}, Active: ${value.isActive}`);
+                    console.log(` - Value: ${value.title}, Tag: ${value.tag}, Color: ${value.color.toHexString()}, Active: ${value.isActive}`);
                 });
             });
         });

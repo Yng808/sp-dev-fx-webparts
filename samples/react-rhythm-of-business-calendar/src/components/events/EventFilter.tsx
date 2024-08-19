@@ -69,9 +69,9 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
                         );
 
                         if (isIncluded) {
-                            console.log(`Occurrence Included: Start: ${occurrenceStart.format()}, End: ${occurrenceEnd.format()}`);
+                            //console.log(`Occurrence Included: Start: ${occurrenceStart.format()}, End: ${occurrenceEnd.format()}`);
                         } else {
-                            console.log(`Occurrence Excluded: Start: ${occurrenceStart.format()}, End: ${occurrenceEnd.format()}`);
+                            //console.log(`Occurrence Excluded: Start: ${occurrenceStart.format()}, End: ${occurrenceEnd.format()}`);
                         }
 
                         return isIncluded;
@@ -88,17 +88,17 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
                 );
 
                 if (isIncluded) {
-                    console.log(`Non-recurring Event Included: ID: ${event.id}, Start: ${eventStart.format()}, End: ${eventEnd.format()}`);
+                    //console.log(`Non-recurring Event Included: ID: ${event.id}, Start: ${eventStart.format()}, End: ${eventEnd.format()}`);
                     return [new EventOccurrence(event)];
                 } else {
-                    console.log(`Non-recurring Event Excluded: ID: ${event.id}, Start: ${eventStart.format()}, End: ${eventEnd.format()}`);
+                    //console.log(`Non-recurring Event Excluded: ID: ${event.id}, Start: ${eventStart.format()}, End: ${eventEnd.format()}`);
                 }
                 return [];
             } else {
                 // If not filtering by current month, return all occurrences or the event itself
                 if (event.isRecurring && event.isSeriesMaster) {
                     const occurrences = event.expandOccurrences(dateRange);
-                    console.log(`Event ID: ${event.id} - Expanded Occurrences:`, occurrences);
+                    //console.log(`Event ID: ${event.id} - Expanded Occurrences:`, occurrences);
                     return occurrences;
                 }
                 return [new EventOccurrence(event)];
@@ -117,6 +117,6 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
             });
         });
 
-    console.log("filteredEvents from EventFilter.tsx: ", filteredEventOccurrences);
+    //console.log("filteredEvents from EventFilter.tsx: ", filteredEventOccurrences);
     return children(filteredEventOccurrences);
 };

@@ -8,9 +8,10 @@ interface RefinerPieChartProps {
 }
 
 const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
-    const [data, setData] = useState<{ labels: string[], values: number[], items: any[] }>({
+    const [data, setData] = useState<{ labels: string[], values: number[], colors: string[], items: any[] }>({
         labels: [],
         values: [],
+        colors: [],
         items: []
     });
 
@@ -19,16 +20,20 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
 
 
     useEffect(() => {
-        const refinerValueCounts: { [key: string]: number } = {};
+        const refinerValueCounts: { [key: string]: {count: number, color: string} } = {};
         
         // Count the occurrences by refiner value
         cccurrences.forEach(cccurrence => {
             const valuesByRefiner = cccurrence.event.valuesByRefiner();
             valuesByRefiner.forEach((values, refiner) => {
-                if (refiner.id === 1) {
+                if (refiner.id === 1) { //hard coded the specific refiner to look at for now
                     values.forEach(value => {
                         const refinerValue = value.title;
-                        refinerValueCounts[refinerValue] = (refinerValueCounts[refinerValue] || 0) + 1;
+                        if (!refinerValueCounts[refinerValue]) {
+                            refinerValueCounts[refinerValue] = { count: 0, color: value.color.toHexString() };
+                            
+                        }
+                        refinerValueCounts[refinerValue].count += 1;
                     });
                 }                
             });
@@ -36,7 +41,8 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
 
         // Prepare data for the pie chart and table
         const labels = Object.keys(refinerValueCounts);
-        const values = Object.values(refinerValueCounts);
+        const values = labels.map(label => refinerValueCounts[label].count);
+        const colors = labels.map(label => refinerValueCounts[label].color);
         const total = values.reduce((sum, value) => sum + value, 0);
         const items = labels.map((label, index) => ({
             key: index,
@@ -45,9 +51,12 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             percentage: `${((values[index] / total) * 100).toFixed(2)}%`
         }));
 
-        setData({ labels, values, items });
+        
+
+        setData({ labels, values, colors, items });
     }, [cccurrences]);
 
+    
 
     const onColumnClick = (ev: React.MouseEvent<HTMLElement>, column: IColumn): void => {
         const newDirection = sortColumn === column.key && sortDirection === 'asc' ? 'desc' : 'asc';
@@ -112,6 +121,7 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
                                 textposition: 'outside',
                                 pull: 0.05,
                                 marker: {
+                                    colors: data.colors,
                                     line: {
                                         color: '#000000', // Optional: color of slice borders
                                         width: 1
@@ -131,12 +141,17 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
                             }, 
                             showlegend: true,
                             legend: {
-                                orientation: 'h',  // Horizontal legend
-                                x: 0.5,            // Center the legend horizontally
-                                xanchor: 'center', // Align legend center to x position
-                                y: -0.4            // Move the legend below the chart
+                                orientation: 'v',  // Horizontal legend
+                                x: 1.5,            // Center the legend horizontally
+                                xanchor: 'left', // Align legend center to x position
+                                y: 0.5,            // Move the legend below the chart
+                                yanchor: 'middle',
+                                font: {
+                                    size: 10,
+                                },
                             },
-                            margin: { t: 80, b: 70, l: 30, r: 30 } 
+                            margin: { t: 50, b: 70, l: 30, r: 100 },
+                            height: 500, 
                         }}
                         style={{ width: '100%', height: '100%' }}
                     />

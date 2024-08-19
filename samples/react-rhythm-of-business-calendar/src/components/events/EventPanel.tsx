@@ -308,7 +308,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             
                             <LiveText label="COM Decision" {...liveProps} propertyName='comDecision'>
                                 {val => {
-                                    console.log("Display Mode - COM Decision:", val);
+                                    //console.log("Display Mode - COM Decision:", val);
                                     return <Text data-is-focusable>{val || "-"}</Text>;
                                 }}
                             </LiveText>
