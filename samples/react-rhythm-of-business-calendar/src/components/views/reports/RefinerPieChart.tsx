@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { EventOccurrence } from 'model';
-import { DetailsList, DetailsListLayoutMode, IColumn, IDetailsListStyles, Stack } from '@fluentui/react';
+import { DetailsList, DetailsListLayoutMode, IColumn, IDetailsListStyles, SelectionMode, Stack } from '@fluentui/react';
 import moment from 'moment';
 
 interface RefinerPieChartProps {
@@ -96,35 +96,29 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
         items: []
     });
 
- 
-
-
     const [fytdData, setFytdData] = useState<{ labels: string[], values: number[], colors: string[], items: any[] }>({ labels: [], values: [], colors: [], items: [] });
     const [previousMonthData, setPreviousMonthData] = useState<{ labels: string[], values: number[], colors: string[], items: any[] }>({ labels: [], values: [], colors: [], items: [] });
     const [currentMonthData, setCurrentMonthData] = useState<{ labels: string[], values: number[], colors: string[], items: any[] }>({ labels: [], values: [], colors: [], items: [] });
-
-
     const [sortColumn, setSortColumn] = useState<string | undefined>(undefined);
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
     const { currentMonthName, previousMonthName } = getCurrentAndPreviousMonthNames();
 
-    useEffect(() => {
-        const refinerValueCounts: { [key: string]: {count: number, color: string} } = {};
-        
+    const getFilteredData = (filteredEvents: readonly EventOccurrence[]) => {
+        const refinerValueCounts: { [key: string]: { count: number, color: string } } = {};
+
         // Count the occurrences by refiner value
-        cccurrences.forEach(cccurrence => {
+        filteredEvents.forEach(cccurrence => {
             const valuesByRefiner = cccurrence.event.valuesByRefiner();
             valuesByRefiner.forEach((values, refiner) => {
-                if (refiner.id === 1) { //hard coded the specific refiner to look at for now
+                if (refiner.id === 1) { // hard coded the specific refiner to look at for now
                     values.forEach(value => {
                         const refinerValue = value.title;
                         if (!refinerValueCounts[refinerValue]) {
                             refinerValueCounts[refinerValue] = { count: 0, color: value.color.toHexString() };
-                            
                         }
                         refinerValueCounts[refinerValue].count += 1;
                     });
-                }                
+                }
             });
         });
 
@@ -140,12 +134,33 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             percentage: `${((values[index] / total) * 100).toFixed(2)}%`
         }));
 
-        
+        return { labels, values, colors, items };
+    };
 
-        setData({ labels, values, colors, items });
+    useEffect(() => {
+        // Filter and sort data for FYTD with default sort on 'count' in descending order
+        const sortedFytdData = getFilteredData(filterEventsForFYTD(cccurrences));
+        sortedFytdData.items.sort((a, b) => b.count - a.count);
+        setFytdData(sortedFytdData);
+
+        // Filter and sort data for the previous month with default sort on 'count' in descending order
+        const sortedPreviousMonthData = getFilteredData(filterEventsForPreviousMonth(cccurrences));
+        sortedPreviousMonthData.items.sort((a, b) => b.count - a.count);
+        setPreviousMonthData(sortedPreviousMonthData);
+
+        // Filter and sort data for the current month with default sort on 'count' in descending order
+        const sortedCurrentMonthData = getFilteredData(filterEventsForCurrentMonth(cccurrences));
+        sortedCurrentMonthData.items.sort((a, b) => b.count - a.count);
+        setCurrentMonthData(sortedCurrentMonthData);
+
+        // Set the default sort state
+        setSortColumn('count');
+        setSortDirection('desc');
     }, [cccurrences]);
 
     
+    
+
 
     const onColumnClick = (ev: React.MouseEvent<HTMLElement>, column: IColumn): void => {
         const newDirection = sortColumn === column.key && sortDirection === 'asc' ? 'desc' : 'asc';
@@ -165,7 +180,7 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
     const columns: IColumn[] = [
         {
             key: 'column1',
-            name: 'Refiner Value',
+            name: 'Type',
             fieldName: 'refinerValue',
             minWidth: 200,
             maxWidth: 200,
@@ -198,8 +213,8 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
         }
     ];
 
-    const renderChartAndTable = (title: string) => (
-        <div>
+    const renderChartAndTable = (title: string, data: { labels: string[], values: number[], colors: string[], items: any[] }) => (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                     <Plot
                         data={[
                             {
@@ -208,37 +223,51 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
                                 values: data.values,
                                 textinfo: 'label+value+percent',  
                                 textposition: 'outside',
-                                pull: 0.05,
+                                pull: 0.02,
                                 marker: {
-                                    colors: data.colors,
-                                    
+                                    colors: data.colors,                                    
+                                },
+                                textfont: {
+                                    size: 12,
+                                    color: '#000000',
+                                    family: 'Arial, sans-serif'
                                 },
                                 hoverinfo: 'label+value+percent',  
                                 automargin: true,
+                               
                             },
                         ]}
                         layout={{ 
                             title: {
                                 text: title,
+                                x: 0.5,  // Center the title
+                                xanchor: 'center',
                                 pad: {
-                                    b: 20
-                                }
-                                
+                                    b: 10
+                                },
+                                font: {
+                                    size: 24,  // Set the font size
+                                    family: 'Arial, sans-serif',  // Optionally set the font family
+                                    color: '#000000',  // Optionally set the color
+                                },
+                                                               
                             }, 
-                            showlegend: true,
+                            showlegend: false,
                             legend: {
-                                orientation: 'v',  // vertical legend
-                                x: 1.5,            // Center the legend horizontally
-                                xanchor: 'left', // Align legend center to x position
-                                y: 0.5,            // Move the legend below the chart
-                                yanchor: 'middle',
+                                orientation: 'h',  
+                                x: 0.5,            // Center the legend horizontally
+                                xanchor: 'center', // Align legend center to x position
+                                y: -1,            // Move the legend below the chart
+                                yanchor:'top',
                                 font: {
                                     size: 10,
                                 },
+                                
                             },
-                            margin: { t: 50, b: 70, l: 30, r: 100 },
-                            height: 550, 
-                            width: 450,
+                            margin: { t: 150, b: 100, l: 20, r: 20 },
+                            height: 620, 
+                            width: 500,
+                            
                         }}
                         style={{ width: '100%', height: '100%' }}
                     />
@@ -251,6 +280,7 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
                             ariaLabelForSelectionColumn="Toggle selection"
                             checkButtonAriaLabel="Row checkbox"
                             styles={detailsListStyles}
+                            selectionMode={SelectionMode.none} 
                     />
             </div>
     );
@@ -263,6 +293,10 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             styles={{
                 root: {
                     marginTop: 20,
+                    display: 'flex',
+                    justifyContent: 'center',  // Center the charts within the container
+                    alignItems: 'flex-start',  // Align items at the top
+                    flexWrap: 'wrap',          // Allow wrapping if necessary
                     '@media (max-width: 1024px)': { // Medium screens (e.g., tablets)
                         flexDirection: 'column',
                         alignItems: 'center',
@@ -274,13 +308,13 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             }}
         >
             <Stack.Item grow styles={{ root: { width: 400, textAlign: 'center' } }}>
-                {renderChartAndTable("FY to date")}
+                {renderChartAndTable("FY to date", fytdData)}
             </Stack.Item>
             <Stack.Item grow styles={{ root: { width: 400, textAlign: 'center' } }}>
-                {renderChartAndTable(previousMonthName)}
+                {renderChartAndTable(previousMonthName, previousMonthData)}
             </Stack.Item>
             <Stack.Item grow styles={{ root: { width: 400, textAlign: 'center' } }}>
-                {renderChartAndTable(currentMonthName)}
+                {renderChartAndTable(currentMonthName, currentMonthData)}
             </Stack.Item>
         </Stack>
     );
