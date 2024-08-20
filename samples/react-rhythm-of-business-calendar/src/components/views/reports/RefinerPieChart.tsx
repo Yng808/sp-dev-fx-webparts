@@ -2,13 +2,55 @@ import React, { FC, useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { EventOccurrence } from 'model';
 import { DetailsList, DetailsListLayoutMode, IColumn, IDetailsListStyles, Stack } from '@fluentui/react';
+import moment from 'moment';
 
 interface RefinerPieChartProps {
     cccurrences: readonly EventOccurrence[];
 }
 
+
+// Filter function definitions
+const filterEventsForFYTD = (cccurrences: readonly EventOccurrence[]) => {
+    const currentDate = moment();
+    const fiscalYearStart = moment(currentDate).month(9).date(1).startOf('day'); // October 1 of the previous fiscal year
+    if (currentDate.month() < 9) {
+        fiscalYearStart.subtract(1, 'year'); // If current month is before October, subtract one year
+    }
+    const fiscalYearEnd = currentDate.clone().endOf('day'); // End of the current date
+
+    return cccurrences.filter(cccurrence => {
+        const eventStartDate = cccurrence.event.start;
+        const eventEndDate = cccurrence.event.end;
+        return (eventStartDate.isBefore(fiscalYearEnd) && eventEndDate.isAfter(fiscalYearStart));
+    });
+};
+
+const filterEventsForPreviousMonth = (cccurrences: readonly EventOccurrence[]) => {
+    const currentDate = moment();
+    const previousMonthStart = currentDate.clone().subtract(1, 'month').startOf('month');
+    const previousMonthEnd = previousMonthStart.clone().endOf('month');
+
+    return cccurrences.filter(cccurrence => {
+        const eventStartDate = cccurrence.event.start;
+        const eventEndDate = cccurrence.event.end;
+        return (eventStartDate.isBefore(previousMonthEnd) && eventEndDate.isAfter(previousMonthStart));
+    });
+};
+
+const filterEventsForCurrentMonth = (cccurrences: readonly EventOccurrence[]) => {
+    const currentDate = moment();
+    const currentMonthStart = currentDate.clone().startOf('month');
+    const currentMonthEnd = currentDate.clone().endOf('month');
+
+    return cccurrences.filter(cccurrence => {
+        const eventStartDate = cccurrence.event.start;
+        const eventEndDate = cccurrence.event.end;
+        return (eventStartDate.isBefore(currentMonthEnd) && eventEndDate.isAfter(currentMonthStart));
+    });
+};
+
+
 // custom table styles
-// Define your custom styles
 const detailsListStyles: Partial<IDetailsListStyles> = {
     headerWrapper: {
         selectors: {
@@ -53,6 +95,14 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
         colors: [],
         items: []
     });
+
+ 
+
+
+    const [fytdData, setFytdData] = useState<{ labels: string[], values: number[], colors: string[], items: any[] }>({ labels: [], values: [], colors: [], items: [] });
+    const [previousMonthData, setPreviousMonthData] = useState<{ labels: string[], values: number[], colors: string[], items: any[] }>({ labels: [], values: [], colors: [], items: [] });
+    const [currentMonthData, setCurrentMonthData] = useState<{ labels: string[], values: number[], colors: string[], items: any[] }>({ labels: [], values: [], colors: [], items: [] });
+
 
     const [sortColumn, setSortColumn] = useState<string | undefined>(undefined);
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
