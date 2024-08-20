@@ -5,7 +5,7 @@ import { ViewKeys } from 'model';
 
 export const PieChartViewDescriptor: IViewDescriptor = {
     id: ViewKeys.pieChart,
-    title: 'Refiner Pie Chart',
+    title: 'Event/Trip Breakout',
     renderer: (props) => <RefinerPieChart {...props} />,
     dateRotatorController: {
         previousIconProps: { iconName: 'ChevronLeft' },

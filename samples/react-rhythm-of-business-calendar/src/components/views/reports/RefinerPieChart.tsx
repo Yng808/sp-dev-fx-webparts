@@ -1,11 +1,50 @@
 import React, { FC, useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { EventOccurrence } from 'model';
-import { DetailsList, DetailsListLayoutMode, IColumn, Stack } from '@fluentui/react';
+import { DetailsList, DetailsListLayoutMode, IColumn, IDetailsListStyles, Stack } from '@fluentui/react';
 
 interface RefinerPieChartProps {
     cccurrences: readonly EventOccurrence[];
 }
+
+// custom table styles
+// Define your custom styles
+const detailsListStyles: Partial<IDetailsListStyles> = {
+    headerWrapper: {
+        selectors: {
+            '.ms-DetailsHeader': {
+                backgroundColor: '#0078d4',  // Background color of the header row
+                color: '#ffffff',            // Text color of the header row
+            },
+            '.ms-DetailsHeader-cellTitle': {
+                color: '#ffffff',            // Text color of the header cell
+            },
+            '.ms-DetailsHeader-cell': {
+                selectors: {
+                    ':hover': {
+                        backgroundColor: '#0078d4',  // Background color on hover
+                        color: '#ffffff',            // Text color on hover
+                    }
+                }
+            },
+            '.ms-DetailsHeader-cellTitle:hover': {
+                color: '#ffffff',  // Ensure text color stays white on hover
+            }
+        },
+    },
+};
+
+
+const getCurrentAndPreviousMonthNames = () => {
+    const currentDate = new Date();
+    const currentMonthName = currentDate.toLocaleString('default', { month: 'long' });
+
+    const previousDate = new Date(currentDate);
+    previousDate.setMonth(currentDate.getMonth() - 1);
+    const previousMonthName = previousDate.toLocaleString('default', { month: 'long' });
+
+    return { currentMonthName, previousMonthName };
+};
 
 const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
     const [data, setData] = useState<{ labels: string[], values: number[], colors: string[], items: any[] }>({
@@ -17,7 +56,7 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
 
     const [sortColumn, setSortColumn] = useState<string | undefined>(undefined);
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-
+    const { currentMonthName, previousMonthName } = getCurrentAndPreviousMonthNames();
 
     useEffect(() => {
         const refinerValueCounts: { [key: string]: {count: number, color: string} } = {};
@@ -109,7 +148,7 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
         }
     ];
 
-    const renderChartAndTable = () => (
+    const renderChartAndTable = (title: string) => (
         <div>
                     <Plot
                         data={[
@@ -133,7 +172,7 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
                         ]}
                         layout={{ 
                             title: {
-                                text:'Event Types Distribution',
+                                text: title,
                                 pad: {
                                     b: 20
                                 }
@@ -163,6 +202,7 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
                             selectionPreservedOnEmptyClick={true}
                             ariaLabelForSelectionColumn="Toggle selection"
                             checkButtonAriaLabel="Row checkbox"
+                            styles={detailsListStyles}
                     />
             </div>
     );
@@ -186,13 +226,13 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             }}
         >
             <Stack.Item grow styles={{ root: { width: 400, textAlign: 'center' } }}>
-                {renderChartAndTable()}
+                {renderChartAndTable("FY to date")}
             </Stack.Item>
             <Stack.Item grow styles={{ root: { width: 400, textAlign: 'center' } }}>
-                {renderChartAndTable()}
+                {renderChartAndTable(previousMonthName)}
             </Stack.Item>
             <Stack.Item grow styles={{ root: { width: 400, textAlign: 'center' } }}>
-                {renderChartAndTable()}
+                {renderChartAndTable(currentMonthName)}
             </Stack.Item>
         </Stack>
     );
