@@ -117,7 +117,7 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             key: 'column1',
             name: 'Refiner Value',
             fieldName: 'refinerValue',
-            minWidth: 100,
+            minWidth: 200,
             maxWidth: 200,
             isResizable: false,
             isSorted: sortColumn === 'refinerValue',
@@ -128,7 +128,7 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             key: 'column2',
             name: 'Count',
             fieldName: 'count',
-            minWidth: 50,
+            minWidth: 100,
             maxWidth: 100,
             isResizable: false,
             isSorted: sortColumn === 'count',
@@ -139,8 +139,8 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             key: 'column3',
             name: 'Percentage',
             fieldName: 'percentage',
-            minWidth: 50,
-            maxWidth: 150,
+            minWidth: 100,
+            maxWidth: 100,
             isResizable: false,
             isSorted: sortColumn === 'percentage',
             isSortedDescending: sortColumn === 'percentage' && sortDirection === 'desc',
@@ -161,10 +161,7 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
                                 pull: 0.05,
                                 marker: {
                                     colors: data.colors,
-                                    line: {
-                                        color: '#000000', // Optional: color of slice borders
-                                        width: 1
-                                    }
+                                    
                                 },
                                 hoverinfo: 'label+value+percent',  
                                 automargin: true,
@@ -180,7 +177,7 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
                             }, 
                             showlegend: true,
                             legend: {
-                                orientation: 'v',  // Horizontal legend
+                                orientation: 'v',  // vertical legend
                                 x: 1.5,            // Center the legend horizontally
                                 xanchor: 'left', // Align legend center to x position
                                 y: 0.5,            // Move the legend below the chart
@@ -190,7 +187,8 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
                                 },
                             },
                             margin: { t: 50, b: 70, l: 30, r: 100 },
-                            height: 500, 
+                            height: 550, 
+                            width: 450,
                         }}
                         style={{ width: '100%', height: '100%' }}
                     />
