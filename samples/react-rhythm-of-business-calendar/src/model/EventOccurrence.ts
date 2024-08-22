@@ -4,7 +4,14 @@ import { IEvent } from "./IEvent";
 import { Event } from "./Event";
 
 export class EventOccurrence implements IEvent {
-    public static readonly StartAscComparer: Comparer<EventOccurrence> = (a, b) => momentAscComparer(a.start, b.start);
+    public static readonly StartAscComparer: Comparer<EventOccurrence> = (a, b) => {
+        // Check if one of the events is an all-day event
+        if (a.isAllDay && !b.isAllDay) return -1; // All-day events come first
+        if (!a.isAllDay && b.isAllDay) return 1;  // Timed events come after all-day events
+
+        // Both are either all-day or regular, so compare by start time
+        return momentAscComparer(a.start, b.start);
+    };
 
     constructor(
         public readonly event: Event,
