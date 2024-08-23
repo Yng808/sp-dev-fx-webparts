@@ -349,7 +349,7 @@ export class Event extends ListItemEntity<IState> implements IEvent {
     }
 
     public expandOccurrences(range?: MomentRange): EventOccurrence[] {
-        console.log("expandOccurence range:", range);
+        //console.log("expandOccurence range:", range);
         if (this.isSeriesMaster) {
             const cadence = new Cadence(this.start, this.recurrence);
             const dates = Array.from(cadence.generate(range));

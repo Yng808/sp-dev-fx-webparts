@@ -15,8 +15,11 @@ const MonthView: FC<IViewProps> = ({ anchorDate, eventCommands, viewCommands, cc
     const weeks = Builder.build(cccurrences, anchorDate);
     const detailsCallout = useRef<IEventDetailsCallout>();
 
+   
+
     // Log refiner values for each event occurrence
     useEffect(() => {
+        console.log('occurrences:',cccurrences);
         cccurrences.forEach(cccurrence => {
             const event = cccurrence.event;
             const valuesByRefiner = event.valuesByRefiner();
