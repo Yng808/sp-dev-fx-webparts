@@ -17,6 +17,10 @@ const filterEventsForFYTD = (cccurrences: readonly EventOccurrence[]) => {
         fiscalYearStart.subtract(1, 'year'); // If current month is before October, subtract one year
     }
     const fiscalYearEnd = currentDate.clone().endOf('day'); // End of the current date
+    // console.log('Inside RefinerPieChart currentDate:',currentDate);
+    // console.log('Inside RefinerPieChart fiscalYearStart', fiscalYearStart);
+    // console.log('Inside RefinerPieChart fiscalYearEnd', fiscalYearEnd);
+    // console.log('Inside RefinerPieChart cccurrences', cccurrences);
 
     return cccurrences.filter(cccurrence => {
         const eventStartDate = cccurrence.event.start;
