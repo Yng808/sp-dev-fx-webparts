@@ -45,7 +45,13 @@ const Legend: React.FC = () => {
     // Map refiners to include associated refiner values
     const refinerWithValues = refiners.map(refiner => ({
         ...refiner,
-        values: refinerValues.filter(value => value.refiner.get()?.id === refiner.id)
+        values: refinerValues
+                .filter(value => value.refiner.get()?.id === refiner.id)
+                .sort((a, b) => {
+                    if (a.title < b.title) return -1;
+                    if (a.title > b.title) return 1;
+                    return 0;
+                })
     }));
 
     console.log('refiner values:', refinerWithValues);
