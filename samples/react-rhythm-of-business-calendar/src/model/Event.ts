@@ -105,6 +105,7 @@ export class Event extends ListItemEntity<IState> implements IEvent {
         this.state.moderator = undefined;
         this.state.moderationTimestamp = undefined;
         this.state.moderationMessage = "";
+        this.state.comDecision = "";
 
         this.refinerValues = ManyToManyRelationship.create<Event, RefinerValue>(this, 'events', { comparer: Event.RefinerValueOrderAscComparer });
         this.includeInBoundedContext(this.refinerValues);
@@ -187,6 +188,15 @@ export class Event extends ListItemEntity<IState> implements IEvent {
     public get allowGhosting(): boolean {
         // exceptions are ghostable to enable editing of a new occurrence and to discard it if there are no changes
         return this.isSeriesException;
+    }
+
+    public get comDecision(): string {
+        //console.log('get comDecision:', this.state.comDecision);
+        return this.state.comDecision;
+    }
+
+    public set comDecision(val: string) {
+        this.state.comDecision = val;
     }
 
     public get description(): string { return this.state.description; }
@@ -298,13 +308,7 @@ export class Event extends ListItemEntity<IState> implements IEvent {
     public get moderationStatus(): EventModerationStatus { return this._seriesMasterOrThisState.moderationStatus; }
     public set moderationStatus(val: EventModerationStatus) { if (!this.isSeriesException) this.state.moderationStatus = val; }
 
-    public get comDecision(): string | undefined {
-        return this.state.comDecision;
-    }
-
-    public set comDecision(value: string | undefined) {
-        this.state.comDecision = value;
-    }
+   
 
 
     public get isPendingApproval(): boolean { return this.moderationStatus === EventModerationStatus.Pending; }
@@ -323,6 +327,8 @@ export class Event extends ListItemEntity<IState> implements IEvent {
     public get creator(): User { return (this.isSeriesException ? this.seriesMaster.get() : this).author; }
 
     private get _seriesMasterOrThisState(): IState {
+        const state = this.isSeriesException ? this.seriesMaster.get().state : this.state;
+        //console.log("seriesMasterOrthisState:", state.comDecision);
         return (this.isSeriesException ? this.seriesMaster.get() : this).state;
     }
 
@@ -343,6 +349,7 @@ export class Event extends ListItemEntity<IState> implements IEvent {
     }
 
     public expandOccurrences(range?: MomentRange): EventOccurrence[] {
+        console.log("expandOccurence range:", range);
         if (this.isSeriesMaster) {
             const cadence = new Cadence(this.start, this.recurrence);
             const dates = Array.from(cadence.generate(range));
@@ -391,6 +398,7 @@ export class Event extends ListItemEntity<IState> implements IEvent {
             event.end = end;
             event.location = this.location;
             event.description = this.description;
+            event.comDecision = this.comDecision
             event.contacts = [...this.contacts];
             event.isAllDay = this.isAllDay;
             event.refinerValues.set([...this.refinerValues.get()]);

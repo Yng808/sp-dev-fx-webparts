@@ -64,20 +64,20 @@ export class ContentRowInfo {
         const endPosition = endsInWeek ? end.day() + 1 : 7;
         const duration = endPosition - startPosition;
         
-        console.log('inside contentRowInfo include');
-        console.log('inside contentRowInfo Event:', cccurrence.title);
-        console.log('inside contentRowInfo Start Position:', startPosition);
-        console.log('inside contentRowInfo End Position:', endPosition);
-        console.log('inside contentRowInfo Duration:', duration);
-        console.log('inside contentRowInfo startsInWeek:', startsInWeek);
-        console.log('inside contentRowInfo endsInWeek:', endsInWeek);
-        console.log('inside contentRowInfo this.startdate:', this._startDate);
-        console.log('inside contentRowInfo startDateInCccurrenceTimezone:', startDateInCccurrenceTimezone);
-        console.log('inside contentRowInfo start', start);        
-        console.log('inside contentRowInfo this.endDate:', this._endDate);
-        console.log('inside contentRowInfo endDateInCccurrenceTimezone:', endDateInCccurrenceTimezone);
-        console.log('inside contentRowInfo end',end);
-        console.log('inside contentRowInfo contentRowInfo occurence:', cccurrence); 
+        // console.log('inside contentRowInfo include');
+        // console.log('inside contentRowInfo Event:', cccurrence.title);
+        // console.log('inside contentRowInfo Start Position:', startPosition);
+        // console.log('inside contentRowInfo End Position:', endPosition);
+        // console.log('inside contentRowInfo Duration:', duration);
+        // console.log('inside contentRowInfo startsInWeek:', startsInWeek);
+        // console.log('inside contentRowInfo endsInWeek:', endsInWeek);
+        // console.log('inside contentRowInfo this.startdate:', this._startDate);
+        // console.log('inside contentRowInfo startDateInCccurrenceTimezone:', startDateInCccurrenceTimezone);
+        // console.log('inside contentRowInfo start', start);        
+        // console.log('inside contentRowInfo this.endDate:', this._endDate);
+        // console.log('inside contentRowInfo endDateInCccurrenceTimezone:', endDateInCccurrenceTimezone);
+        // console.log('inside contentRowInfo end',end);
+        // console.log('inside contentRowInfo contentRowInfo occurence:', cccurrence); 
 
         
             const shimDuration = startPosition - this.lastUsedPosition();
@@ -88,7 +88,7 @@ export class ContentRowInfo {
             const item = new EventItemInfo(duration, startsInWeek, endsInWeek, cccurrence);
             this.items.push(item);
            
-            console.log('end contentRowInfo include');
+            //('end contentRowInfo include');
     }
 
     private lastUsedPosition(): number {
@@ -114,13 +114,13 @@ export class WeekInfo {
         range2Utc.start = thisStartUtc;
         range2Utc.end = thisEndUtc;
 
-        console.log('inside weekinfo include');
-        console.log('inside weekinfo include cccurrence',cccurrence);
-        console.log('inside weekinfo this.start:', this.start);
-        console.log('inside weekinfo thisStartUTC:', thisStartUtc);
-        console.log('inside weekinfo this.end:', this.end);
-        console.log('inside weekinfo thisEndUtc:', thisEndUtc);
-        console.log('inside weekinfo momentrange.overlaps:', MomentRange.overlaps(cccurrence, range2Utc, 'second'));
+        // console.log('inside weekinfo include');
+        // console.log('inside weekinfo include cccurrence',cccurrence);
+        // console.log('inside weekinfo this.start:', this.start);
+        // console.log('inside weekinfo thisStartUTC:', thisStartUtc);
+        // console.log('inside weekinfo this.end:', this.end);
+        // console.log('inside weekinfo thisEndUtc:', thisEndUtc);
+        // console.log('inside weekinfo momentrange.overlaps:', MomentRange.overlaps(cccurrence, range2Utc, 'second'));
 
         if (MomentRange.overlaps(cccurrence, range2Utc, 'second')) {
             
@@ -136,7 +136,7 @@ export class WeekInfo {
             
         }
 
-        console.log('end of weekinfo include');
+        //console.log('end of weekinfo include');
     }
 }
 
@@ -150,11 +150,11 @@ export class Builder {
     }
 
     public static build(cccurrences: readonly EventOccurrence[], anchorDate: Moment): WeekInfo[] {
-        console.log('inside builder build');
-        console.log('inside builder cccurrences:', cccurrences);
+        // console.log('inside builder build');
+        // console.log('inside builder cccurrences:', cccurrences);
         const weeks = this._createWeeks(anchorDate);
         this._fillWeeksWithEvents(weeks, cccurrences);
-        console.log('end builder build');
+        //console.log('end builder build');
         return weeks;
     }
 
@@ -178,15 +178,15 @@ export class Builder {
         const sortedEventOccurrences = [...cccurrences].sort(EventOccurrence.StartAscComparer);
         //console.log('sortedEventOccurrences', sortedEventOccurrences);
         for (const week of weeks) {
-            console.log('inside for loop of fill weeks with events');
-            console.log('week:',week);
+           // console.log('inside for loop of fill weeks with events');
+            //console.log('week:',week);
             sortedEventOccurrences.forEach(occurrence => 
                 {
 
                     week.include(occurrence)
-                    console.log('fill weeks occurrence:', occurrence);
+                    //console.log('fill weeks occurrence:', occurrence);
                 });
-            console.log('end of loop fill weeks with events');
+            //console.log('end of loop fill weeks with events');
         }
     }
 }

@@ -46,7 +46,7 @@ const Legend: React.FC = () => {
         values: refinerValues.filter(value => value.refiner.get()?.id === refiner.id)
     }));
 
-    console.log('refiner values:', refinerWithValues);
+    //console.log('refiner values:', refinerWithValues);
 
     return (
         <Stack horizontal wrap tokens={legendStackTokens}>

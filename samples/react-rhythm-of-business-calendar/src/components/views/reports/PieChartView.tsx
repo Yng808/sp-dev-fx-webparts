@@ -2,6 +2,7 @@ import React from 'react';
 import { IViewDescriptor } from '../IViewDescriptor';
 import RefinerPieChart from './RefinerPieChart';
 import { ViewKeys } from 'model';
+import { Builder } from '../month/Builder';
 
 export const PieChartViewDescriptor: IViewDescriptor = {
     id: ViewKeys.pieChart,
@@ -14,5 +15,5 @@ export const PieChartViewDescriptor: IViewDescriptor = {
         nextDate: (date) => date, // No actual rotation needed
         dateString: (date) => date.format('MMMM YYYY')
     },
-    dateRange: (anchorDate, config) => null 
+    dateRange:  Builder.dateRange
 };
