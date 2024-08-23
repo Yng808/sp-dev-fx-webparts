@@ -11,45 +11,67 @@ interface RefinerPieChartProps {
 
 // Filter function definitions
 const filterEventsForFYTD = (cccurrences: readonly EventOccurrence[]) => {
-    const currentDate = moment();
+    if (!cccurrences || cccurrences.length === 0) {
+        return []; // Return an empty array if cccurrences is null
+    }
+
+    const cccurrenceTimezone = cccurrences[1].start.tz();
+    const currentDate = moment().tz(cccurrenceTimezone, true);    
     const fiscalYearStart = moment(currentDate).month(9).date(1).startOf('day'); // October 1 of the previous fiscal year
     if (currentDate.month() < 9) {
         fiscalYearStart.subtract(1, 'year'); // If current month is before October, subtract one year
     }
     const fiscalYearEnd = currentDate.clone().endOf('day'); // End of the current date
-    // console.log('Inside RefinerPieChart currentDate:',currentDate);
-    // console.log('Inside RefinerPieChart fiscalYearStart', fiscalYearStart);
-    // console.log('Inside RefinerPieChart fiscalYearEnd', fiscalYearEnd);
-    // console.log('Inside RefinerPieChart cccurrences', cccurrences);
+     //console.log('Inside RefinerPieChart currentDate:',currentDate);
+     //console.log('Inside RefinerPieChart fiscalYearStart', fiscalYearStart);
+     //console.log('Inside RefinerPieChart fiscalYearEnd', fiscalYearEnd);
+     //console.log('Inside RefinerPieChart cccurrences', cccurrences);
 
     return cccurrences.filter(cccurrence => {
-        const eventStartDate = cccurrence.event.start;
-        const eventEndDate = cccurrence.event.end;
+        const eventStartDate = cccurrence.start;
+        const eventEndDate = cccurrence.end;
         return (eventStartDate.isBefore(fiscalYearEnd) && eventEndDate.isAfter(fiscalYearStart));
     });
 };
 
 const filterEventsForPreviousMonth = (cccurrences: readonly EventOccurrence[]) => {
-    const currentDate = moment();
+
+    if (!cccurrences || cccurrences.length === 0) {
+        return []; // Return an empty array if cccurrences is null
+    }
+
+    const cccurrenceTimezone = cccurrences[1].start.tz();
+    const currentDate = moment().tz(cccurrenceTimezone, true);
     const previousMonthStart = currentDate.clone().subtract(1, 'month').startOf('month');
     const previousMonthEnd = previousMonthStart.clone().endOf('month');
 
     return cccurrences.filter(cccurrence => {
-        const eventStartDate = cccurrence.event.start;
-        const eventEndDate = cccurrence.event.end;
+        const eventStartDate = cccurrence.start;
+        const eventEndDate = cccurrence.end;
         return (eventStartDate.isBefore(previousMonthEnd) && eventEndDate.isAfter(previousMonthStart));
     });
 };
 
 const filterEventsForCurrentMonth = (cccurrences: readonly EventOccurrence[]) => {
-    const currentDate = moment();
+    if (!cccurrences || cccurrences.length === 0) {
+        return []; // Return an empty array if cccurrences is null
+    }
+
+    const cccurrenceTimezone = cccurrences[1].start.tz();
+    const currentDate = moment().tz(cccurrenceTimezone, true);
     const currentMonthStart = currentDate.clone().startOf('month');
     const currentMonthEnd = currentDate.clone().endOf('month');
+    //console.log('currentMonthStart:', currentMonthStart);
+    //console.log('currentMonthEnd', currentMonthEnd);
+
+    //console.log('cccurrences:', cccurrences);
 
     return cccurrences.filter(cccurrence => {
-        const eventStartDate = cccurrence.event.start;
-        const eventEndDate = cccurrence.event.end;
-        return (eventStartDate.isBefore(currentMonthEnd) && eventEndDate.isAfter(currentMonthStart));
+        const eventStartDate = cccurrence.start;
+        const eventEndDate = cccurrence.end;
+        //console.log('eventStartDate:', eventStartDate);
+        //console.log('eventEnd:', eventEndDate);
+        return (eventStartDate.isBefore(currentMonthEnd) && eventStartDate.isSameOrAfter(currentMonthStart) && eventEndDate.isAfter(currentMonthStart) && eventEndDate.isSameOrBefore(currentMonthEnd));
     });
 };
 
@@ -93,6 +115,7 @@ const getCurrentAndPreviousMonthNames = () => {
 };
 
 const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
+    //console.log('cccurences in RefinerPiechart:', cccurrences);
     const [data, setData] = useState<{ labels: string[], values: number[], colors: string[], items: any[] }>({
         labels: [],
         values: [],
@@ -112,6 +135,7 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
 
         // Count the occurrences by refiner value
         filteredEvents.forEach(cccurrence => {
+            //console.log(cccurrence.start.date);
             const valuesByRefiner = cccurrence.event.valuesByRefiner();
             valuesByRefiner.forEach((values, refiner) => {
                 if (refiner.id === 1) { // hard coded the specific refiner to look at for now
@@ -312,7 +336,7 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             }}
         >
             <Stack.Item grow styles={{ root: { width: 400, textAlign: 'center' } }}>
-                {renderChartAndTable("FY to date", fytdData)}
+                {renderChartAndTable("FYTD", fytdData)}
             </Stack.Item>
             <Stack.Item grow styles={{ root: { width: 400, textAlign: 'center' } }}>
                 {renderChartAndTable(previousMonthName, previousMonthData)}
