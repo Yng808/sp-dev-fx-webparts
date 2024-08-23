@@ -2,7 +2,7 @@ import React from 'react';
 import { IViewDescriptor } from '../IViewDescriptor';
 import RefinerPieChart from './RefinerPieChart';
 import { ViewKeys } from 'model';
-import { Builder } from '../month/Builder';
+import { Builder } from './Builder';
 
 export const PieChartViewDescriptor: IViewDescriptor = {
     id: ViewKeys.pieChart,
