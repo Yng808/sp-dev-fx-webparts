@@ -12,7 +12,6 @@ const Legend: React.FC = () => {
     const [refiners, setRefiners] = useState<Refiner[]>([]);
     const [refinerValues, setRefinerValues] = useState<RefinerValue[]>([]);
 
-
     useEffect(() => {
         const fetchData = async () => {
             // Filter and set refiners
@@ -20,7 +19,8 @@ const Legend: React.FC = () => {
             setRefiners(refinersData || []);
 
             // Filter and set refiner values
-            const refinerValuesData = (await refinerValuesAsync.promise)?.filter(value => value.refiner.get()?.id === 1 && Entity.NotDeletedFilter);
+            const refinerValuesData = (await refinerValuesAsync.promise)
+                ?.filter(value => value.refiner.get()?.id === 1 && Entity.NotDeletedFilter(value));
             setRefinerValues(refinerValuesData || []);
         };
 
@@ -28,7 +28,9 @@ const Legend: React.FC = () => {
 
         // Register for updates to refiners and refiner values
         const updateRefiners = () => setRefiners(refinersAsync.data?.filter(Entity.NotDeletedFilter) || []);
-        const updateRefinerValues = () => setRefinerValues(refinerValuesAsync.data?.filter(Entity.NotDeletedFilter) || []);
+        const updateRefinerValues = () => setRefinerValues(
+            refinerValuesAsync.data?.filter(value => value.refiner.get()?.id === 1 && Entity.NotDeletedFilter(value)) || []
+        );
 
         refinersAsync.registerComponentForUpdates({ componentShouldRender: updateRefiners });
         refinerValuesAsync.registerComponentForUpdates({ componentShouldRender: updateRefinerValues });
@@ -46,11 +48,12 @@ const Legend: React.FC = () => {
         values: refinerValues.filter(value => value.refiner.get()?.id === refiner.id)
     }));
 
-    //console.log('refiner values:', refinerWithValues);
+    console.log('refiner values:', refinerWithValues);
 
     return (
         <Stack horizontal wrap tokens={legendStackTokens}>
             {refinerWithValues.map(refiner =>
+           
                 refiner.values.map((value, idx) => (
                     <Stack horizontal key={idx} tokens={{ childrenGap: 5 }} verticalAlign="center">
                         <div
