@@ -2,6 +2,7 @@ import { sumBy } from "lodash";
 import { Moment } from "moment-timezone";
 import { MomentRange } from "common";
 import { EventOccurrence } from 'model';
+import { useTimeZoneService } from "services";
 
 export class ItemInfo {
     constructor(
@@ -58,12 +59,16 @@ export class ContentRowInfo {
     public include(cccurrence: EventOccurrence) {
         const { start, end } = cccurrence;
         const cccurrenceTimezone = cccurrence.start.tz();
+        const timeZoneService = useTimeZoneService();
+        const siteTimeZone = timeZoneService.siteTimeZone;
 
-        const startDateInCccurrenceTimezone = this._startDate.clone().tz(cccurrenceTimezone, true);
-        const endDateInCccurrenceTimezone = this._endDate.clone().tz(cccurrenceTimezone, true);
+        console.log('siteTimezone:', siteTimeZone);
 
-        const startsInWeek = start.isSameOrAfter(startDateInCccurrenceTimezone ? startDateInCccurrenceTimezone : this._startDate);
-        const endsInWeek = end.isSameOrBefore(endDateInCccurrenceTimezone ? endDateInCccurrenceTimezone : this._endDate);
+        const thisStartDateInTimezone = cccurrenceTimezone ? this._startDate.clone().tz(cccurrenceTimezone, true) : this._startDate.clone().tz(siteTimeZone.momentId, true);
+        const thisEndDateInTimezone = cccurrenceTimezone ? this._endDate.clone().tz(cccurrenceTimezone, true) : this._endDate.clone().tz(siteTimeZone.momentId, true);
+
+        const startsInWeek = start.isSameOrAfter(thisStartDateInTimezone);
+        const endsInWeek = end.isSameOrBefore(thisEndDateInTimezone);
         const startPosition = startsInWeek ? start.day() : 0;
         const endPosition = endsInWeek ? end.day() + 1 : 7;
         const duration = endPosition - startPosition;
@@ -76,10 +81,10 @@ export class ContentRowInfo {
         console.log('inside contentRowInfo startsInWeek:', startsInWeek);
         console.log('inside contentRowInfo endsInWeek:', endsInWeek);
         console.log('inside contentRowInfo this.startdate:', this._startDate);
-        console.log('inside contentRowInfo startDateInCccurrenceTimezone:', startDateInCccurrenceTimezone);
+        console.log('inside contentRowInfo startDateInCccurrenceTimezone:', thisStartDateInTimezone);
         console.log('inside contentRowInfo start', start);
         console.log('inside contentRowInfo this.endDate:', this._endDate);
-        console.log('inside contentRowInfo endDateInCccurrenceTimezone:', endDateInCccurrenceTimezone);
+        console.log('inside contentRowInfo endDateInCccurrenceTimezone:', thisEndDateInTimezone);
         console.log('inside contentRowInfo end', end);
         console.log('inside contentRowInfo contentRowInfo occurence:', cccurrence);
 
