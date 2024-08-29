@@ -27,6 +27,7 @@ const thisOrNextWeekendDay = (date: Moment): void => {
 
 const gotoDateByRecurDay = (current: Moment, weekOf: RecurWeekOfMonth, recurDay: RecurDay) => {
     console.log('cadence line 29', recurDay, weekOf);
+    console.log('cadence line 30', current);
     switch (recurDay) {
         case RecurDay.day: {
             if (weekOf === RecurWeekOfMonth.last)
@@ -69,7 +70,12 @@ const gotoDateByRecurDay = (current: Moment, weekOf: RecurWeekOfMonth, recurDay:
             break;
         }
         default: {
-            if (weekOf === RecurWeekOfMonth.last) current.add(1, 'month');
+            console.log('cadence line 72', weekOf);
+
+            if (weekOf === RecurWeekOfMonth.last) {
+                current.add(1, 'month');
+            }
+
             const month = current.month();
             console.log('cadence line 74', month)
             current.startOf('month');
@@ -78,8 +84,14 @@ const gotoDateByRecurDay = (current: Moment, weekOf: RecurWeekOfMonth, recurDay:
             console.log('cadence line 78', current.day(recurDay));
             console.log('cadence line 79', current.month);
             console.log('cadence line 80', month);
-            if (current.month() < month) current.add(1, 'week'); // if that moved the date backwards to the previous month, add a week to move forward to the current month
+            if (current.month() < month || month === 0) {
+                current.add(1, 'week'); // if that moved the date backwards to the previous month, add a week to move forward to the current month
+            }
+
+
             current.add(weekOf === RecurWeekOfMonth.last ? -1 : weekOf, 'weeks');
+
+
         }
     }
 }
@@ -181,11 +193,11 @@ class MonthlyByDayCadenceGenerator implements ICadenceGenerator {
     public *generate(start: Moment): Generator<Moment, undefined> {
         const { byDay: { day, weekOf }, every } = this._monthly;
         const current = start.clone();
-        console.log('cadence line 178', current);
+        console.log('cadence line 178', current, weekOf, day);
 
         while (true) {
             gotoDateByRecurDay(current, weekOf, day);
-
+            console.log('cadence line 192', current);
             if (current.isSameOrAfter(start))
                 yield current.clone();
 
