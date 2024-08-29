@@ -308,7 +308,7 @@ export class Event extends ListItemEntity<IState> implements IEvent {
     public get moderationStatus(): EventModerationStatus { return this._seriesMasterOrThisState.moderationStatus; }
     public set moderationStatus(val: EventModerationStatus) { if (!this.isSeriesException) this.state.moderationStatus = val; }
 
-   
+
 
 
     public get isPendingApproval(): boolean { return this.moderationStatus === EventModerationStatus.Pending; }
@@ -353,6 +353,7 @@ export class Event extends ListItemEntity<IState> implements IEvent {
         if (this.isSeriesMaster) {
             const cadence = new Cadence(this.start, this.recurrence);
             const dates = Array.from(cadence.generate(range));
+            console.log('expandOccurences dates', dates);
             const exceptionsInRange = multifilter(this.exceptions.get(), inverseFilter(Entity.NewAndGhostableFilter), e => MomentRange.overlaps(range, e));
 
             return dates
@@ -365,22 +366,29 @@ export class Event extends ListItemEntity<IState> implements IEvent {
 
                     if (exception && !exception.isDeleted) {
                         if (exception.recurrenceInstanceCancelled) {
+
                             return undefined;
                         } else if (!MomentRange.overlaps(range, exception)) {
                             return undefined;
                         } else {
-                            return new EventOccurrence(exception);
+
+                            const newEvent = new EventOccurrence(exception);
+                            console.log('expandOccurences inside line 376', newEvent);
+                            return newEvent;
                         }
                     } else {
                         date.startOf('day');
                         const start = date.clone().add(this.startTime);
                         const end = start.clone().add(this.duration);
-                        return new EventOccurrence(this, start, end);
+                        const newEvent2 = new EventOccurrence(this, start, end)
+                        console.log('expandOccurences inside line 384', newEvent2);
+                        return newEvent2;
                     }
                 })
                 .filter(Boolean)
                 .concat(exceptionsInRange.map(e => new EventOccurrence(e)));
         } else {
+            console.log('expandOccurences inside line 391');
             return (!range || MomentRange.overlaps(this, range)) ? [new EventOccurrence(this)] : [];
         }
     }
