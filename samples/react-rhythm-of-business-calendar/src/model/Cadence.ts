@@ -79,12 +79,14 @@ const gotoDateByRecurDay = (current: Moment, weekOf: RecurWeekOfMonth, recurDay:
             const month = current.month();
             console.log('cadence line 74', month)
             current.startOf('month');
-            console.log('cadence line 76', current.startOf('month'));
+            //console.log('cadence line 76', current.startOf('month'));
             current.day(recurDay); // sets the date to be the specified day of the week within the current Sunday-Saturday week
-            console.log('cadence line 78', current.day(recurDay));
+            //console.log('cadence line 78', current.day(recurDay));
             console.log('cadence line 79', current.month);
             console.log('cadence line 80', month);
-            if (current.month() < month || month === 0) {
+            console.log('cadence line 87', current.clone().utc().format());
+            console.log('cadence line 88', current.format('MMM'));
+            if (current.month() < month || (current.format('MMM') === 'Dec' && month === 0)) {
                 current.add(1, 'week'); // if that moved the date backwards to the previous month, add a week to move forward to the current month
             }
 
@@ -193,7 +195,7 @@ class MonthlyByDayCadenceGenerator implements ICadenceGenerator {
     public *generate(start: Moment): Generator<Moment, undefined> {
         const { byDay: { day, weekOf }, every } = this._monthly;
         const current = start.clone();
-        console.log('cadence line 178', current, weekOf, day);
+        console.log('cadence line 178', current, weekOf, day, this._monthly);
 
         while (true) {
             gotoDateByRecurDay(current, weekOf, day);
