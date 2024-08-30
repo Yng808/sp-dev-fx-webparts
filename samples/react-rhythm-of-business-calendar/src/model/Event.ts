@@ -327,7 +327,7 @@ export class Event extends ListItemEntity<IState> implements IEvent {
     public get creator(): User { return (this.isSeriesException ? this.seriesMaster.get() : this).author; }
 
     private get _seriesMasterOrThisState(): IState {
-        const state = this.isSeriesException ? this.seriesMaster.get().state : this.state;
+        //const state = this.isSeriesException ? this.seriesMaster.get().state : this.state;
         //console.log("seriesMasterOrthisState:", state.comDecision);
         return (this.isSeriesException ? this.seriesMaster.get() : this).state;
     }
