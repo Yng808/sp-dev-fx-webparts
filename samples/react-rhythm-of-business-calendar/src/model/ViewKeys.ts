@@ -5,7 +5,8 @@ export const ViewKeys = stringToEnum([
     "weekly",
     "monthly",
     "quarter",
-    "pieChart"
+    "pieChart",
+    "list"
 ]);
 
 export type ViewKeys = keyof (typeof ViewKeys);
