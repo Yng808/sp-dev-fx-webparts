@@ -42,14 +42,22 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     useEffect(() => {
         let filtered = [...cccurrences]; // Create a mutable copy of the readonly array
 
-        if (startDate) {
-            const start = moment(startDate);
-            filtered = filtered.filter(event => event.start.isSameOrAfter(start));
-        }
+        if (startDate || endDate) {
+            const start = startDate ? moment(startDate).startOf('day') : null;
+            const end = endDate ? moment(endDate).endOf('day') : null;
 
-        if (endDate) {
-            const end = moment(endDate).endOf('day');
-            filtered = filtered.filter(event => event.end.isSameOrBefore(end));
+            filtered = filtered.filter(event => {
+                const eventStart = moment(event.start);
+                const eventEnd = moment(event.end);
+
+                // Check if event is within the date range or overlaps with it
+                return (
+                    (start && end && eventStart.isBetween(start, end, null, '[]')) ||  // Event starts within range
+                    (start && end && eventEnd.isBetween(start, end, null, '[]')) ||    // Event ends within range
+                    (start && end && eventStart.isBefore(start) && eventEnd.isAfter(end)) ||  // Event overlaps the entire range
+                    (start && end && eventStart.isBefore(start) && eventEnd.isSameOrBefore(end) && eventEnd.isSameOrAfter(start)) // Event starts before start date and ends within the range
+                );
+            });
         }
 
         if (searchQuery) {
@@ -64,19 +72,59 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             });
         }
 
+        // Sort the filtered events by start date
+        filtered.sort((a, b) => moment(a.start).diff(moment(b.start)));
+
         setFilteredEvents(filtered);
+        console.log('filtered events', filteredEvents);
     }, [startDate, endDate, searchQuery, cccurrences]);
 
     const columns: IColumn[] = [
         {
+            key: 'column6',
+            name: 'Type',
+            fieldName: 'refinerValues',
+            minWidth: 80,
+            maxWidth: 80,
+            isResizable: true,
+            onRender: (item: EventOccurrence) => {
+                const refinerValues = item.getRefinerValuesForRefinerId(1);
+                return (
+                    <div>
+                        {refinerValues.map((rv, index) => {
+                            const backgroundColor = rv.color.toHexString();
+                            const textColor = rv.color.isDarkColor() ? '#ffffff' : '#000000'; // Use the method from the Color class
+        
+                            return (
+                                <span
+                                    key={index}
+                                    style={{
+                                        backgroundColor: backgroundColor,
+                                        color: textColor,  // Set text color based on the color's luminance
+                                        padding: '2px 4px',
+                                        borderRadius: '3px',
+                                        marginRight: '4px',
+                                        display: 'inline-block'
+                                    }}
+                                >
+                                    {rv.title}
+                                </span>
+                            );
+                        })}
+                    </div>
+                );
+            }
+        },
+        {
             key: 'column1',
             name: 'Title',
             fieldName: 'title',
-            minWidth: 150,
-            maxWidth: 200,
+            minWidth: 200,
+            maxWidth: 250,
             isResizable: true,
             onRender: (item: EventOccurrence) => item.title,
         },
+        
         {
             key: 'column2',
             name: 'Start Date',
@@ -84,7 +132,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             minWidth: 100,
             maxWidth: 150,
             isResizable: true,
-            onRender: (item: EventOccurrence) => item.start.format('YYYY-MM-DD'),
+            onRender: (item: EventOccurrence) => item.start.format('MM/DD/YYYY HHmm'),
         },
         {
             key: 'column3',
@@ -93,8 +141,39 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             minWidth: 100,
             maxWidth: 150,
             isResizable: true,
-            onRender: (item: EventOccurrence) => item.end.format('YYYY-MM-DD'),
+            onRender: (item: EventOccurrence) => item.end.format('MM/DD/YYYY HHmm'),
         },
+        {
+            key: 'column4',
+            name: 'COM Decision',
+            fieldName: 'comDecision',
+            minWidth: 100,
+            maxWidth: 150,
+            isResizable: true,
+            onRender: (item: EventOccurrence) => item.comDecision,
+        },
+        {
+            key: 'column5',
+            name: 'Description',
+            fieldName: 'description',
+            minWidth: 200,
+            maxWidth: 400,
+            isResizable: true,
+            onRender: (item: EventOccurrence) => {
+                return (
+                    <span
+                        style={{
+                            whiteSpace: 'normal',  // Allow text to wrap to the next line
+                            wordWrap: 'break-word',  // Break long words to prevent overflow
+                            overflowWrap: 'break-word',  // Handles overflow in long words
+                        }}
+                    >
+                        {item.description}
+                    </span>
+                );
+            },
+        },
+        
         // Add more columns as needed for other text-based fields
     ];
 
@@ -117,7 +196,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     label="Search"
                     value={searchQuery}
                     onChange={(e, newValue) => setSearchQuery(newValue || '')}
-                />
+                />                
             </Stack>
             <DetailsList
                 items={filteredEvents}

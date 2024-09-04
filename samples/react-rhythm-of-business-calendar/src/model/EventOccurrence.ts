@@ -2,6 +2,7 @@ import { Comparer, momentAscComparer } from "common";
 import { Moment } from "moment-timezone";
 import { IEvent } from "./IEvent";
 import { Event } from "./Event";
+import { RefinerValue } from "./RefinerValue";
 
 export class EventOccurrence implements IEvent {
     public static readonly StartAscComparer: Comparer<EventOccurrence> = (a, b) => {
@@ -36,7 +37,11 @@ export class EventOccurrence implements IEvent {
     public get isConfidential() { return this.event.isConfidential; }
     public get refinerValues() { return this.event.refinerValues; }
     public get comDecision() { return this.event.comDecision; }
+    public get description() { return this.event.description }
 
+    public getRefinerValuesForRefinerId(refinerId: number): RefinerValue[] {
+        return this.event.refinerValues.filter(refinerValue => refinerValue.refiner.get()?.id === refinerId);
+    }
 
     public getWrappedEvent(): Event {
         return this.event;
