@@ -84,8 +84,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             key: 'column6',
             name: 'Type',
             fieldName: 'refinerValues',
-            minWidth: 80,
-            maxWidth: 80,
+            minWidth: 120,
+            maxWidth: 150,
             isResizable: true,
             onRender: (item: EventOccurrence) => {
                 const refinerValues = item.getRefinerValuesForRefinerId(1);
@@ -119,8 +119,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             key: 'column1',
             name: 'Title',
             fieldName: 'title',
-            minWidth: 200,
-            maxWidth: 250,
+            minWidth: 250,
+            maxWidth: 300,
             isResizable: true,
             onRender: (item: EventOccurrence) => item.title,
         },
