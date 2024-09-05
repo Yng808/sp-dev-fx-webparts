@@ -201,7 +201,11 @@ class MonthlyByDayCadenceGenerator implements ICadenceGenerator {
             gotoDateByRecurDay(current, weekOf, day);
             console.log('cadence line 192', current);
             if (current.isSameOrAfter(start))
-                yield current.clone();
+               // yield current.clone();
+                 yield current.clone().set({
+                    hour: start.hour(),
+                    minute: start.minute()
+                }); 
 
             console.log('cadence line 192', current.add(every, 'months'));
 
