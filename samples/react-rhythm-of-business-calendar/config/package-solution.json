@@ -1,8 +1,8 @@
 {
     "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
     "solution": {
-        "name": "Rhythm of Business Calendar",
-        "id": "8588904e-d33f-40ac-9ee0-2fcfcfb0ebc2",
+        "name": "TDC",
+        "id": "8588904e-d33f-40ac-9ee0-2fcfcfb0ebc4",
         "version": "1.0.0.0",
         "includeClientSideAssets": true,
         "skipFeatureDeployment": true,
@@ -15,6 +15,6 @@
         }
     },
     "paths": {
-        "zippedPackage": "solution/RhythmOfBusinessCalendar.sppkg"
+        "zippedPackage": "solution/TDC.sppkg"
     }
 }
