@@ -15,7 +15,8 @@ const filterEventsForFYTD = (cccurrences: readonly EventOccurrence[]) => {
         return []; // Return an empty array if cccurrences is null
     }
 
-    const cccurrenceTimezone = cccurrences[1].start.tz();
+    
+    const cccurrenceTimezone = cccurrences[0].start.tz();
     const currentDate = moment().tz(cccurrenceTimezone, true);    
     const fiscalYearStart = moment(currentDate).month(9).date(1).startOf('day'); // October 1 of the previous fiscal year
     if (currentDate.month() < 9) {
@@ -40,7 +41,7 @@ const filterEventsForPreviousMonth = (cccurrences: readonly EventOccurrence[]) =
         return []; // Return an empty array if cccurrences is null
     }
 
-    const cccurrenceTimezone = cccurrences[1].start.tz();
+    const cccurrenceTimezone = cccurrences[0].start.tz();
     const currentDate = moment().tz(cccurrenceTimezone, true);
     const previousMonthStart = currentDate.clone().subtract(1, 'month').startOf('month');
     const previousMonthEnd = previousMonthStart.clone().endOf('month');
@@ -57,7 +58,7 @@ const filterEventsForCurrentMonth = (cccurrences: readonly EventOccurrence[]) =>
         return []; // Return an empty array if cccurrences is null
     }
 
-    const cccurrenceTimezone = cccurrences[1].start.tz();
+    const cccurrenceTimezone = cccurrences[0].start.tz();
     const currentDate = moment().tz(cccurrenceTimezone, true);
     const currentMonthStart = currentDate.clone().startOf('month');
     const currentMonthEnd = currentDate.clone().endOf('month');
@@ -215,7 +216,6 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             isResizable: false,
             isSorted: sortColumn === 'refinerValue',
             isSortedDescending: sortColumn === 'refinerValue' && sortDirection === 'desc',
-            onColumnClick: onColumnClick,
         },
         {
             key: 'column2',
@@ -226,7 +226,6 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             isResizable: false,
             isSorted: sortColumn === 'count',
             isSortedDescending: sortColumn === 'count' && sortDirection === 'desc',
-            onColumnClick: onColumnClick,
         },
         {
             key: 'column3',
@@ -237,7 +236,6 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             isResizable: false,
             isSorted: sortColumn === 'percentage',
             isSortedDescending: sortColumn === 'percentage' && sortDirection === 'desc',
-            onColumnClick: onColumnClick,
         }
     ];
 
