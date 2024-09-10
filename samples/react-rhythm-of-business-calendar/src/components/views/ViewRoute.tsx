@@ -279,6 +279,7 @@ const ViewRoute: FC = () => {
                                         selectedRefinerValues={selectedRefinerValues}
                                         approvers={approvers}
                                         showOnlyCurrentMonth={showOnlyCurrentMonth}
+                                        anchorDate={anchorDate}
                                     >
                                         {cccurrences =>
                                             <View

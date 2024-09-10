@@ -2,7 +2,7 @@ import { FC, ReactElement } from "react";
 import { Entity, MomentRange, User } from "common";
 import { Approvers, Event, EventOccurrence, Refiner, RefinerValue } from "model";
 import { useConfigurationService, useDirectoryService } from "services";
-import moment from "moment";
+import moment, { Moment } from "moment";
 
 interface IProps {
     events: readonly Event[];
@@ -12,19 +12,25 @@ interface IProps {
     approvers: readonly Approvers[];
     showOnlyCurrentMonth: boolean;
     children: (cccurrences: readonly EventOccurrence[]) => ReactElement;
+    anchorDate: moment.Moment;
     
 }
 
 
-export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedRefinerValues, approvers, showOnlyCurrentMonth, children }) => {
+export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedRefinerValues, approvers, showOnlyCurrentMonth, children, anchorDate }) => {
     const { currentUser, currentUserIsSiteAdmin } = useDirectoryService();
     const { active: { useApprovals, useRefiners } } = useConfigurationService();
     const currentUserApprovers = approvers.filter(a => a.userIsAnApprover(currentUser));
+    const monthYearString = anchorDate.format('MMMM YYYY');
+    const parsedDate = moment(monthYearString, 'MMMM YYYY');
+    const firstDay = parsedDate.clone().startOf('month');
+    const lastDay = parsedDate.clone().endOf('month'); 
+
 
     // Use the current date to calculate the start and end of the current month
-    const now = moment();
-    const startOfMonth = now.clone().startOf('month'); 
-    const endOfMonth = now.clone().endOf('month'); 
+    //const now = moment();
+    const startOfMonth = firstDay;
+    const endOfMonth = lastDay; 
 
     // Log the initial set of events
     console.log('Initial Events:', events);
@@ -67,12 +73,6 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
                             occurrenceEnd.isBetween(startOfMonth, endOfMonth, null, '[]') ||
                             (occurrenceStart.isBefore(startOfMonth) && occurrenceEnd.isAfter(endOfMonth))
                         );
-
-                        if (isIncluded) {
-                            //console.log(`Occurrence Included: Start: ${occurrenceStart.format()}, End: ${occurrenceEnd.format()}`);
-                        } else {
-                            //console.log(`Occurrence Excluded: Start: ${occurrenceStart.format()}, End: ${occurrenceEnd.format()}`);
-                        }
 
                         return isIncluded;
                     });
