@@ -1,7 +1,7 @@
 import { FC, ReactElement } from "react";
 import { Entity, MomentRange, User } from "common";
 import { Approvers, Event, EventOccurrence, Refiner, RefinerValue } from "model";
-import { useConfigurationService, useDirectoryService } from "services";
+import { useConfigurationService, useDirectoryService, useTimeZoneService } from "services";
 import moment, { Moment } from "moment";
 
 interface IProps {
@@ -21,10 +21,14 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
     const { currentUser, currentUserIsSiteAdmin } = useDirectoryService();
     const { active: { useApprovals, useRefiners } } = useConfigurationService();
     const currentUserApprovers = approvers.filter(a => a.userIsAnApprover(currentUser));
+
+    const timeZoneService = useTimeZoneService();
+    const siteTimeZone = timeZoneService.siteTimeZone;
+
     const monthYearString = anchorDate.format('MMMM YYYY');
     const parsedDate = moment(monthYearString, 'MMMM YYYY');
-    const firstDay = parsedDate.clone().startOf('month');
-    const lastDay = parsedDate.clone().endOf('month'); 
+    const firstDay = parsedDate.clone().startOf('month').tz(siteTimeZone.momentId, true);
+    const lastDay = parsedDate.clone().endOf('month').tz(siteTimeZone.momentId, true); 
 
 
     // Use the current date to calculate the start and end of the current month
