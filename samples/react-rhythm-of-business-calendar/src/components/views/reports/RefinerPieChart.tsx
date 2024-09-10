@@ -3,6 +3,7 @@ import Plot from 'react-plotly.js';
 import { EventOccurrence } from 'model';
 import { DetailsList, DetailsListLayoutMode, IColumn, IDetailsListStyles, SelectionMode, Stack } from '@fluentui/react';
 import moment from 'moment';
+import { Color } from 'common';
 
 interface RefinerPieChartProps {
     cccurrences: readonly EventOccurrence[];
@@ -117,18 +118,16 @@ const getCurrentAndPreviousMonthNames = () => {
 
 const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
     //console.log('cccurences in RefinerPiechart:', cccurrences);
-    const [data, setData] = useState<{ labels: string[], values: number[], colors: string[], items: any[] }>({
-        labels: [],
-        values: [],
-        colors: [],
-        items: []
-    });
+    // const [data, setData] = useState<{ labels: string[], values: number[], colors: string[], items: any[] }>({
+    //     labels: [],
+    //     values: [],
+    //     colors: [],
+    //     items: []
+    // });
 
     const [fytdData, setFytdData] = useState<{ labels: string[], values: number[], colors: string[], items: any[] }>({ labels: [], values: [], colors: [], items: [] });
     const [previousMonthData, setPreviousMonthData] = useState<{ labels: string[], values: number[], colors: string[], items: any[] }>({ labels: [], values: [], colors: [], items: [] });
     const [currentMonthData, setCurrentMonthData] = useState<{ labels: string[], values: number[], colors: string[], items: any[] }>({ labels: [], values: [], colors: [], items: [] });
-    const [sortColumn, setSortColumn] = useState<string | undefined>(undefined);
-    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
     const { currentMonthName, previousMonthName } = getCurrentAndPreviousMonthNames();
 
     const getFilteredData = (filteredEvents: readonly EventOccurrence[]) => {
@@ -160,7 +159,8 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             key: index,
             refinerValue: label,
             count: values[index],
-            percentage: `${((values[index] / total) * 100).toFixed(2)}%`
+            percentage: `${((values[index] / total) * 100).toFixed(2)}%`,
+            color: colors[index],
         }));
 
         return { labels, values, colors, items };
@@ -182,29 +182,10 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
         sortedCurrentMonthData.items.sort((a, b) => b.count - a.count);
         setCurrentMonthData(sortedCurrentMonthData);
 
-        // Set the default sort state
-        setSortColumn('count');
-        setSortDirection('desc');
     }, [cccurrences]);
 
     
-    
 
-
-    const onColumnClick = (ev: React.MouseEvent<HTMLElement>, column: IColumn): void => {
-        const newDirection = sortColumn === column.key && sortDirection === 'asc' ? 'desc' : 'asc';
-        const sortedItems = [...data.items].sort((a, b) => {
-            if (newDirection === 'asc') {
-                return a[column.fieldName as keyof typeof a] > b[column.fieldName as keyof typeof a] ? 1 : -1;
-            } else {
-                return a[column.fieldName as keyof typeof a] < b[column.fieldName as keyof typeof a] ? 1 : -1;
-            }
-        });
-
-        setData({ ...data, items: sortedItems });
-        setSortColumn(column.key);
-        setSortDirection(newDirection);
-    };
 
     const columns: IColumn[] = [
         {
@@ -214,8 +195,25 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             minWidth: 200,
             maxWidth: 200,
             isResizable: false,
-            isSorted: sortColumn === 'refinerValue',
-            isSortedDescending: sortColumn === 'refinerValue' && sortDirection === 'desc',
+            onRender: (item) => {
+                const color = Color.parse(item.color);
+                const textColor = color.isDarkColor() ? '#ffffff' : '#000000';
+
+                return (
+                    <div 
+                        style={{ 
+                            backgroundColor: item.color, 
+                            color: textColor,
+                            padding: '2px 4px',
+                            borderRadius: '3px',
+                            marginRight: '4px',
+                            display: 'inline-block'
+                        }}
+                    >
+                        {item.refinerValue}
+                    </div>
+                );
+            },
         },
         {
             key: 'column2',
@@ -224,8 +222,6 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             minWidth: 100,
             maxWidth: 100,
             isResizable: false,
-            isSorted: sortColumn === 'count',
-            isSortedDescending: sortColumn === 'count' && sortDirection === 'desc',
         },
         {
             key: 'column3',
@@ -234,8 +230,6 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             minWidth: 100,
             maxWidth: 100,
             isResizable: false,
-            isSorted: sortColumn === 'percentage',
-            isSortedDescending: sortColumn === 'percentage' && sortDirection === 'desc',
         }
     ];
 
