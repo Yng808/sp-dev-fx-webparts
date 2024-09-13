@@ -21,11 +21,15 @@ import { IDirectoryService } from "./DirectoryServiceDescriptor";
 const adminPermissionsCheck = [
     SPPermission.applyThemeAndBorder,
     SPPermission.approveItems,
-    SPPermission.createGroups,
-    SPPermission.layoutsPage,
+    //SPPermission.createGroups,
+    //SPPermission.layoutsPage,
     SPPermission.manageLists,
-    SPPermission.managePermissions,
-    SPPermission.manageWeb
+    //SPPermission.managePermissions,
+    //SPPermission.manageWeb
+];
+
+const contributorPermissionsCheck = [
+    SPPermission.addListItems
 ];
 
 export class OnlineDirectoryService implements IDirectoryService {
@@ -59,6 +63,10 @@ export class OnlineDirectoryService implements IDirectoryService {
 
     public get currentUserIsSiteAdmin(): boolean {
         return this._currentUserPermissions.hasAllPermissions(...adminPermissionsCheck);
+    }
+
+    public get currentUserIsContributor(): boolean {
+        return this._currentUserPermissions.hasAllPermissions(...contributorPermissionsCheck);
     }
 
     public get currentUserEffectivePermissions(): IBasePermissions {

@@ -736,7 +736,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
     protected buildDisplayHeaderCommands(): ICommandBarItemProps[] {
         const {
             commands: { approve, reject, addToOutlook, addSeriesToOutlook, getLink },
-            services: { [DirectoryService]: { currentUserIsSiteAdmin, currentUser } }
+            services: { [DirectoryService]: { currentUserIsSiteAdmin, currentUser, currentUserIsContributor } }
         } = this.props;
         const { isRecurring, isSeriesException, isSeriesMaster, seriesMaster, isDeleted, isNew, isApproved, creator } = this.entity;
         const onEdit = () => { this.edit(); };
@@ -882,7 +882,9 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
             onClick: onGetLink
         };
 
-        const userCanApprove = currentUserIsSiteAdmin || this._currentUserIsAnApprover();
+        console.log("EventPanel line 885", currentUserIsContributor);
+
+        const userCanApprove = currentUserIsSiteAdmin || this._currentUserIsAnApprover() || currentUserIsContributor;
         const userIsCreator = User.equal(creator, currentUser);
         const canEdit = userIsCreator || userCanApprove;
         const canModerate = !isApproved && userCanApprove;

@@ -19,6 +19,10 @@ export class MockDirectoryService implements IDirectoryService {
         return true;
     }
 
+    public get currentUserIsContributor(): boolean {
+        return true;
+    }
+
     public get currentUserEffectivePermissions(): IBasePermissions {
         return { Low: Number.MAX_VALUE, High: Number.MAX_VALUE };
     }
