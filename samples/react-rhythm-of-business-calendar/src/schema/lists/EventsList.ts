@@ -156,6 +156,14 @@ const Field_COMDecision: IChoiceFieldDefinition = {
     required: false
 };
 
+const Field_ReadAheadDueDate: IDateTimeFieldDefinition = {
+    type: FieldType.DateTime,
+    name: 'ReadAheadDueDate',
+    displayName: 'Read Ahead Due Date',
+    required: false,
+    dateTimeFormat: DateTimeFieldFormatType.DateTime
+};
+
 const View_AllEvents: IViewDefinition = {
     title: "All RoB Events",
     rowLimit: 600,
@@ -182,7 +190,8 @@ const View_AllEvents: IViewDefinition = {
         Field_Moderator,
         Field_ModerationTimestamp,
         Field_ModerationMessage,
-        Field_COMDecision
+        Field_COMDecision,
+        Field_ReadAheadDueDate
     ),
     // need to sort by ID ascending in order to ensure the series master is loaded before any exceptions to the series
     query: `
@@ -231,7 +240,8 @@ export const EventsList: IEventsListDefinition = {
         Field_Moderator,
         Field_ModerationTimestamp,
         Field_ModerationMessage,
-        Field_COMDecision
+        Field_COMDecision,
+        Field_ReadAheadDueDate
     ],
     views: [
         View_AllEvents

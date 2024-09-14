@@ -32,6 +32,7 @@ interface IState {
     moderationTimestamp: Moment | undefined;
     moderationMessage: string;
     comDecision: string;
+    readAheadDueDate: Moment;
 }
 
 export class Event extends ListItemEntity<IState> implements IEvent {
@@ -106,6 +107,7 @@ export class Event extends ListItemEntity<IState> implements IEvent {
         this.state.moderationTimestamp = undefined;
         this.state.moderationMessage = "";
         this.state.comDecision = "";
+        this.state.readAheadDueDate = null;
 
         this.refinerValues = ManyToManyRelationship.create<Event, RefinerValue>(this, 'events', { comparer: Event.RefinerValueOrderAscComparer });
         this.includeInBoundedContext(this.refinerValues);
@@ -269,6 +271,9 @@ export class Event extends ListItemEntity<IState> implements IEvent {
         this.end = newEnd;
     }
 
+    public get readAheadDueDate(): Moment { return this.state.readAheadDueDate; }
+    public set readAheadDueDate(val: Moment) { this.state.readAheadDueDate = val; }
+
     public get duration(): Duration { return duration(this.end?.diff(this.start)); }
 
     public get isAllDay(): boolean { return this.state.isAllDay; }
@@ -404,6 +409,7 @@ export class Event extends ListItemEntity<IState> implements IEvent {
             event.title = this.title;
             event.start = start;
             event.end = end;
+            event.readAheadDueDate = this.readAheadDueDate;
             event.location = this.location;
             event.description = this.description;
             event.comDecision = this.comDecision

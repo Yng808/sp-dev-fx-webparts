@@ -21,6 +21,7 @@ export interface IEvent {
     readonly isConfidential: boolean;
     readonly refinerValues: IManyToManyRelationship<RefinerValue>;
     readonly comDecision: string;
+    readonly readAheadDueDate: Moment;
     getWrappedEvent(): Event;
     getSeriesMaster(): Event;
     getExceptionOrEvent(): Event;

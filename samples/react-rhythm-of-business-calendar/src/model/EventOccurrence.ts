@@ -37,7 +37,9 @@ export class EventOccurrence implements IEvent {
     public get isConfidential() { return this.event.isConfidential; }
     public get refinerValues() { return this.event.refinerValues; }
     public get comDecision() { return this.event.comDecision; }
-    public get description() { return this.event.description }
+    public get description() { return this.event.description; }
+    public get readAheadDueDate() { return this.event.readAheadDueDate; }
+    
 
     public getRefinerValuesForRefinerId(refinerId: number): RefinerValue[] {
         return this.event.refinerValues.filter(refinerValue => refinerValue.refiner.get()?.id === refinerId);

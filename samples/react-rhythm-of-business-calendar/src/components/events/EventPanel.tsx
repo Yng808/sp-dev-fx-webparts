@@ -315,6 +315,17 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         </GridCol>
                     </GridRow>
                     <GridRow>
+                        <GridCol sm={12}>                            
+                            <LiveText label="Read Ahead Due Date" {...liveProps} propertyName='readAheadDueDate'>
+                                {readAheadDueDate => (
+                                    <Text data-is-focusable>
+                                    {readAheadDueDate ? readAheadDueDate.format('dddd, MMMM DD, YYYY') : '-'}
+                                    </Text>
+                                )}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow>
+                    <GridRow>
                         {refiners.map(refiner => {
                             const transformer = {
                                 transform: (values: RefinerValue[]) => values.filter(v => v.refiner.get() === refiner),
@@ -578,6 +589,17 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     />
                     </GridCol>
                 </GridRow>
+                <GridRow>
+                    <GridCol sm={12}>
+                        <LiveDatePicker
+                            {...liveProps}
+                            label="Read Ahead Due Date"
+                            propertyName='readAheadDueDate'                        
+                            allowTextInput
+                        />
+                    </GridCol>
+                </GridRow>
+                
                 <GridRow>
                     {refiners.filter(Entity.NotDeletedFilter).map(refiner => {
                         const { displayName, required, allowMultiselect } = refiner;

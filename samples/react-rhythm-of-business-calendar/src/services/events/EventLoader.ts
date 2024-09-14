@@ -29,6 +29,7 @@ interface IEventListItemResult extends IListItemResult {
     UID: SPField.Query_Guid;
     Duration: SPField.Query_Integer;
     comDecision: SPField.Query_Choice;
+    ReadAheadDueDate: SPField.Query_DateTime;
 }
 
 interface IEventUpdateListItem extends IUpdateListItem {
@@ -53,6 +54,7 @@ interface IEventUpdateListItem extends IUpdateListItem {
     UID: SPField.Update_Guid;
     Duration: SPField.Update_Integer;
     comDecision: SPField.Update_Choice;
+    ReadAheadDueDate: SPField.Update_DateTime;
 }
 
 const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: ITimeZone, refinerValueLoader: RefinerValueLoader, eventsById: ReadonlyEventMap): Promise<void> => {
@@ -68,6 +70,8 @@ const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: IT
     const isAllDay = SPField.fromYesNo(row, 'fAllDayEvent');
     const start = SPField.fromDateTime(row, 'EventDate', siteTimeZone);
     const end = SPField.fromDateTime(row, 'EndDate', siteTimeZone);
+    const readAheadDueDate = SPField.fromDateTime(row, 'ReadAheadDueDate', siteTimeZone);
+
     if (isAllDay) {
         start.utc().tz(siteTimeZone.momentId, true);
         end.utc().tz(siteTimeZone.momentId, true);
@@ -75,6 +79,7 @@ const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: IT
     event.start = start;
     event.end = end;
     event.isAllDay = isAllDay;
+    event.readAheadDueDate = readAheadDueDate;
 
     event.isConfidential = SPField.fromYesNo(row, 'IsConfidential');
     event.restrictedToAccounts = SPField.toUsers(row.RestrictedToAccounts);
@@ -118,6 +123,7 @@ const toUpdateListItem = (event: Event, siteTimeZone: ITimeZone): IEventUpdateLi
         RefinerValuesId: SPField.toLookupMulti(event.refinerValues.get()),
         EventDate: isAllDay ? SPField.toDateOnly(event.start) : SPField.toDateTime(event.start, siteTimeZone),
         EndDate: isAllDay ? SPField.toDateOnly(event.end) : SPField.toDateTime(event.end, siteTimeZone),
+        ReadAheadDueDate: SPField.toDateTime(event.readAheadDueDate, siteTimeZone),
         fAllDayEvent: event.isAllDay,
         IsConfidential: event.isConfidential,
         RestrictedToAccountsId: SPField.fromUsers(event.restrictedToAccounts),
