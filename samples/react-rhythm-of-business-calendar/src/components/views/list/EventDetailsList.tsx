@@ -116,6 +116,24 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             }
         },
         {
+            key: 'column8',
+            name: 'OPR',
+            fieldName: 'refinerValues',
+            minWidth: 120,
+            maxWidth: 150,
+            isResizable: true,
+            onRender: (item: EventOccurrence) => {
+                const refinerValues = item.getRefinerValuesForRefinerName('OPR');
+                return (
+                    <div>
+                        {refinerValues.map((rv) => (
+                            <div key={rv.title}>{rv.title}</div>
+                        ))}
+                    </div>
+                );
+            }
+        },
+        {
             key: 'column1',
             name: 'Title',
             fieldName: 'title',
@@ -123,8 +141,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             maxWidth: 300,
             isResizable: true,
             onRender: (item: EventOccurrence) => item.title,
-        },
-        
+        },        
         {
             key: 'column2',
             name: 'Start Date',
@@ -143,7 +160,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             isResizable: true,
             onRender: (item: EventOccurrence) => item.end.format('MM/DD/YYYY HHmm'),
         },
-        {
+        /* {
             key: 'column4',
             name: 'COM Decision',
             fieldName: 'comDecision',
@@ -151,8 +168,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             maxWidth: 150,
             isResizable: true,
             onRender: (item: EventOccurrence) => item.comDecision,
-        },
-        {
+        }, */
+        /* {
             key: 'column5',
             name: 'Description',
             fieldName: 'description',
@@ -172,6 +189,15 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     </span>
                 );
             },
+        }, */
+        {
+            key: 'column7',
+            name: 'Read Ahead Due Date',
+            fieldName: 'readAheadDueDate',
+            minWidth: 100,
+            maxWidth: 150,
+            isResizable: true,
+            onRender: (item: EventOccurrence) => item.readAheadDueDate ? item.readAheadDueDate.format('MM/DD/YYYY HHmm') : '-',
         },
         
         // Add more columns as needed for other text-based fields

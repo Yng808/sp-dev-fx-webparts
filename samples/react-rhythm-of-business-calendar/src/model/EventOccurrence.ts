@@ -39,10 +39,14 @@ export class EventOccurrence implements IEvent {
     public get comDecision() { return this.event.comDecision; }
     public get description() { return this.event.description; }
     public get readAheadDueDate() { return this.event.readAheadDueDate; }
-    
+
 
     public getRefinerValuesForRefinerId(refinerId: number): RefinerValue[] {
         return this.event.refinerValues.filter(refinerValue => refinerValue.refiner.get()?.id === refinerId);
+    }
+
+    public getRefinerValuesForRefinerName(refinerName: string): RefinerValue[] {
+        return this.event.refinerValues.filter(refinerValue => refinerValue.refiner.get()?.title === refinerName);
     }
 
     public getWrappedEvent(): Event {
