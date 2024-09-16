@@ -107,7 +107,7 @@ export class Event extends ListItemEntity<IState> implements IEvent {
         this.state.moderationTimestamp = undefined;
         this.state.moderationMessage = "";
         this.state.comDecision = "";
-        this.state.readAheadDueDate = null;
+        //this.state.readAheadDueDate = null;
 
         this.refinerValues = ManyToManyRelationship.create<Event, RefinerValue>(this, 'events', { comparer: Event.RefinerValueOrderAscComparer });
         this.includeInBoundedContext(this.refinerValues);

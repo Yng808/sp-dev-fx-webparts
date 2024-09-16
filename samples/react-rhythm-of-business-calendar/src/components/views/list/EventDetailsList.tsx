@@ -81,7 +81,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
     const columns: IColumn[] = [
         {
-            key: 'column6',
+            key: 'column1',
             name: 'Type',
             fieldName: 'refinerValues',
             minWidth: 120,
@@ -115,15 +115,25 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 );
             }
         },
+        
         {
-            key: 'column8',
-            name: 'OPR',
+            key: 'column2',
+            name: 'Title',
+            fieldName: 'title',
+            minWidth: 250,
+            maxWidth: 300,
+            isResizable: true,
+            onRender: (item: EventOccurrence) => item.title,
+        },   
+        {
+            key: 'column10',
+            name: 'Decision Brief',
             fieldName: 'refinerValues',
             minWidth: 120,
             maxWidth: 150,
             isResizable: true,
             onRender: (item: EventOccurrence) => {
-                const refinerValues = item.getRefinerValuesForRefinerName('OPR');
+                const refinerValues = item.getRefinerValuesForRefinerName('Decision Brief');
                 return (
                     <div>
                         {refinerValues.map((rv) => (
@@ -132,33 +142,24 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     </div>
                 );
             }
-        },
+        },     
         {
-            key: 'column1',
-            name: 'Title',
-            fieldName: 'title',
-            minWidth: 250,
-            maxWidth: 300,
-            isResizable: true,
-            onRender: (item: EventOccurrence) => item.title,
-        },        
-        {
-            key: 'column2',
+            key: 'column3',
             name: 'Start Date',
             fieldName: 'startDate',
             minWidth: 100,
             maxWidth: 150,
             isResizable: true,
-            onRender: (item: EventOccurrence) => item.start.format('MM/DD/YYYY HHmm'),
+            onRender: (item: EventOccurrence) => item.isAllDay ? item.start.format('MM/DD/YYYY') : item.start.format('MM/DD/YYYY HHmm'),
         },
         {
-            key: 'column3',
+            key: 'column4',
             name: 'End Date',
             fieldName: 'endDate',
             minWidth: 100,
             maxWidth: 150,
             isResizable: true,
-            onRender: (item: EventOccurrence) => item.end.format('MM/DD/YYYY HHmm'),
+            onRender: (item: EventOccurrence) => item.isAllDay ? item.end.format('MM/DD/YYYY') : item.end.format('MM/DD/YYYY HHmm'),
         },
         /* {
             key: 'column4',
@@ -169,8 +170,54 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             isResizable: true,
             onRender: (item: EventOccurrence) => item.comDecision,
         }, */
-        /* {
+        
+        {
             key: 'column5',
+            name: 'Read Ahead Due Date',
+            fieldName: 'readAheadDueDate',
+            minWidth: 100,
+            maxWidth: 150,
+            isResizable: true,
+            onRender: (item: EventOccurrence) => item.readAheadDueDate ? item.readAheadDueDate.format('MM/DD/YYYY') : '-',
+        },
+        {
+            key: 'column6',
+            name: 'IPC OPR',
+            fieldName: 'refinerValues',
+            minWidth: 120,
+            maxWidth: 150,
+            isResizable: true,
+            onRender: (item: EventOccurrence) => {
+                const refinerValues = item.getRefinerValuesForRefinerName('IPC OPR');
+                return (
+                    <div>
+                        {refinerValues.map((rv) => (
+                            <div key={rv.title}>{rv.title}</div>
+                        ))}
+                    </div>
+                );
+            }
+        },
+        {
+            key: 'column7',
+            name: 'IPC Attendee',
+            fieldName: 'refinerValues',
+            minWidth: 120,
+            maxWidth: 150,
+            isResizable: true,
+            onRender: (item: EventOccurrence) => {
+                const refinerValues = item.getRefinerValuesForRefinerName('IPC Attendee');
+                return (
+                    <div>
+                        {refinerValues.map((rv) => (
+                            <div key={rv.title}>{rv.title}</div>
+                        ))}
+                    </div>
+                );
+            }
+        },
+        {
+            key: 'column8',
             name: 'Description',
             fieldName: 'description',
             minWidth: 200,
@@ -189,16 +236,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     </span>
                 );
             },
-        }, */
-        {
-            key: 'column7',
-            name: 'Read Ahead Due Date',
-            fieldName: 'readAheadDueDate',
-            minWidth: 100,
-            maxWidth: 150,
-            isResizable: true,
-            onRender: (item: EventOccurrence) => item.readAheadDueDate ? item.readAheadDueDate.format('MM/DD/YYYY HHmm') : '-',
         },
+        
         
         // Add more columns as needed for other text-based fields
     ];
