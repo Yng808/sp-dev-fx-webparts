@@ -18,7 +18,7 @@ interface IProps {
 
 export const Week: FC<IProps> = ({ anchorDate, week, onActivate, viewCommands }) => {
     const { palette: { neutralTertiary } } = useTheme();
-
+    console.log("week:", week);
     const style: CSSProperties = {
         borderBottom: '1px solid ' + neutralTertiary
     };

@@ -1,8 +1,8 @@
 import { FC, ReactElement } from "react";
 import { Entity, MomentRange, User } from "common";
 import { Approvers, Event, EventOccurrence, Refiner, RefinerValue } from "model";
-import { useConfigurationService, useDirectoryService } from "services";
-import moment from "moment";
+import { useConfigurationService, useDirectoryService, useTimeZoneService } from "services";
+import moment, { Moment } from "moment";
 
 interface IProps {
     events: readonly Event[];
@@ -12,22 +12,32 @@ interface IProps {
     approvers: readonly Approvers[];
     showOnlyCurrentMonth: boolean;
     children: (cccurrences: readonly EventOccurrence[]) => ReactElement;
+    anchorDate: moment.Moment;
     
 }
 
 
-export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedRefinerValues, approvers, showOnlyCurrentMonth, children }) => {
+export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedRefinerValues, approvers, showOnlyCurrentMonth, children, anchorDate }) => {
     const { currentUser, currentUserIsSiteAdmin } = useDirectoryService();
     const { active: { useApprovals, useRefiners } } = useConfigurationService();
     const currentUserApprovers = approvers.filter(a => a.userIsAnApprover(currentUser));
 
+    const timeZoneService = useTimeZoneService();
+    const siteTimeZone = timeZoneService.siteTimeZone;
+
+    const monthYearString = anchorDate.format('MMMM YYYY');
+    const parsedDate = moment(monthYearString, 'MMMM YYYY');
+    const firstDay = parsedDate.clone().startOf('month').tz(siteTimeZone.momentId, true);
+    const lastDay = parsedDate.clone().endOf('month').tz(siteTimeZone.momentId, true); 
+
+
     // Use the current date to calculate the start and end of the current month
-    const now = moment();
-    const startOfMonth = now.clone().startOf('month'); 
-    const endOfMonth = now.clone().endOf('month'); 
+    //const now = moment();
+    const startOfMonth = firstDay;
+    const endOfMonth = lastDay; 
 
     // Log the initial set of events
-    //console.log('Initial Events:', events);
+    console.log('Initial Events:', events);
     //console.log("Start of Month:", startOfMonth.format(), "End of Month:", endOfMonth.format());
 
     const filteredEventOccurrences = events
@@ -68,12 +78,6 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
                             (occurrenceStart.isBefore(startOfMonth) && occurrenceEnd.isAfter(endOfMonth))
                         );
 
-                        if (isIncluded) {
-                            console.log(`Occurrence Included: Start: ${occurrenceStart.format()}, End: ${occurrenceEnd.format()}`);
-                        } else {
-                            console.log(`Occurrence Excluded: Start: ${occurrenceStart.format()}, End: ${occurrenceEnd.format()}`);
-                        }
-
                         return isIncluded;
                     });
                 }
@@ -88,17 +92,17 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
                 );
 
                 if (isIncluded) {
-                    console.log(`Non-recurring Event Included: ID: ${event.id}, Start: ${eventStart.format()}, End: ${eventEnd.format()}`);
+                    //console.log(`Non-recurring Event Included: ID: ${event.id}, Start: ${eventStart.format()}, End: ${eventEnd.format()}`);
                     return [new EventOccurrence(event)];
                 } else {
-                    console.log(`Non-recurring Event Excluded: ID: ${event.id}, Start: ${eventStart.format()}, End: ${eventEnd.format()}`);
+                    //console.log(`Non-recurring Event Excluded: ID: ${event.id}, Start: ${eventStart.format()}, End: ${eventEnd.format()}`);
                 }
                 return [];
             } else {
                 // If not filtering by current month, return all occurrences or the event itself
                 if (event.isRecurring && event.isSeriesMaster) {
                     const occurrences = event.expandOccurrences(dateRange);
-                    console.log(`Event ID: ${event.id} - Expanded Occurrences:`, occurrences);
+                    //console.log(`Event ID: ${event.id} - Expanded Occurrences:`, occurrences);
                     return occurrences;
                 }
                 return [new EventOccurrence(event)];
@@ -117,6 +121,6 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
             });
         });
 
-    console.log("filteredEvents from EventFilter.tsx: ", filteredEventOccurrences);
+    //console.log("filteredEvents from EventFilter.tsx: ", filteredEventOccurrences);
     return children(filteredEventOccurrences);
 };

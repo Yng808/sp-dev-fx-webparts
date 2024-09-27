@@ -14,6 +14,7 @@ export const DirectoryService: unique symbol = Symbol("Directory Service");
 export interface IDirectoryService extends IService {
     readonly currentUser: User;
     readonly currentUserIsSiteAdmin: boolean;
+    readonly currentUserIsContributor: boolean;
     readonly currentUserEffectivePermissions: IBasePermissions;
     resolve(input: string[], web?: IWeb): Promise<User[]>;
     search(input: string, principalType?: PrincipalType): Promise<User[]>;

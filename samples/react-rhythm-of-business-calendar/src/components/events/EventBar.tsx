@@ -91,8 +91,8 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
 
     const startTimeString = timeStringOverride ||
         (size === EventBarSize.Compact
-            ? (!isAllDay && start?.format('LT'))
-            : isAllDay ? strings.AllDay : `${start?.format('LT')} - ${end?.format('LT')}`
+            ? (!isAllDay && `${start?.format('HHmm')}-${end?.format('HHmm')}`)
+            : isAllDay ? strings.AllDay : `${start?.format('HHmm')}-${end?.format('HHmm')}`
         );
 
     // Prepend the first character of comDecision to the title if it exists
@@ -101,12 +101,21 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
 
     return (
         <Stack className={eventClassName} style={style} tokens={useConst({ childrenGap: 2 })}>
-            <Stack horizontal verticalAlign="center" title={title} tokens={useConst({ childrenGap: 6 })}>
+            <Stack horizontal verticalAlign="center" title={modifiedTitle} tokens={useConst({ childrenGap: 6 })}>
                 {tag && <span>[{tag}]</span>}
+                
                 <StackItem className={styles.text} style={{ color: style.color }}>
-                    {size === EventBarSize.Compact && startTimeString && `${startTimeString}, `}
-                    {modifiedTitle}
+                
+                    {size === EventBarSize.Compact && startTimeString && (
+                        <span style={{ fontWeight: 'bold' }}>{startTimeString} </span>
+                    )}
+                    
+                    <div>
+                        {modifiedTitle}
+                    </div>
+                    
                 </StackItem>
+                
                 {isConfidential && <LockIcon />}
                 <StackItem grow className={styles.recur}>
                     {isRecurring && <RepeatAllIcon />}

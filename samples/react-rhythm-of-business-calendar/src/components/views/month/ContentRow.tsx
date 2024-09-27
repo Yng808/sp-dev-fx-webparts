@@ -13,9 +13,10 @@ interface IProps {
     onActivate: (cccurrence: EventOccurrence, target: HTMLElement) => void;
 }
 
-export const ContentRow: FC<IProps> = ({ row: { items }, onActivate }) =>
+export const ContentRow: FC<IProps> = ({ row: { items }, onActivate }) => 
     <Stack horizontal className={styles.content}>
         {items.map((item, idx) =>
+        
             <StackItem key={idx} styles={blockStyles(item.duration)}>
                 {item instanceof EventItemInfo
                     ? <EventItem eventInfo={item} onActivate={onActivate} />

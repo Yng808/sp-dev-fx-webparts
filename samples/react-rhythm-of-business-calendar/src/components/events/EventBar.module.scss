@@ -7,7 +7,8 @@ $eventBorderRadius: 6px;
     @include ms-fontSize-12;
     line-height: 16px;
     overflow: hidden;
-    white-space: nowrap;
+    white-space: normal;
+    word-wrap: break-word;
 }
 
 .event {
@@ -42,7 +43,7 @@ $eventBorderRadius: 6px;
 
     .text {
         @include event-font();
-        text-overflow: ellipsis;
+        text-overflow: unset;
     }
 
     .recur {

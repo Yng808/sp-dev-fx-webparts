@@ -74,4 +74,17 @@ export class Color {
         const blue = toHexComponent(this.blue);
         return `#${red}${green}${blue}`;
     }
+
+    public isDarkColor(): boolean {
+        // Normalize the RGB values to a 0-1 scale
+        const r = this.red / 255;
+        const g = this.green / 255;
+        const b = this.blue / 255;
+
+        // Calculate relative luminance
+        const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+        // Return true if the luminance is below 0.5 (considered dark)
+        return luminance < 0.5;
+    }
 }

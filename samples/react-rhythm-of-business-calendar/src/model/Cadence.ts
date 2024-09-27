@@ -26,6 +26,8 @@ const thisOrNextWeekendDay = (date: Moment): void => {
 }
 
 const gotoDateByRecurDay = (current: Moment, weekOf: RecurWeekOfMonth, recurDay: RecurDay) => {
+    console.log('cadence line 29', recurDay, weekOf);
+    console.log('cadence line 30', current);
     switch (recurDay) {
         case RecurDay.day: {
             if (weekOf === RecurWeekOfMonth.last)
@@ -68,12 +70,30 @@ const gotoDateByRecurDay = (current: Moment, weekOf: RecurWeekOfMonth, recurDay:
             break;
         }
         default: {
-            if (weekOf === RecurWeekOfMonth.last) current.add(1, 'month');
+            console.log('cadence line 72', weekOf);
+
+            if (weekOf === RecurWeekOfMonth.last) {
+                current.add(1, 'month');
+            }
+
             const month = current.month();
+            console.log('cadence line 74', month)
             current.startOf('month');
+            //console.log('cadence line 76', current.startOf('month'));
             current.day(recurDay); // sets the date to be the specified day of the week within the current Sunday-Saturday week
-            if (current.month() < month) current.add(1, 'week'); // if that moved the date backwards to the previous month, add a week to move forward to the current month
+            //console.log('cadence line 78', current.day(recurDay));
+            console.log('cadence line 79', current.month);
+            console.log('cadence line 80', month);
+            console.log('cadence line 87', current.clone().utc().format());
+            console.log('cadence line 88', current.format('MMM'));
+            if (current.month() < month || (current.format('MMM') === 'Dec' && month === 0)) {
+                current.add(1, 'week'); // if that moved the date backwards to the previous month, add a week to move forward to the current month
+            }
+
+
             current.add(weekOf === RecurWeekOfMonth.last ? -1 : weekOf, 'weeks');
+
+
         }
     }
 }
@@ -175,14 +195,20 @@ class MonthlyByDayCadenceGenerator implements ICadenceGenerator {
     public *generate(start: Moment): Generator<Moment, undefined> {
         const { byDay: { day, weekOf }, every } = this._monthly;
         const current = start.clone();
+        console.log('cadence line 178', current, weekOf, day, this._monthly);
 
         while (true) {
             gotoDateByRecurDay(current, weekOf, day);
-
+            console.log('cadence line 192', current);
             if (current.isSameOrAfter(start))
-                yield current.clone();
+               // yield current.clone();
+                 yield current.clone().set({
+                    hour: start.hour(),
+                    minute: start.minute()
+                }); 
 
-            current.add(every, 'months');
+            console.log('cadence line 192', current.add(every, 'months'));
+
         }
     }
 }
@@ -250,8 +276,11 @@ export class Cadence {
 
         const { until } = this._recurrence;
 
+        console.log('cadence line 261', this._start);
+
         const generator = this._createGenerator();
         const dates = generator.generate(this._start);
+        console.log('cadence line 262', dates);
         let count = 0;
 
         const end = (until.type === RecurUntilType.date && until.date?.isValid())
@@ -262,6 +291,7 @@ export class Cadence {
             const { done, value: date } = dates.next();
 
             if (done || !date.isValid() || date.isAfter(end, 'day'))
+
                 break;
 
             if (date.isSameOrAfter(range.start, 'day'))

@@ -2,9 +2,17 @@ import { Comparer, momentAscComparer } from "common";
 import { Moment } from "moment-timezone";
 import { IEvent } from "./IEvent";
 import { Event } from "./Event";
+import { RefinerValue } from "./RefinerValue";
 
 export class EventOccurrence implements IEvent {
-    public static readonly StartAscComparer: Comparer<EventOccurrence> = (a, b) => momentAscComparer(a.start, b.start);
+    public static readonly StartAscComparer: Comparer<EventOccurrence> = (a, b) => {
+        // Check if one of the events is an all-day event
+        if (a.isAllDay && !b.isAllDay) return -1; // All-day events come first
+        if (!a.isAllDay && b.isAllDay) return 1;  // Timed events come after all-day events
+
+        // Both are either all-day or regular, so compare by start time
+        return momentAscComparer(a.start, b.start);
+    };
 
     constructor(
         public readonly event: Event,
@@ -29,7 +37,17 @@ export class EventOccurrence implements IEvent {
     public get isConfidential() { return this.event.isConfidential; }
     public get refinerValues() { return this.event.refinerValues; }
     public get comDecision() { return this.event.comDecision; }
+    public get description() { return this.event.description; }
+    public get readAheadDueDate() { return this.event.readAheadDueDate; }
 
+
+    public getRefinerValuesForRefinerId(refinerId: number): RefinerValue[] {
+        return this.event.refinerValues.filter(refinerValue => refinerValue.refiner.get()?.id === refinerId);
+    }
+
+    public getRefinerValuesForRefinerName(refinerName: string): RefinerValue[] {
+        return this.event.refinerValues.filter(refinerValue => refinerValue.refiner.get()?.title === refinerName);
+    }
 
     public getWrappedEvent(): Event {
         return this.event;

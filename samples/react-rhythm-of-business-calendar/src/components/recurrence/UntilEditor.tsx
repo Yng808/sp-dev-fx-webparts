@@ -1,5 +1,5 @@
 import moment from "moment";
-import React, { FC, FormEvent, useCallback } from "react";
+import React, { FC, FormEvent, useCallback, useEffect } from "react";
 import { ChoiceGroup, DatePicker, IChoiceGroupOption, IChoiceGroupOptionProps, IChoiceGroupOptionStyles, ITextFieldStyles } from "@fluentui/react";
 import { firstTextPart, Localize, Validation } from "common/components";
 import { Event, RecurUntilType } from "model";
@@ -32,6 +32,13 @@ export const UntilEditor: FC<IProps> = ({
 }) => {
     const { recurrence: { until } } = entity;
     const { type, count, date } = until;
+
+    // Set the default type to "count" if it is not set
+    useEffect(() => {
+        if (type === undefined || type === null || type === RecurUntilType.forever) {
+            updateField(() => until.type = RecurUntilType.count);
+        }
+    }, [type, updateField]);
 
     const onChangedChoice = useCallback(
         (ev: FormEvent, opt: IChoiceGroupOption) => updateField(() => until.type = parseInt(opt.key)),
@@ -107,12 +114,13 @@ export const UntilEditor: FC<IProps> = ({
 
     const choiceGroupOptions = useCallback(() =>
         [
+            // {
+            //     key: RecurUntilType.forever.toString(),
+            //     text: firstTextPart(strings.Until_Forever),
+            //     styles: choiceStyles,
+            //     onRenderField: onRenderFieldForeverChoiceGroupOption
+            // }, 
             {
-                key: RecurUntilType.forever.toString(),
-                text: firstTextPart(strings.Until_Forever),
-                styles: choiceStyles,
-                onRenderField: onRenderFieldForeverChoiceGroupOption
-            }, {
                 key: RecurUntilType.count.toString(),
                 text: firstTextPart(strings.Until_Count),
                 styles: choiceStyles,
@@ -129,7 +137,7 @@ export const UntilEditor: FC<IProps> = ({
 
     return <ChoiceGroup
         label={strings.Until}
-        selectedKey={type.toString()}
+        selectedKey={type !== undefined && type !== null ? type.toString() : RecurUntilType.count.toString()}
         onChange={onChangedChoice}
         options={choiceGroupOptions()}
     />;

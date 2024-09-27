@@ -81,16 +81,16 @@
             "skipFeatureDeployment": true,
             "environmentSymbol": "Environments.PROD",
             "package": {
-                "name": "Rhythm of Business Calendar",
-                "id": "8588904e-d33f-40ac-9ee0-2fcfcfb0ebc2",
-                "filename": "RhythmOfBusinessCalendar.sppkg"
+                "name": "TDC",
+                "id": "8588904e-d33f-40ac-9ee0-2fcfcfb0ebc4",
+                "filename": "TDC.sppkg"
             },
             "webparts": [
                 {
                     "manifest": "RhythmOfBusinessCalendarWebPart.manifest.json",
-                    "id": "077f5c4a-37bf-4531-ac24-6369ca0f5f51",
-                    "alias": "RhythmOfBusinessCalendarWebPart",
-                    "title": "Rhythm of Business Calendar"
+                    "id": "077f5c4a-37bf-4531-ac24-6369ca0f5f53",
+                    "alias": "TDC",
+                    "title": "TDC"
                 }
             ]
         }

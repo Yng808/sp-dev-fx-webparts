@@ -45,7 +45,7 @@ interface IProps {
 
 export const WeekBackground: FC<IProps> = ({ anchorDate, commands: { newEvent, setAnchorDate }, range: { start, end } }) => {
     const { palette: { themePrimary, themeDarkAlt, neutralLight, neutralLighterAlt }, semanticColors: { bodyBackground } } = useTheme();
-
+    console.log('inside weekbackground:',start, end);
     const navigate = useNavigate();
 
     return (

@@ -32,6 +32,7 @@ interface IState {
     moderationTimestamp: Moment | undefined;
     moderationMessage: string;
     comDecision: string;
+    readAheadDueDate: Moment;
 }
 
 export class Event extends ListItemEntity<IState> implements IEvent {
@@ -105,6 +106,8 @@ export class Event extends ListItemEntity<IState> implements IEvent {
         this.state.moderator = undefined;
         this.state.moderationTimestamp = undefined;
         this.state.moderationMessage = "";
+        this.state.comDecision = "";
+        //this.state.readAheadDueDate = null;
 
         this.refinerValues = ManyToManyRelationship.create<Event, RefinerValue>(this, 'events', { comparer: Event.RefinerValueOrderAscComparer });
         this.includeInBoundedContext(this.refinerValues);
@@ -189,6 +192,15 @@ export class Event extends ListItemEntity<IState> implements IEvent {
         return this.isSeriesException;
     }
 
+    public get comDecision(): string {
+        //console.log('get comDecision:', this.state.comDecision);
+        return this.state.comDecision;
+    }
+
+    public set comDecision(val: string) {
+        this.state.comDecision = val;
+    }
+
     public get description(): string { return this.state.description; }
     public set description(val: string) { this.state.description = val; }
 
@@ -259,6 +271,9 @@ export class Event extends ListItemEntity<IState> implements IEvent {
         this.end = newEnd;
     }
 
+    public get readAheadDueDate(): Moment { return this.state.readAheadDueDate; }
+    public set readAheadDueDate(val: Moment) { this.state.readAheadDueDate = val; }
+
     public get duration(): Duration { return duration(this.end?.diff(this.start)); }
 
     public get isAllDay(): boolean { return this.state.isAllDay; }
@@ -298,13 +313,7 @@ export class Event extends ListItemEntity<IState> implements IEvent {
     public get moderationStatus(): EventModerationStatus { return this._seriesMasterOrThisState.moderationStatus; }
     public set moderationStatus(val: EventModerationStatus) { if (!this.isSeriesException) this.state.moderationStatus = val; }
 
-    public get comDecision(): string | undefined {
-        return this.state.comDecision;
-    }
 
-    public set comDecision(value: string | undefined) {
-        this.state.comDecision = value;
-    }
 
 
     public get isPendingApproval(): boolean { return this.moderationStatus === EventModerationStatus.Pending; }
@@ -323,6 +332,8 @@ export class Event extends ListItemEntity<IState> implements IEvent {
     public get creator(): User { return (this.isSeriesException ? this.seriesMaster.get() : this).author; }
 
     private get _seriesMasterOrThisState(): IState {
+        //const state = this.isSeriesException ? this.seriesMaster.get().state : this.state;
+        //console.log("seriesMasterOrthisState:", state.comDecision);
         return (this.isSeriesException ? this.seriesMaster.get() : this).state;
     }
 
@@ -343,9 +354,11 @@ export class Event extends ListItemEntity<IState> implements IEvent {
     }
 
     public expandOccurrences(range?: MomentRange): EventOccurrence[] {
+        //console.log("expandOccurence range:", range);
         if (this.isSeriesMaster) {
             const cadence = new Cadence(this.start, this.recurrence);
             const dates = Array.from(cadence.generate(range));
+            console.log('expandOccurences dates', dates);
             const exceptionsInRange = multifilter(this.exceptions.get(), inverseFilter(Entity.NewAndGhostableFilter), e => MomentRange.overlaps(range, e));
 
             return dates
@@ -358,22 +371,29 @@ export class Event extends ListItemEntity<IState> implements IEvent {
 
                     if (exception && !exception.isDeleted) {
                         if (exception.recurrenceInstanceCancelled) {
+
                             return undefined;
                         } else if (!MomentRange.overlaps(range, exception)) {
                             return undefined;
                         } else {
-                            return new EventOccurrence(exception);
+
+                            const newEvent = new EventOccurrence(exception);
+                            console.log('expandOccurences inside line 376', newEvent);
+                            return newEvent;
                         }
                     } else {
                         date.startOf('day');
                         const start = date.clone().add(this.startTime);
                         const end = start.clone().add(this.duration);
-                        return new EventOccurrence(this, start, end);
+                        const newEvent2 = new EventOccurrence(this, start, end)
+                        console.log('expandOccurences inside line 384', newEvent2);
+                        return newEvent2;
                     }
                 })
                 .filter(Boolean)
                 .concat(exceptionsInRange.map(e => new EventOccurrence(e)));
         } else {
+            console.log('expandOccurences inside line 391');
             return (!range || MomentRange.overlaps(this, range)) ? [new EventOccurrence(this)] : [];
         }
     }
@@ -389,8 +409,10 @@ export class Event extends ListItemEntity<IState> implements IEvent {
             event.title = this.title;
             event.start = start;
             event.end = end;
+            event.readAheadDueDate = this.readAheadDueDate;
             event.location = this.location;
             event.description = this.description;
+            event.comDecision = this.comDecision
             event.contacts = [...this.contacts];
             event.isAllDay = this.isAllDay;
             event.refinerValues.set([...this.refinerValues.get()]);

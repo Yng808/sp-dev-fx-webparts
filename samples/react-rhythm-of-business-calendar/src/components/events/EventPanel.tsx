@@ -308,9 +308,20 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             
                             <LiveText label="COM Decision" {...liveProps} propertyName='comDecision'>
                                 {val => {
-                                    console.log("Display Mode - COM Decision:", val);
+                                    //console.log("Display Mode - COM Decision:", val);
                                     return <Text data-is-focusable>{val || "-"}</Text>;
                                 }}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow>
+                    <GridRow>
+                        <GridCol sm={12}>                            
+                            <LiveText label="Read Ahead Due Date" {...liveProps} propertyName='readAheadDueDate'>
+                                {readAheadDueDate => (
+                                    <Text data-is-focusable>
+                                    {readAheadDueDate ? readAheadDueDate.format('dddd, MMMM DD, YYYY') : '-'}
+                                    </Text>
+                                )}
                             </LiveText>
                         </GridCol>
                     </GridRow>
@@ -579,6 +590,17 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     </GridCol>
                 </GridRow>
                 <GridRow>
+                    <GridCol sm={12}>
+                        <LiveDatePicker
+                            {...liveProps}
+                            label="Read Ahead Due Date"
+                            propertyName='readAheadDueDate'                        
+                            allowTextInput
+                        />
+                    </GridCol>
+                </GridRow>
+                
+                <GridRow>
                     {refiners.filter(Entity.NotDeletedFilter).map(refiner => {
                         const { displayName, required, allowMultiselect } = refiner;
                         const rules = [this._refinerValueValidationRulesByRefiner.get(refiner)];
@@ -736,7 +758,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
     protected buildDisplayHeaderCommands(): ICommandBarItemProps[] {
         const {
             commands: { approve, reject, addToOutlook, addSeriesToOutlook, getLink },
-            services: { [DirectoryService]: { currentUserIsSiteAdmin, currentUser } }
+            services: { [DirectoryService]: { currentUserIsSiteAdmin, currentUser, currentUserIsContributor } }
         } = this.props;
         const { isRecurring, isSeriesException, isSeriesMaster, seriesMaster, isDeleted, isNew, isApproved, creator } = this.entity;
         const onEdit = () => { this.edit(); };
@@ -882,7 +904,9 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
             onClick: onGetLink
         };
 
-        const userCanApprove = currentUserIsSiteAdmin || this._currentUserIsAnApprover();
+        console.log("EventPanel line 885", currentUserIsContributor);
+
+        const userCanApprove = currentUserIsSiteAdmin || this._currentUserIsAnApprover() || currentUserIsContributor;
         const userIsCreator = User.equal(creator, currentUser);
         const canEdit = userIsCreator || userCanApprove;
         const canModerate = !isApproved && userCanApprove;
