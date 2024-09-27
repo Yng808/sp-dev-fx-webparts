@@ -55,25 +55,33 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const scrollablePaneRef = useRef<HTMLDivElement | null>(null);
     const listRef = useRef<HTMLDivElement | null>(null);
    
+   
+     // Handle scroll events for the main content area
+     const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+        const stickyElement = document.querySelector("[class*='stickyAbove-']");
+        if (stickyElement) {
+            stickyElement.scrollLeft = event.currentTarget.scrollLeft;
+        }
+    };
+
+    // Handle scroll events for the sticky header
+    const handleStickyScroll = (event: Event) => {
+        const gridElement = document.querySelector("[class*='ms-DetailsList']");
+        if (gridElement) {
+            gridElement.scrollLeft = (event.target as HTMLElement).scrollLeft;
+        }
+    };
+
     useEffect(() => {
-        const handleScroll = () => {
-            if (listRef.current) {
-                const header = listRef.current.querySelector('.ms-DetailsHeader');
-                if (header && scrollablePaneRef.current) {
-                    header.scrollLeft = scrollablePaneRef.current.scrollLeft;
-                }
-            }
-        };
-
-        const paneElement = scrollablePaneRef.current;
-
-        if (paneElement) {
-            paneElement.addEventListener('scroll', handleScroll);
+        const stickyElement = document.querySelector("[class*='stickyAbove-']");
+        if (stickyElement) {
+            stickyElement.addEventListener('scroll', handleStickyScroll);
         }
 
+        // Cleanup event listener on component unmount
         return () => {
-            if (paneElement) {
-                paneElement.removeEventListener('scroll', handleScroll);
+            if (stickyElement) {
+                stickyElement.removeEventListener('scroll', handleStickyScroll);
             }
         };
     }, []);
@@ -285,7 +293,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
   
 
     return (
-        <div style={{ position: 'relative', height: '600px', overflow: 'auto' }} ref={scrollablePaneRef}>
+        <div style={{ position: 'relative', height: '600px', overflow: 'auto' }} onScroll={handleScroll}
+        ref={scrollablePaneRef}>
             <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
                 {/* Filters section */}
                 <Stack tokens={{ childrenGap: 10 }}>
