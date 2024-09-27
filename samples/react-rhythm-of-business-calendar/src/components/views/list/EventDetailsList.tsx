@@ -1,11 +1,24 @@
-import React, { FC, useEffect, useState } from 'react';
-import { DetailsList, DetailsListLayoutMode, IColumn, IDetailsListStyles, SelectionMode, Stack, TextField } from '@fluentui/react';
+import React, { FC, useEffect, useRef, useState } from 'react';
+import { DetailsList, DetailsListLayoutMode, IColumn, IDetailsListStyles, SelectionMode, Stack, TextField, Sticky, StickyPositionType, IDetailsHeaderProps, ScrollablePane, ScrollbarVisibility } from '@fluentui/react';
 import { EventOccurrence } from 'model';
 import moment from 'moment';
 
 interface EventDetailsListProps {
     cccurrences: readonly EventOccurrence[];
 }
+
+// Define the custom header renderer with explicit types
+const onRenderDetailsHeader = (props: IDetailsHeaderProps, defaultRender?: (props: IDetailsHeaderProps) => JSX.Element | null) => {
+    if (!props || !defaultRender) {
+        return null;
+    }
+
+    return (
+        <Sticky>
+            {defaultRender(props)}
+        </Sticky>
+    );
+};
 
 // custom table styles
 const detailsListStyles: Partial<IDetailsListStyles> = {
@@ -38,6 +51,32 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [startDate, setStartDate] = useState<string>('');
     const [endDate, setEndDate] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState<string>('');
+
+    const scrollablePaneRef = useRef<HTMLDivElement | null>(null);
+    const listRef = useRef<HTMLDivElement | null>(null);
+   
+    useEffect(() => {
+        const handleScroll = () => {
+            if (listRef.current) {
+                const header = listRef.current.querySelector('.ms-DetailsHeader');
+                if (header && scrollablePaneRef.current) {
+                    header.scrollLeft = scrollablePaneRef.current.scrollLeft;
+                }
+            }
+        };
+
+        const paneElement = scrollablePaneRef.current;
+
+        if (paneElement) {
+            paneElement.addEventListener('scroll', handleScroll);
+        }
+
+        return () => {
+            if (paneElement) {
+                paneElement.removeEventListener('scroll', handleScroll);
+            }
+        };
+    }, []);
 
     useEffect(() => {
         let filtered = [...cccurrences]; // Create a mutable copy of the readonly array
@@ -242,39 +281,53 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         // Add more columns as needed for other text-based fields
     ];
 
+
+  
+
     return (
-        <Stack tokens={{ childrenGap: 10 }}>
-            <Stack horizontal tokens={{ childrenGap: 10 }}>
-                <TextField
-                    label="Start Date"
-                    type="date"
-                    value={startDate}
-                    onChange={(e, newValue) => setStartDate(newValue || '')}
-                />
-                <TextField
-                    label="End Date"
-                    type="date"
-                    value={endDate}
-                    onChange={(e, newValue) => setEndDate(newValue || '')}
-                />
-                <TextField
-                    label="Search"
-                    value={searchQuery}
-                    onChange={(e, newValue) => setSearchQuery(newValue || '')}
-                />                
-            </Stack>
-            <DetailsList
-                items={filteredEvents}
-                columns={columns}
-                setKey="set"
-                layoutMode={DetailsListLayoutMode.fixedColumns}
-                selectionPreservedOnEmptyClick={true}
-                ariaLabelForSelectionColumn="Toggle selection"
-                checkButtonAriaLabel="Row checkbox"
-                styles={detailsListStyles}
-                selectionMode={SelectionMode.none}
-            />
-        </Stack>
+        <div style={{ position: 'relative', height: '600px', overflow: 'auto' }} ref={scrollablePaneRef}>
+            <ScrollablePane scrollbarVisibility={ScrollbarVisibility.auto}>
+                {/* Filters section */}
+                <Stack tokens={{ childrenGap: 10 }}>
+                    <Stack horizontal tokens={{ childrenGap: 10 }}>
+                        <TextField
+                            label="Start Date"
+                            type="date"
+                            value={startDate}
+                            onChange={(e, newValue) => setStartDate(newValue || '')}
+                        />
+                        <TextField
+                            label="End Date"
+                            type="date"
+                            value={endDate}
+                            onChange={(e, newValue) => setEndDate(newValue || '')}
+                        />
+                        <TextField
+                            label="Search"
+                            value={searchQuery}
+                            onChange={(e, newValue) => setSearchQuery(newValue || '')}
+                        />
+                    </Stack>
+                </Stack>
+
+                {/* DetailsList section */}
+                <div ref={listRef}>
+                    <DetailsList
+                        items={filteredEvents}
+                        columns={columns}
+                        setKey="set"
+                        layoutMode={DetailsListLayoutMode.fixedColumns}
+                        selectionPreservedOnEmptyClick={true}
+                        ariaLabelForSelectionColumn="Toggle selection"
+                        checkButtonAriaLabel="Row checkbox"
+                        styles={detailsListStyles}
+                        selectionMode={SelectionMode.none}
+                        onRenderDetailsHeader={onRenderDetailsHeader}
+                    />
+                </div>
+            </ScrollablePane>
+        </div>
+        
     );
 };
 
