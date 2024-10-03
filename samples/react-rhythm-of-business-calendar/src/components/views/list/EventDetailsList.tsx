@@ -301,9 +301,9 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             <th>Type</th>
                             <th>Title</th>
                             <th>Decision Brief</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
                             <th>Read Ahead Due Date</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>                            
                             <th>IPC OPR</th>
                             <th>IPC Attendee</th>
                             <th>Description</th>
@@ -335,9 +335,10 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                         <div key={rv.title}>{rv.title}</div>
                                     ))}
                                 </td>
+                                <td>{event.readAheadDueDate ? event.readAheadDueDate.format('MM/DD/YYYY') : '-'}</td>
                                 <td>{event.isAllDay ? event.start.format('MM/DD/YYYY') : event.start.format('MM/DD/YYYY HHmm')}</td>
                                 <td>{event.isAllDay ? event.end.format('MM/DD/YYYY') : event.end.format('MM/DD/YYYY HHmm')}</td>
-                                <td>{event.readAheadDueDate ? event.readAheadDueDate.format('MM/DD/YYYY') : '-'}</td>
+                                
                                 <td>
                                     {event.getRefinerValuesForRefinerName('IPC OPR').map(rv => (
                                         <div key={rv.title}>{rv.title}</div>
