@@ -15,7 +15,11 @@ export class iCalendarFileBuilder {
             const firstDate = dates.next().value;
             if (firstDate) {
                 adjustedStart = firstDate.clone().startOf('day').add(startTime);
-                adjustedEnd = firstDate.clone().startOf('day').add(duration);
+                adjustedEnd = firstDate.clone().startOf('day').set({
+                    hour: end.hours(),
+                    minute: end.minutes(),
+                    second: end.seconds(),
+                  });
             }
         }
 
