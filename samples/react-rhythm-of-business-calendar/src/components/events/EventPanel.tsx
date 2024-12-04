@@ -15,6 +15,7 @@ import { IEventCommands } from './IEventCommands';
 import { PersistConcurrencyFailureMessage, Validation as validationStrings, EventPanel as strings } from "ComponentStrings";
 
 import styles from './EventPanel.module.scss';
+import EventAttachments from './EventAttachments';
 
 export class RefinerValueValidationRule extends ValidationRule<Event> {
     constructor(
@@ -218,6 +219,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         const isConfidentialPrevious = event.hasPrevious && event.previousValue<boolean>('isConfidential');
         const isConfidentialSnapshot = event.hasSnapshot && event.snapshotValue<boolean>('isConfidential');
         const confidentialFieldEnabled = (isConfidential || isConfidentialSnapshot || isConfidentialPrevious || config.allowConfidentialEvents);
+        const itemId = this.entity.id;
 
         return (
             <FocusZone>
@@ -369,6 +371,15 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         </GridRow>
                     }
                     <GridRow>
+                        <GridCol>
+                            {!this.isNew && itemId ? (
+                                <EventAttachments itemId={itemId} />
+                            ) : (
+                                <div>Save event to add attachments.</div>
+                            )}
+                        </GridCol>
+                    </GridRow>
+                    <GridRow>
                         <GridCol sm={12}>
                             <ListItemTechnicals entity={(this.isNew && isSeriesException && seriesMaster.get()) || event} />
                         </GridCol>
@@ -391,6 +402,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
             showValidationFeedback,
             updateField: this.updateField
         };
+        const itemId = this.entity.id;
 
         return (
             <ResponsiveGrid className={styles.content}>
@@ -705,6 +717,15 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             </GridCol>
                         </GridRow>
                     )}
+                <GridRow>
+                    <GridCol>
+                        {!this.isNew && itemId ? (
+                            <EventAttachments itemId={itemId} />
+                        ) : (
+                            <div>Save event to add attachments.</div>
+                        )}
+                    </GridCol>
+                </GridRow>
                 <GridRow>
                     <GridCol sm={12}>
                         <ListItemTechnicals entity={this.entity} />
