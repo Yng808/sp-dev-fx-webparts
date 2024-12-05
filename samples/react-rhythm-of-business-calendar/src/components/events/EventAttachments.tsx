@@ -8,9 +8,10 @@ interface Attachment {
 
 interface EventAttachmentsProps {
   itemId: number;  // The event's ID
+  isEditable: boolean;
 }
 
-const EventAttachments: React.FC<EventAttachmentsProps> = ({ itemId }) => {
+const EventAttachments: React.FC<EventAttachmentsProps> = ({ itemId, isEditable }) => {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [files, setFiles] = useState<File[]>([]);
@@ -131,6 +132,11 @@ const EventAttachments: React.FC<EventAttachmentsProps> = ({ itemId }) => {
     } finally {
       setUploading(false);
     }
+
+    // Set a timer to remove the error after 5 seconds
+    setTimeout(() => {
+      setError(null); 
+    }, 5000);
   };
 
   // Optional: Handle Enter key for upload
@@ -189,14 +195,15 @@ const EventAttachments: React.FC<EventAttachmentsProps> = ({ itemId }) => {
               multiple
               onChange={handleFileChange}
               onKeyPress={handleKeyPress}
-              disabled={uploading}
+              disabled={uploading || !isEditable}
               className={styles.spText}
             />
-            <button onClick={uploadAttachments} disabled={uploading || files.length === 0} className={`${styles.addButton} ${styles.spText}`}>
+            <button onClick={uploadAttachments} disabled={uploading || files.length === 0 || !isEditable} className={`${styles.addButton} ${styles.spText}`}>
               {uploading ? 'Saving Changes...' : 'Upload Attachments'}
             </button>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
       </div>
+
+      {error && <p style={{ color: 'red' }}>{error}</p>}
 
       {/* Display Loading State */}
       {loading ? (
@@ -218,7 +225,7 @@ const EventAttachments: React.FC<EventAttachmentsProps> = ({ itemId }) => {
                   >
                     {attachment.FileName}
                   </a>
-                  <button onClick={() => removeAttachment(attachment)} disabled={uploading} className={`${styles.removeButton} ${styles.spText}`}>
+                  <button onClick={() => removeAttachment(attachment)} disabled={uploading || !isEditable} className={`${styles.removeButton} ${styles.spText}`}>
                     Remove
                   </button>
                 </div>
