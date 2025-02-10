@@ -88,6 +88,7 @@ export class OnlineEventsService implements IEventsService {
     public track(approvers: Approvers): void;
     public track(entity: Event | Refiner | RefinerValue | Approvers): void {
         if (entity instanceof Event) {
+            entity.XMLTZone = entity.XMLTZone || '';
             this._eventLoader.track(entity);
         } else if (entity instanceof Refiner) {
             this._refinerLoader.track(entity);
@@ -409,6 +410,21 @@ export class OnlineEventsService implements IEventsService {
 
                 const events: Event[] = [];
 
+                const timeZoneXML = `<![CDATA[
+                    <timeZoneRule>
+                        <standardBias>480</standardBias>
+                        <additionalDaylightBias>-60</additionalDaylightBias>
+                        <standardDate>
+                            <transitionRule month="11" day="su" weekdayOfMonth="first"/>
+                            <transitionTime>02:00:00</transitionTime>
+                        </standardDate>
+                        <daylightDate>
+                            <transitionRule month="3" day="su" weekdayOfMonth="second"/>
+                            <transitionTime>02:00:00</transitionTime>
+                        </daylightDate>
+                    </timeZoneRule>
+                ]]>`;
+
                 {
                     const event = new Event();
                     event.snapshot();
@@ -423,6 +439,8 @@ export class OnlineEventsService implements IEventsService {
                     event.moderator = currentUser;
                     event.moderationTimestamp = now();
                     event.moderationStatus = EventModerationStatus.Approved;
+
+                    event.XMLTZone = timeZoneXML; 
 
                     events.push(event);
                     this.track(event);

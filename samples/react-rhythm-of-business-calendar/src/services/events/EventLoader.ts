@@ -30,6 +30,7 @@ interface IEventListItemResult extends IListItemResult {
     Duration: SPField.Query_Integer;
     comDecision: SPField.Query_Choice;
     ReadAheadDueDate: SPField.Query_DateTime;
+    XMLTZone: SPField.Update_TextMultiLine;
 }
 
 interface IEventUpdateListItem extends IUpdateListItem {
@@ -55,10 +56,11 @@ interface IEventUpdateListItem extends IUpdateListItem {
     Duration: SPField.Update_Integer;
     comDecision: SPField.Update_Choice;
     ReadAheadDueDate: SPField.Update_DateTime;
+    XMLTZone: SPField.Update_TextMultiLine;
 }
 
 const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: ITimeZone, refinerValueLoader: RefinerValueLoader, eventsById: ReadonlyEventMap): Promise<void> => {
-    //console.log("Raw data from SharePoint:", row);
+    console.warn("Raw data from SharePoint:", row);
     event.title = decode(row.Title);
     event.description = decode(row.Description);
     event.comDecision = row.comDecision;
@@ -89,7 +91,7 @@ const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: IT
     event.moderationMessage = decode(row.ModerationMessage);
     event.isRecurring = SPField.fromRecurrence(row, 'fRecurrence');
     event.recurrenceUID = SPField.fromGuid(row, 'UID');
-
+    event.XMLTZone = decode(row.XMLTZone);
 
     if (event.isRecurring) {
         const seriesMasterId = SPField.fromInteger(row, 'MasterSeriesItemID');
@@ -138,6 +140,7 @@ const toUpdateListItem = (event: Event, siteTimeZone: ITimeZone): IEventUpdateLi
         RecurrenceID: isSeriesException ? SPField.toDateTime(event.recurrenceExceptionInstanceDate, siteTimeZone) : undefined,
         UID: isRecurring && isNew ? event.recurrenceUID?.toString() : undefined,
         Duration: event.duration.asSeconds()
+        ,XMLTZone: event.XMLTZone
     };
 };
 

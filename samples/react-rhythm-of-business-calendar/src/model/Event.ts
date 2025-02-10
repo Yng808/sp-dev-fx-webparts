@@ -85,9 +85,12 @@ export class Event extends ListItemEntity<IState> implements IEvent {
     public static readonly StartAscComparer: Comparer<Event> = (a, b) => momentAscComparer(a.start, b.start);
     public static readonly RefinerValueOrderAscComparer = aggregateComparer(RefinerValue.RefinerOrderAscComparer, RefinerValue.OrderAscComparer);
 
+    public XMLTZone: string = "";
+
     constructor(author?: User, editor?: User, created?: Moment, modified?: Moment, id?: number, uniqueId?: Guid, etag?: number) {
         super(author, editor, created, modified, id, uniqueId, etag);
 
+        this.XMLTZone = "";
         this.state.description = "";
         this.state.location = "";
         this.state.contacts = [];
