@@ -2,8 +2,9 @@ import React from 'react';
 import ReactDom from "react-dom";
 import { Version } from '@microsoft/sp-core-library';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
-import { IPropertyPaneConfiguration } from '@microsoft/sp-property-pane';
+import { IPropertyPaneConfiguration, PropertyPaneTextField } from '@microsoft/sp-property-pane';
 import { RhythmOfBusinessCalendarApp } from 'apps';
+import { FilterConfigContext } from 'components/shared/FilterConfigContext';
 
 import * as strings from 'RhythmOfBusinessCalendarWebPartStrings';
 import './RhythmOfBusinessCalendar.module.scss';
@@ -15,17 +16,33 @@ console.log('html2canvas:', html2canvas);
 console.log('jsPDF:', jsPDF);
 
 export interface IWebPartProps {
+    filterButtonsJson: string;
 }
 
 export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPart<IWebPartProps> {
     public render(): void {
+        let filterButtons = [];
+        try {
+            // Parse the JSON string from the web part property.
+            filterButtons = JSON.parse(this.properties.filterButtonsJson);
+        } catch (error) {
+            console.error('Error parsing filterButtonsJson:', error);
+        }
+        
         ReactDom.render(
             <div>
-              <button onClick={this.generatePDF} className="btn btn-primary mb-3 ms-3">Download as PDF</button>
-              <RhythmOfBusinessCalendarApp webpart={this} />
+                <button
+                    onClick={this.generatePDF}
+                    className="btn btn-primary mb-3 ms-3"
+                >
+                    Download as PDF
+                </button>
+                <FilterConfigContext.Provider value={{ filterButtons }}>
+                    <RhythmOfBusinessCalendarApp webpart={this} />
+                </FilterConfigContext.Provider>
             </div>,
             this.domElement
-          );
+        );
     }
 
     private generatePDF = () => {
@@ -82,6 +99,18 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
                         description: strings.PropertyPane.Heading
                     },
                     groups: [
+                        {
+                            groupName: "Filter Button Settings",
+                            groupFields: [
+                              PropertyPaneTextField('filterButtonsJson', {
+                                label: "Filter Buttons JSON",
+                                multiline: true,
+                                resizable: true,
+                                description: "Enter a JSON array of filter button configurations. For example: " +
+                                  `[{"key": "filter-refiners", "text": "Filter refiners starting with A", "filterPrefixes": "Birthday;Work Meeting;No;109", "iconName": "Filter"}]`
+                              })
+                            ]
+                          }
                     ]
                 }
             ]
