@@ -4,7 +4,7 @@ import { useBoolean, useForceUpdate } from '@fluentui/react-hooks';
 import { ActionButton, CommandBar, ICommandBarItemProps, IconButton, IIconProps, IStackItemSlots, IStackTokens, Panel, PanelType, Stack, StackItem, Text, TooltipHost } from '@fluentui/react';
 import { BackEventListener } from 'common';
 import { AsyncDataComponent, DateRotator } from 'common/components';
-import { IEvent } from 'model';
+import { IEvent, RefinerValue } from 'model';
 import { useConfigurationService, useDirectoryService, useEventsService } from 'services';
 import { ApprovalDialog, ConfigureApproversPanel, MyApprovalsFilter, MyApprovalsPanel } from '../approvals';
 import { useApprovals, useCopyLinkDialog, useExecuteEventDeepLink, useEventPanel, useRefinerPanel, useSettings, useRefinerValues, useWindowSize } from '../hooks';
@@ -32,7 +32,10 @@ const addRefinerIconProps: IIconProps = { iconName: 'Add' };
 const collapseRefinerRailIconProps: IIconProps = { iconName: 'ClosePaneMirrored' };
 const expandRefinerRailIconProps: IIconProps = { iconName: 'ClosePane' };
 
-
+interface IFilterButtonConfig {
+    buttonText: string;
+    filterPrefixes: string; // semicolon-delimited list of prefixes, e.g. "A;B"
+  }
 
 
 const ViewRoute: FC = () => {
@@ -158,9 +161,41 @@ const ViewRoute: FC = () => {
                 text: 'Hide events/trips outside current month',
                 iconProps: { iconName: showOnlyCurrentMonth ? 'CheckboxComposite' : 'Checkbox' },
                 onClick: () => setShowOnlyCurrentMonth(!showOnlyCurrentMonth)
+            },
+            {
+                key: 'filter-refiners',
+                text: 'filter refiners starting with A',
+                iconProps: { iconName: 'Filter' },
+                onClick: () => {
+                    const prefixString = "Birthday;Work Meeting;No;109";  
+                    const prefixes = prefixString.split(';').map(prefix => prefix.trim());
+
+                     // Convert current selected values to an array.
+                    const currentSelected = Array.from(selectedRefinerValues);
+                    // Create a new set filtering out those not starting with "A".
+                    const newSelectedSet = new Set<RefinerValue>(
+                        currentSelected.filter(
+                            (val) =>
+                                // Include the item if title is empty (or falsy) OR if it matches any prefix.
+                                !val.title ||
+                                prefixes.some((prefix) =>
+                                    val.title === prefix
+                                )
+                        )
+                    );
+                    
+                    // Determine which items were removed from the original selection.
+                    const removed = currentSelected.filter(val => !newSelectedSet.has(val));
+                    
+                    // No items are explicitly added here, so we keep added empty.
+                    const added: RefinerValue[] = [];
+                    
+                    // Now pass an object with the added and removed arrays.
+                    onSelectedRefinerValuesChanged({ added, removed });
+                }
             }
         ] as ICommandBarItemProps[]).filter(Boolean);
-    }, [userCanManageSettings, userIsAnApprover, newEvent, editSettings, openMyApprovalsPanel, showOnlyCurrentMonth]);
+    }, [userCanManageSettings, userIsAnApprover, newEvent, editSettings, openMyApprovalsPanel, showOnlyCurrentMonth, refinerValuesAsync, onSelectedRefinerValuesChanged]);
 
     const events = useEventsService();
     const addEventToOutlook = (event: IEvent) => { events.addToOutlook(event.getExceptionOrEvent()); };
