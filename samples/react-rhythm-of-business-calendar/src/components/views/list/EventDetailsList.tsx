@@ -10,8 +10,8 @@ interface EventDetailsListProps {
 
 const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [filteredEvents, setFilteredEvents] = useState<EventOccurrence[]>([...cccurrences]);
-    const [startDate, setStartDate] = useState<string>('');
-    const [endDate, setEndDate] = useState<string>('');
+    const [startDate, setStartDate] = useState<string>(moment().format('YYYY-MM-DD'));
+    const [endDate, setEndDate] = useState<string>(moment().format('YYYY-MM-DD'));
     const [searchQuery, setSearchQuery] = useState<string>('');
 
     const timeZoneService = useTimeZoneService();
