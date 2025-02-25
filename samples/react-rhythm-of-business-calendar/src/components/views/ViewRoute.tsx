@@ -162,19 +162,17 @@ const ViewRoute: FC = () => {
                 .split(";")
                 .map((prefix) => prefix.trim());
 
-            // Convert the current selected refiner values to an array.
-            //const currentSelected = Array.from(selectedRefinerValues);
             const fullValuesArray = fullRefinerValuesRef.current || Array.from(selectedRefinerValues);
             console.log('fullValuesArray: ' + fullValuesArray.length);
 
-            //console.log('fullRefinerValues: ' + fullRefinerValuesRef.current);
+            // Reset the selected refiners to select all before filtering again below
             onSelectedRefinerValuesChanged({ added: Array.from(fullValuesArray), removed: [] });
 
             // Create a new set that filters refiner values based on the prefixes.
             const newSelectedSet = new Set<RefinerValue>(
                 fullValuesArray.filter(
                     (val) =>
-                        // Include the item if its title is falsy or if it exactly matches any prefix.
+                        // Include the item if its title is falsy (or blank) or if it exactly matches any prefix.
                         !val.title ||
                         prefixes.some((prefix) => val.title === prefix)
                 )
@@ -185,7 +183,6 @@ const ViewRoute: FC = () => {
             const removed = currentSelected.filter(val => !newSelectedSet.has(val));
             // No items are explicitly added here.
             const added: RefinerValue[] = [];
-
             
             // Pass the new selection to your refiner values hook.
             onSelectedRefinerValuesChanged({ added, removed });
