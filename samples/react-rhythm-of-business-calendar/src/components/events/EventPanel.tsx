@@ -568,7 +568,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             label={strings.Field_Contacts.Label}
                             tooltip={strings.Field_Contacts.Tooltip}
                             propertyName='contacts'
-                            restrictPrincipalType={PrincipalType.User}
+                            restrictPrincipalType={PrincipalType.All}
                         />
                     </GridCol>
                 </GridRow>
