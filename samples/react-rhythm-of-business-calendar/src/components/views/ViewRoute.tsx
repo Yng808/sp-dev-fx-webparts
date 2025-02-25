@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { FC, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { IComponentStyles } from '@uifabric/foundation';
 import { useBoolean, useForceUpdate } from '@fluentui/react-hooks';
 import { ActionButton, CommandBar, ICommandBarItemProps, IconButton, IIconProps, IStackItemSlots, IStackTokens, Panel, PanelType, Stack, StackItem, Text, TooltipHost } from '@fluentui/react';
@@ -137,6 +137,18 @@ const ViewRoute: FC = () => {
 
     const { filterButtons } = useContext(FilterConfigContext);
 
+     // Use a ref to capture the full list after the hook is initialized.
+  const fullRefinerValuesRef = useRef<RefinerValue[] | null>(null);
+
+  useEffect(() => {
+    console.log("selectedRefinerValues size:", selectedRefinerValues.size);
+    if (!fullRefinerValuesRef.current ||
+        selectedRefinerValues.size > fullRefinerValuesRef.current.length) {
+      fullRefinerValuesRef.current = Array.from(selectedRefinerValues);
+      console.log("Captured fullRefinerValuesRef:", fullRefinerValuesRef.current);
+    }
+  }, [selectedRefinerValues.size]);
+
     // Create dynamic command bar items for each filter button.
     const dynamicFilterButtons: ICommandBarItemProps[] = (
         filterButtons || []
@@ -151,11 +163,16 @@ const ViewRoute: FC = () => {
                 .map((prefix) => prefix.trim());
 
             // Convert the current selected refiner values to an array.
-            const currentSelected = Array.from(selectedRefinerValues);
+            //const currentSelected = Array.from(selectedRefinerValues);
+            const fullValuesArray = fullRefinerValuesRef.current || Array.from(selectedRefinerValues);
+            console.log('fullValuesArray: ' + fullValuesArray.length);
+
+            //console.log('fullRefinerValues: ' + fullRefinerValuesRef.current);
+            onSelectedRefinerValuesChanged({ added: Array.from(fullValuesArray), removed: [] });
 
             // Create a new set that filters refiner values based on the prefixes.
             const newSelectedSet = new Set<RefinerValue>(
-                currentSelected.filter(
+                fullValuesArray.filter(
                     (val) =>
                         // Include the item if its title is falsy or if it exactly matches any prefix.
                         !val.title ||
@@ -164,12 +181,12 @@ const ViewRoute: FC = () => {
             );
 
             // Determine which items were removed from the original selection.
-            const removed = currentSelected.filter(
-                (val) => !newSelectedSet.has(val)
-            );
+            const currentSelected = Array.from(selectedRefinerValues);
+            const removed = currentSelected.filter(val => !newSelectedSet.has(val));
             // No items are explicitly added here.
             const added: RefinerValue[] = [];
 
+            
             // Pass the new selection to your refiner values hook.
             onSelectedRefinerValuesChanged({ added, removed });
         },
