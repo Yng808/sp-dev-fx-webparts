@@ -88,7 +88,7 @@ export class OnlineEventsService implements IEventsService {
     public track(approvers: Approvers): void;
     public track(entity: Event | Refiner | RefinerValue | Approvers): void {
         if (entity instanceof Event) {
-            entity.XMLTZone = entity.XMLTZone || '';
+            entity.XMLTZone = entity.XMLTZone || "<timeZoneRule><standardBias>480</standardBias><additionalDaylightBias>-60</additionalDaylightBias><standardDate><transitionRule  month='11' day='su' weekdayOfMonth='first' /><transitionTime>2:0:0</transitionTime></standardDate><daylightDate><transitionRule  month='3' day='su' weekdayOfMonth='second' /><transitionTime>2:0:0</transitionTime></daylightDate></timeZoneRule>";
             this._eventLoader.track(entity);
         } else if (entity instanceof Refiner) {
             this._refinerLoader.track(entity);
