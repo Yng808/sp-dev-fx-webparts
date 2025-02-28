@@ -195,7 +195,6 @@ const EventAttachments: React.FC<EventAttachmentsProps> = ({ itemId, isEditable 
               multiple
               onChange={handleFileChange}
               onKeyPress={handleKeyPress}
-              disabled={uploading || !isEditable}
               className={styles.spText}
             />
             <button onClick={uploadAttachments} disabled={uploading || files.length === 0 || !isEditable} className={`${styles.addButton} ${styles.spText}`}>
