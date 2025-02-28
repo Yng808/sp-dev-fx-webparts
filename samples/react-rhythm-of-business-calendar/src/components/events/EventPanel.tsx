@@ -373,9 +373,9 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     <GridRow>
                         <GridCol>
                             {!this.isNew && itemId ? (
-                                <EventAttachments itemId={itemId} isEditable={false}/>
+                                <EventAttachments itemId={itemId} isEditable={true}/>
                             ) : (
-                                <div>Save event to add attachments.</div>
+                                <div/>
                             )}
                         </GridCol>
                     </GridRow>
@@ -722,7 +722,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         {!this.isNew && itemId ? (
                             <EventAttachments itemId={itemId} isEditable={true}/>
                         ) : (
-                            <div>Save event to add attachments.</div>
+                            <div/>
                         )}
                     </GridCol>
                 </GridRow>
