@@ -119,12 +119,13 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                         <tr>
                             <th>Type</th>
                             <th style={{ width: '200px' }}>Title</th>
+                            <th>Location</th>
                             {showDecisionBrief && <th>Decision Brief</th>}
                             {showReadAheadDueDate && <th>Read Ahead Due Date</th>}
                             <th style={{ width: '280px' }}>Event Date</th>                                                         
                             {showOPR && <th>IPC OPR</th>}
                             {showAttendee && <th>IPC Attendee</th>}
-                            <th>Description</th>
+                            <th>Description</th>                            
                         </tr>
                     </thead>
                     <tbody>
@@ -167,6 +168,11 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                         ))}
                                     </td>
                                     <td style={{ width: '280px' }}>{event.title}</td>
+                                    {<td>
+                                        {event.getRefinerValuesForRefinerName('Location').map(rv => (
+                                            <div key={rv.title}>{rv.title}</div>
+                                        ))}
+                                    </td>}
                                     {showDecisionBrief && <td>
                                         {event.getRefinerValuesForRefinerName('Decision Brief').map(rv => (
                                             <div key={rv.title}>{rv.title}</div>
