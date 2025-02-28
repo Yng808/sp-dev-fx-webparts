@@ -2,6 +2,8 @@ import React, { FC, useEffect, useRef, useState } from 'react';
 import { EventOccurrence } from 'model';
 import { useTimeZoneService } from 'services';
 import moment from 'moment';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 interface EventDetailsListProps {
@@ -73,6 +75,37 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         console.log('filtered events', filteredEvents);
     }, [startDate, endDate, searchQuery, cccurrences]);
   
+    const handleExportToExcel = () => {
+        // Prepare data for Excel
+        const data = filteredEvents.map(event => ({
+            Type: event.getRefinerValuesForRefinerId(1).map(rv => rv.title).join(', '),
+            Title: event.title,
+            DecisionBrief: event.getRefinerValuesForRefinerName('Decision Brief').map(rv => rv.title).join(', '),
+            ReadAheadDueDate: event.readAheadDueDate ? event.readAheadDueDate.format('MM/DD/YYYY') : '-',
+            EventDate: moment(event.start).format('MM/DD/YYYY HH:mm') + ' - ' + moment(event.end).format('MM/DD/YYYY HH:mm'),
+            IPCOPR: event.getRefinerValuesForRefinerName('IPC OPR').map(rv => rv.title).join(', '),
+            IPCAttendee: event.getRefinerValuesForRefinerName('IPC Attendee').map(rv => rv.title).join(', '),
+            Description: event.description || '',
+        }));
+
+        // Create a new workbook
+        const workbook = XLSX.utils.book_new();
+
+        // Convert data to a worksheet
+        const worksheet = XLSX.utils.json_to_sheet(data);
+
+        // Append worksheet to workbook
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Events');
+
+        // Generate a binary string for the workbook
+        const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+
+        // Save the Excel file
+        const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+        saveAs(blob, 'Events.xlsx');
+
+    };
+    
     return (
         <div className="container">
             {/* Filters section */}
@@ -106,6 +139,16 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
+                </div>
+                <div className="col">
+                    <label></label>
+                    <button
+                        className="form-control"
+                        style={{ backgroundColor: '#0d6efd', color: '#ffffff' }}
+                        onClick={handleExportToExcel}
+                    >
+                        Export to Excel
+                    </button>
                 </div>
             </div>
 
