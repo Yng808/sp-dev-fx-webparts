@@ -15,6 +15,7 @@ import { IEventCommands } from './IEventCommands';
 import { PersistConcurrencyFailureMessage, Validation as validationStrings, EventPanel as strings } from "ComponentStrings";
 
 import styles from './EventPanel.module.scss';
+import EventAttachments from './EventAttachments';
 
 export class RefinerValueValidationRule extends ValidationRule<Event> {
     constructor(
@@ -218,70 +219,159 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         const isConfidentialPrevious = event.hasPrevious && event.previousValue<boolean>('isConfidential');
         const isConfidentialSnapshot = event.hasSnapshot && event.snapshotValue<boolean>('isConfidential');
         const confidentialFieldEnabled = (isConfidential || isConfidentialSnapshot || isConfidentialPrevious || config.allowConfidentialEvents);
+        const itemId = event.id;
+        const masterEvent = event.isSeriesException ? event.getSeriesMaster() : event;
+        const eventId = masterEvent.id;
+        
 
         return (
             <FocusZone>
                 <ResponsiveGrid className={styles.content}>
                     <GridRow>
                         <GridCol sm={12}>
-                            <LiveText label={strings.Field_Title.Label} {...liveProps} propertyName='title'>
-                                {val => <Text data-is-focusable>{val || "-"}</Text>}
+                            <LiveText
+                                label={strings.Field_Title.Label}
+                                {...liveProps}
+                                propertyName="title"
+                            >
+                                {(val) => (
+                                    <Text data-is-focusable>{val || "-"}</Text>
+                                )}
                             </LiveText>
                         </GridCol>
                     </GridRow>
                     <GridRow>
-                        {!isSeriesMaster &&
+                        {!isSeriesMaster && (
                             <GridCol sm={7} lg={5}>
-                                <LiveText label={strings.Field_StartDate.Label} {...liveProps} propertyName='start'>
-                                    {start => <Text data-is-focusable>{start.format('dddd, MMMM DD, YYYY')}</Text>}
+                                <LiveText
+                                    label={strings.Field_StartDate.Label}
+                                    {...liveProps}
+                                    propertyName="start"
+                                >
+                                    {(start) => (
+                                        <Text data-is-focusable>
+                                            {start.format(
+                                                "dddd, MMMM DD, YYYY"
+                                            )}
+                                        </Text>
+                                    )}
                                 </LiveText>
                             </GridCol>
-                        }
+                        )}
                         <GridCol sm={5} lg={6}>
-                            <LiveText label={strings.Field_StartTime.Label} {...liveProps} propertyName='start'>
+                            <LiveText
+                                label={strings.Field_StartTime.Label}
+                                {...liveProps}
+                                propertyName="start"
+                            >
                                 {(start, state) => {
                                     let isAllDay = false;
                                     switch (state) {
-                                        case 'current': isAllDay = this.entity.currentValue<boolean>('isAllDay'); break;
-                                        case 'snapshot': isAllDay = this.entity.snapshotValue<boolean>('isAllDay'); break;
-                                        case 'previous': isAllDay = this.entity.previousValue<boolean>('isAllDay'); break;
+                                        case "current":
+                                            isAllDay =
+                                                this.entity.currentValue<boolean>(
+                                                    "isAllDay"
+                                                );
+                                            break;
+                                        case "snapshot":
+                                            isAllDay =
+                                                this.entity.snapshotValue<boolean>(
+                                                    "isAllDay"
+                                                );
+                                            break;
+                                        case "previous":
+                                            isAllDay =
+                                                this.entity.previousValue<boolean>(
+                                                    "isAllDay"
+                                                );
+                                            break;
                                     }
-                                    return <Text data-is-focusable>{isAllDay ? strings.AllDay : start.format('LT')}</Text>;
+                                    return (
+                                        <Text data-is-focusable>
+                                            {isAllDay
+                                                ? strings.AllDay
+                                                : start.format("LT")}
+                                        </Text>
+                                    );
                                 }}
                             </LiveText>
                         </GridCol>
-                        {!isSeriesMaster &&
+                        {!isSeriesMaster && (
                             <GridCol sm={7} lg={5}>
-                                <LiveText label={strings.Field_EndDate.Label} {...liveProps} propertyName='end'>
-                                    {end => <Text data-is-focusable>{end.format('dddd, MMMM DD, YYYY')}</Text>}
+                                <LiveText
+                                    label={strings.Field_EndDate.Label}
+                                    {...liveProps}
+                                    propertyName="end"
+                                >
+                                    {(end) => (
+                                        <Text data-is-focusable>
+                                            {end.format("dddd, MMMM DD, YYYY")}
+                                        </Text>
+                                    )}
                                 </LiveText>
                             </GridCol>
-                        }
+                        )}
                         <GridCol sm={5} lg={6}>
-                            {!isAllDay &&
-                                <LiveText label={strings.Field_EndTime.Label} {...liveProps} propertyName='end'>
+                            {!isAllDay && (
+                                <LiveText
+                                    label={strings.Field_EndTime.Label}
+                                    {...liveProps}
+                                    propertyName="end"
+                                >
                                     {(end, state) => {
                                         let isAllDay = false;
                                         switch (state) {
-                                            case 'current': isAllDay = this.entity.currentValue<boolean>('isAllDay'); break;
-                                            case 'snapshot': isAllDay = this.entity.snapshotValue<boolean>('isAllDay'); break;
-                                            case 'previous': isAllDay = this.entity.previousValue<boolean>('isAllDay'); break;
+                                            case "current":
+                                                isAllDay =
+                                                    this.entity.currentValue<boolean>(
+                                                        "isAllDay"
+                                                    );
+                                                break;
+                                            case "snapshot":
+                                                isAllDay =
+                                                    this.entity.snapshotValue<boolean>(
+                                                        "isAllDay"
+                                                    );
+                                                break;
+                                            case "previous":
+                                                isAllDay =
+                                                    this.entity.previousValue<boolean>(
+                                                        "isAllDay"
+                                                    );
+                                                break;
                                         }
-                                        return <Text data-is-focusable>{isAllDay ? strings.AllDay : end.format('LT')}</Text>;
+                                        return (
+                                            <Text data-is-focusable>
+                                                {isAllDay
+                                                    ? strings.AllDay
+                                                    : end.format("LT")}
+                                            </Text>
+                                        );
                                     }}
                                 </LiveText>
-                            }
+                            )}
                         </GridCol>
                     </GridRow>
-                    {isRecurring &&
+                    {isRecurring && (
                         <GridRow>
                             <GridCol>
-                                <LiveText label={strings.Field_Recurring.Label} {...liveProps} propertyName='recurrence'>
-                                    {recurrence => <Text data-is-focusable>{humanizeRecurrencePattern(start, recurrence)}</Text>}
+                                <LiveText
+                                    label={strings.Field_Recurring.Label}
+                                    {...liveProps}
+                                    propertyName="recurrence"
+                                >
+                                    {(recurrence) => (
+                                        <Text data-is-focusable>
+                                            {humanizeRecurrencePattern(
+                                                start,
+                                                recurrence
+                                            )}
+                                        </Text>
+                                    )}
                                 </LiveText>
                             </GridCol>
                         </GridRow>
-                    }
+                    )}
                     {/* <GridRow>
                         <GridCol sm={12}>
                             <LiveText label={strings.Field_Location.Label} {...liveProps} propertyName='location'>
@@ -291,57 +381,112 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     </GridRow> */}
                     <GridRow>
                         <GridCol sm={12}>
-                            <LiveText label={strings.Field_Description.Label} {...liveProps} propertyName='description'>
-                                {val => <Text data-is-focusable>{val || "-"}</Text>}
+                            <LiveText
+                                label={strings.Field_Description.Label}
+                                {...liveProps}
+                                propertyName="description"
+                            >
+                                {(val) => (
+                                    <Text data-is-focusable>{val || "-"}</Text>
+                                )}
                             </LiveText>
                         </GridCol>
                     </GridRow>
                     <GridRow>
                         <GridCol sm={12}>
-                            <LiveText label={strings.Field_Contacts.Label} {...liveProps} propertyName='contacts' tooltip={strings.Field_Contacts.Tooltip}>
-                                {val => <Text data-is-focusable>{val.map(({ title }) => title).join(', ') || "-"}</Text>}
-                            </LiveText>
-                        </GridCol>
-                    </GridRow>
-                    <GridRow>
-                        <GridCol sm={12}>
-                            
-                            <LiveText label="COM Decision" {...liveProps} propertyName='comDecision'>
-                                {val => {
-                                    //console.log("Display Mode - COM Decision:", val);
-                                    return <Text data-is-focusable>{val || "-"}</Text>;
-                                }}
-                            </LiveText>
-                        </GridCol>
-                    </GridRow>
-                    <GridRow>
-                        <GridCol sm={12}>                            
-                            <LiveText label="Read Ahead Due Date" {...liveProps} propertyName='readAheadDueDate'>
-                                {readAheadDueDate => (
+                            <LiveText
+                                label={strings.Field_Contacts.Label}
+                                {...liveProps}
+                                propertyName="contacts"
+                                tooltip={strings.Field_Contacts.Tooltip}
+                            >
+                                {(val) => (
                                     <Text data-is-focusable>
-                                    {readAheadDueDate ? readAheadDueDate.format('dddd, MMMM DD, YYYY') : '-'}
+                                        {val
+                                            .map(({ title }) => title)
+                                            .join(", ") || "-"}
                                     </Text>
                                 )}
                             </LiveText>
                         </GridCol>
                     </GridRow>
                     <GridRow>
-                        {refiners.map(refiner => {
+                        <GridCol sm={12}>
+                            <LiveText
+                                label="COM Decision"
+                                {...liveProps}
+                                propertyName="comDecision"
+                            >
+                                {(val) => {
+                                    //console.log("Display Mode - COM Decision:", val);
+                                    return (
+                                        <Text data-is-focusable>
+                                            {val || "-"}
+                                        </Text>
+                                    );
+                                }}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow>
+                    <GridRow>
+                        <GridCol sm={12}>
+                            <LiveText
+                                label="Read Ahead Due Date"
+                                {...liveProps}
+                                propertyName="readAheadDueDate"
+                            >
+                                {(readAheadDueDate) => (
+                                    <Text data-is-focusable>
+                                        {readAheadDueDate
+                                            ? readAheadDueDate.format(
+                                                  "dddd, MMMM DD, YYYY"
+                                              )
+                                            : "-"}
+                                    </Text>
+                                )}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow>
+                    <GridRow>
+                        {refiners.map((refiner) => {
                             const transformer = {
-                                transform: (values: RefinerValue[]) => values.filter(v => v.refiner.get() === refiner),
-                                reverse: (values: RefinerValue[]) => values
+                                transform: (values: RefinerValue[]) =>
+                                    values.filter(
+                                        (v) => v.refiner.get() === refiner
+                                    ),
+                                reverse: (values: RefinerValue[]) => values,
                             };
 
                             return (
-                                <GridCol key={refiner.key} sm={12} md={6} lg={4}>
-                                    <LiveText label={refiner.displayName} {...liveProps} propertyName='refinerValues' transformer={transformer}>
-                                        {val =>
-                                            <Stack horizontal wrap verticalAlign="center" tokens={{ childrenGap: 6 }}>
-                                                {val.map(refinerValue =>
-                                                    <RefinerValuePill key={refinerValue.key} refinerValue={refinerValue} />
-                                                )}
+                                <GridCol
+                                    key={refiner.key}
+                                    sm={12}
+                                    md={6}
+                                    lg={4}
+                                >
+                                    <LiveText
+                                        label={refiner.displayName}
+                                        {...liveProps}
+                                        propertyName="refinerValues"
+                                        transformer={transformer}
+                                    >
+                                        {(val) => (
+                                            <Stack
+                                                horizontal
+                                                wrap
+                                                verticalAlign="center"
+                                                tokens={{ childrenGap: 6 }}
+                                            >
+                                                {val.map((refinerValue) => (
+                                                    <RefinerValuePill
+                                                        key={refinerValue.key}
+                                                        refinerValue={
+                                                            refinerValue
+                                                        }
+                                                    />
+                                                ))}
                                             </Stack>
-                                        }
+                                        )}
                                     </LiveText>
                                 </GridCol>
                             );
@@ -352,25 +497,80 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             {this._renderModerationStatus()}
                         </GridCol>
                     </GridRow>
-                    {confidentialFieldEnabled &&
+                    {confidentialFieldEnabled && (
                         <GridRow>
                             <GridCol sm={3}>
-                                <LiveText label={strings.Field_Confidential.Label} {...liveProps} propertyName='isConfidential' tooltip={strings.Field_Confidential.Tooltip}>
-                                    {val => <Text data-is-focusable>{val ? strings.Field_Confidential.OnText : strings.Field_Confidential.OffText}</Text>}
+                                <LiveText
+                                    label={strings.Field_Confidential.Label}
+                                    {...liveProps}
+                                    propertyName="isConfidential"
+                                    tooltip={strings.Field_Confidential.Tooltip}
+                                >
+                                    {(val) => (
+                                        <Text data-is-focusable>
+                                            {val
+                                                ? strings.Field_Confidential
+                                                      .OnText
+                                                : strings.Field_Confidential
+                                                      .OffText}
+                                        </Text>
+                                    )}
                                 </LiveText>
                             </GridCol>
                             <GridCol sm={9}>
-                                {isConfidential &&
-                                    <LiveText label={strings.Field_RestrictedToAccounts_Display.Label} {...liveProps} propertyName='restrictedToAccounts'>
-                                        {val => <Text data-is-focusable>{val.map(({ title }) => title).join(', ') || "-"}</Text>}
+                                {isConfidential && (
+                                    <LiveText
+                                        label={
+                                            strings
+                                                .Field_RestrictedToAccounts_Display
+                                                .Label
+                                        }
+                                        {...liveProps}
+                                        propertyName="restrictedToAccounts"
+                                    >
+                                        {(val) => (
+                                            <Text data-is-focusable>
+                                                {val
+                                                    .map(({ title }) => title)
+                                                    .join(", ") || "-"}
+                                            </Text>
+                                        )}
                                     </LiveText>
-                                }
+                                )}
+                            </GridCol>
+                        </GridRow>
+                    )}
+                    {!isRecurring && itemId > 0 &&
+                        <GridRow>
+                            <GridCol>
+                                <EventAttachments
+                                    itemId={itemId}
+                                    isEditable={true}
+                                />
                             </GridCol>
                         </GridRow>
                     }
+                    {isRecurring && eventId > 0 &&
+                        <GridRow>
+                            <GridCol>
+                                <EventAttachments
+                                    itemId={eventId}
+                                    isEditable={true}
+                                />
+                            </GridCol>
+                        </GridRow>
+                    }
+
                     <GridRow>
                         <GridCol sm={12}>
-                            <ListItemTechnicals entity={(this.isNew && isSeriesException && seriesMaster.get()) || event} />
+                            <ListItemTechnicals
+                                entity={
+                                    (this.isNew &&
+                                        isSeriesException &&
+                                        seriesMaster.get()) ||
+                                    event
+                                }
+                            />
                         </GridCol>
                     </GridRow>
                 </ResponsiveGrid>
@@ -391,6 +591,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
             showValidationFeedback,
             updateField: this.updateField
         };
+        const itemId = this.entity.id;
 
         return (
             <ResponsiveGrid className={styles.content}>
@@ -705,6 +906,15 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             </GridCol>
                         </GridRow>
                     )}
+                <GridRow>
+                    <GridCol>
+                        {!this.isNew && itemId ? (
+                            <EventAttachments itemId={itemId} isEditable={true}/>
+                        ) : (
+                            <div/>
+                        )}
+                    </GridCol>
+                </GridRow>
                 <GridRow>
                     <GridCol sm={12}>
                         <ListItemTechnicals entity={this.entity} />
