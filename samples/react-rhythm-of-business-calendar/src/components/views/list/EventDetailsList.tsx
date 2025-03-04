@@ -18,7 +18,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const timeZoneService = useTimeZoneService();
     const siteTimeZone = timeZoneService.siteTimeZone;
 
-    const { showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief } = useContext(FilterConfigContext);
+    const { showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief, showLocation } = useContext(FilterConfigContext);
 
     useEffect(() => {
         let filtered = [...cccurrences]; // Create a mutable copy of the readonly array
@@ -119,7 +119,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                         <tr>
                             <th>Type</th>
                             <th style={{ width: '200px' }}>Title</th>
-                            <th>Location</th>
+                            {showLocation && <th>Location</th>}
                             {showDecisionBrief && <th>Decision Brief</th>}
                             {showReadAheadDueDate && <th>Read Ahead Due Date</th>}
                             <th style={{ width: '280px' }}>Event Date</th>                                                         
@@ -168,7 +168,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                         ))}
                                     </td>
                                     <td style={{ width: '280px' }}>{event.title}</td>
-                                    {<td>
+                                    {showLocation && <td>
                                         {event.getRefinerValuesForRefinerName('Location').map(rv => (
                                             <div key={rv.title}>{rv.title}</div>
                                         ))}

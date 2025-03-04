@@ -21,6 +21,7 @@ export interface IWebPartProps {
     showAttendee: boolean;
     showReadAheadDueDate: boolean;
     showDecisionBrief: boolean;
+    showLocation: boolean;
 }
 
 export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPart<IWebPartProps> {
@@ -37,7 +38,8 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
         let showAttendee = this.properties.showAttendee !== undefined ? this.properties.showAttendee : true;
         let showReadAheadDueDate = this.properties.showReadAheadDueDate !== undefined ? this.properties.showReadAheadDueDate : true;
         let showDecisionBrief = this.properties.showDecisionBrief !== undefined ? this.properties.showDecisionBrief : true;
-        
+        let showLocation = this.properties.showLocation !== undefined ? this.properties.showLocation : true;
+
         ReactDom.render(
             <div>
                 <button
@@ -46,7 +48,7 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
                 >
                     Download as PDF
                 </button>
-                <FilterConfigContext.Provider value={{ filterButtons, showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief }}>
+                <FilterConfigContext.Provider value={{ filterButtons, showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief, showLocation }}>
                     <RhythmOfBusinessCalendarApp webpart={this} />
                 </FilterConfigContext.Provider>
             </div>,
@@ -137,6 +139,10 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
                               }),
                               PropertyPaneCheckbox('showDecisionBrief', { 
                                 text: "Show Decision Brief column on list view",
+                                checked: true                                
+                              }),
+                              PropertyPaneCheckbox('showLocation', { 
+                                text: "Show Location column on list view",
                                 checked: true                                
                               })
                             ]
