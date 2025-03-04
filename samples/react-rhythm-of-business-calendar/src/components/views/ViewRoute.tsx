@@ -520,6 +520,20 @@ const ViewRoute: FC = () => {
                                                             />
                                                         )}
                                                     </EventFilter>
+
+                                                    <Stack horizontal verticalAlign="center" horizontalAlign="end" >
+                                                        <DateRotator
+                                                        date={anchorDate}
+                                                        dateString={dateString}
+                                                        previousIconProps={view.dateRotatorController.previousIconProps}
+                                                        nextIconProps={view.dateRotatorController.nextIconProps}
+                                                        onPrevious={onRotatePreviousDate}
+                                                        onNext={onRotateNextDate}
+                                                        onDateChanged={setAnchorDate}
+                                                        />
+                                                        
+                                                    </Stack>
+
                                                 </Stack>
                                             )}
                                         </AsyncDataComponent>
