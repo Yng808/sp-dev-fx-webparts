@@ -5,6 +5,7 @@ import { useEventCommandActionButtons, useWindowSize } from '../../hooks';
 import { EventOverview, IEventCommands } from '../../events';
 import { IViewDescriptor } from '../IViewDescriptor';
 import { IViewProps } from '../IViewProps';
+import { Builder } from './Builder';
 
 import * as strings from 'ComponentStrings';
 
@@ -22,7 +23,7 @@ const eventCommandsStackItemStyles: IStackItemStyles = {
 
 interface IEventCardProps {
     occurrence: EventOccurrence;
-    commands: IEventCommands,
+    commands: IEventCommands;
 }
 
 const EventCard: FC<IEventCardProps> = ({ occurrence, commands }) => {
@@ -53,23 +54,25 @@ const EventCard: FC<IEventCardProps> = ({ occurrence, commands }) => {
 };
 
 const DayView: FC<IViewProps> = ({
+    anchorDate,
     cccurrences,
-    eventCommands,
+    eventCommands
 }) => {
-    if (cccurrences.length === 0) {
-        return <Text variant='large'>{strings.DayView.NoEventsMessage}</Text>
-    } else {
-        const sortedEventOccurrences = [...cccurrences].sort(EventOccurrence.StartAscComparer);
+    // Use DayBuilder to process occurrences for the anchorDate
+    const dayInfo = Builder.build(cccurrences, anchorDate);
 
+    if (dayInfo.occurrences.length === 0) {
+        return <Text variant="large">{strings.DayView.NoEventsMessage}</Text>;
+    } else {
         return (
             <FocusZone>
-                {sortedEventOccurrences.map(occurrence =>
+                {dayInfo.occurrences.map((occurrence) => (
                     <EventCard
                         key={`${occurrence.event.id}-${occurrence.start.format('L')}`}
                         occurrence={occurrence}
                         commands={eventCommands}
                     />
-                )}
+                ))}
             </FocusZone>
         );
     }
