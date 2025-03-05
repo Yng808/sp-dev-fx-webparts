@@ -50,20 +50,29 @@ export class ContentRowInfo {
     }
 
     public include(cccurrence: EventOccurrence): void {
-        const { start, end } = cccurrence;
-        // Determine start and end positions within the weekly range
-        const startPosition = start.isBefore(this._startDate, 'day') ? 0 : start.diff(this._startDate, 'days');
-        const endPosition = end.isAfter(this._endDate, 'day') ? 7 : end.diff(this._startDate, 'days') + 1;
-        const duration = Math.max(1, endPosition - startPosition);
+        const occurrenceTimeZone = cccurrence.start.tz();
+        const weekStart = this._startDate.clone().startOf('day').tz(occurrenceTimeZone, true); // Adjusted to start of the week
+        const weekEnd = this._endDate.clone().endOf('day').tz(occurrenceTimeZone, true);       // Adjusted to end of the week 
+        // Check if the event overlaps with the current week
+        if (
+            (cccurrence.start.isBefore(weekEnd) && cccurrence.end.isAfter(weekStart)) || // Event spans into this week
+            cccurrence.start.isSame(weekStart, 'week') // Event starts during this week
+        ) {
+            const { start, end } = cccurrence;
+            // Determine the exact positions for the event within the weekly range
+            const startPosition = start.isBefore(weekStart) ? 0 : start.diff(weekStart, 'days');
+            const endPosition = end.isAfter(weekEnd) ? 7 : end.diff(weekStart, 'days') + 1;
+            const duration = Math.max(1, endPosition - startPosition);
 
-        const shimDuration = Math.max(0, startPosition - this.lastUsedPosition());
-        if (shimDuration > 0) {
-            this.items.push(new ShimItemInfo(shimDuration));
+            const shimDuration = Math.max(0, startPosition - this.lastUsedPosition());
+            if (shimDuration > 0) {
+                this.items.push(new ShimItemInfo(shimDuration));
+            }
+
+            const item = new EventItemInfo(duration, start.isSameOrAfter(weekStart, 'day'), end.isSameOrBefore(weekEnd, 'day'), cccurrence);
+            this.items.push(item);
         }
-
-        const item = new EventItemInfo(duration, start.isSameOrAfter(this._startDate, 'day'), end.isSameOrBefore(this._endDate, 'day'), cccurrence);
-        this.items.push(item);
-    }
+    }    
 
     private lastUsedPosition(): number {
         return sumBy(this.items, (item) => item.duration);
@@ -81,11 +90,18 @@ export class Builder {
         const contentRows: ContentRowInfo[] = [];
 
         const { start, end } = Builder.dateRange(anchorDate);
-
-        // Include events that overlap partially or fully with the range
-        const filteredEventOccurrences = cccurrences.filter(cccurrence =>
-            cccurrence.end.isAfter(start, 'day') && cccurrence.start.isBefore(end, 'day')
-        );
+    
+        // Adjust the weekly range to account for the event's timezone
+        const filteredEventOccurrences = cccurrences.filter(cccurrence => {
+            const occurrenceTimeZone = cccurrence.start.tz(); // Get the timezone of the event
+            const weekStart = start.clone().tz(occurrenceTimeZone, true); // Start of the week in the event's timezone
+            const weekEnd = end.clone().tz(occurrenceTimeZone, true);     // End of the week in the event's timezone
+    
+            return (
+                cccurrence.end.isAfter(weekStart, 'second') && // Event ends after the start of the week
+                cccurrence.start.isBefore(weekEnd, 'second')   // Event starts before the end of the week
+            );
+        });
 
         const sortedEventOccurrences = [...filteredEventOccurrences].sort(EventOccurrence.StartAscComparer);
 
