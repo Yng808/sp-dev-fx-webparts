@@ -49,25 +49,24 @@ export class ContentRowInfo {
         return this.lastUsedPosition() <= startPosition;
     }
 
-    public include(cccurrence: EventOccurrence) {
+    public include(cccurrence: EventOccurrence): void {
         const { start, end } = cccurrence;
-        const startsInWeek = start.isSameOrAfter(this._startDate);
-        const endsInWeek = end.isSameOrBefore(this._endDate);
-        const startPosition = startsInWeek ? start.day() : 0;
-        const endPosition = endsInWeek ? end.day() + 1 : 7;
-        const duration = endPosition - startPosition;
+        // Determine start and end positions within the weekly range
+        const startPosition = start.isBefore(this._startDate, 'day') ? 0 : start.diff(this._startDate, 'days');
+        const endPosition = end.isAfter(this._endDate, 'day') ? 7 : end.diff(this._startDate, 'days') + 1;
+        const duration = Math.max(1, endPosition - startPosition);
 
-        const shimDuration = startPosition - this.lastUsedPosition();
+        const shimDuration = Math.max(0, startPosition - this.lastUsedPosition());
         if (shimDuration > 0) {
             this.items.push(new ShimItemInfo(shimDuration));
         }
 
-        const item = new EventItemInfo(duration, startsInWeek, endsInWeek, cccurrence);
+        const item = new EventItemInfo(duration, start.isSameOrAfter(this._startDate, 'day'), end.isSameOrBefore(this._endDate, 'day'), cccurrence);
         this.items.push(item);
     }
 
     private lastUsedPosition(): number {
-        return sumBy(this.items, item => item.duration);
+        return sumBy(this.items, (item) => item.duration);
     }
 }
 
@@ -83,7 +82,12 @@ export class Builder {
 
         const { start, end } = Builder.dateRange(anchorDate);
 
-        const sortedEventOccurrences = [...cccurrences].sort(EventOccurrence.StartAscComparer);
+        // Include events that overlap partially or fully with the range
+        const filteredEventOccurrences = cccurrences.filter(cccurrence =>
+            cccurrence.end.isAfter(start, 'day') && cccurrence.start.isBefore(end, 'day')
+        );
+
+        const sortedEventOccurrences = [...filteredEventOccurrences].sort(EventOccurrence.StartAscComparer);
 
         for (const cccurrence of sortedEventOccurrences) {
             let availableRow = contentRows.find(row => row.canInclude(cccurrence));
