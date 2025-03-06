@@ -55,8 +55,8 @@ export class ContentRowInfo {
         const weekEnd = this._endDate.clone().endOf('day').tz(occurrenceTimeZone, true);       // Adjusted to end of the week 
         // Check if the event overlaps with the current week
         if (
-            (cccurrence.start.isBefore(weekEnd) && cccurrence.end.isAfter(weekStart)) || // Event spans into this week
-            cccurrence.start.isSame(weekStart, 'week') // Event starts during this week
+            cccurrence.end.isAfter(weekStart, 'second') && // Ends after the start of the week
+            cccurrence.start.isBefore(weekEnd, 'second')   // Starts before the end of the week
         ) {
             const { start, end } = cccurrence;
             // Determine the exact positions for the event within the weekly range
