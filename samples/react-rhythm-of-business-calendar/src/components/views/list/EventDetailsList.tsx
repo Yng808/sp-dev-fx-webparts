@@ -1,10 +1,11 @@
-import React, { FC, useEffect, useRef, useState } from 'react';
+import React, { FC, useContext, useEffect, useRef, useState } from 'react';
 import { EventOccurrence } from 'model';
 import { useTimeZoneService } from 'services';
 import moment from 'moment';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { FilterConfigContext } from 'components/shared/FilterConfigContext';
 
 interface EventDetailsListProps {
     cccurrences: readonly EventOccurrence[];
@@ -18,6 +19,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
     const timeZoneService = useTimeZoneService();
     const siteTimeZone = timeZoneService.siteTimeZone;
+
+    const { showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief, showLocation } = useContext(FilterConfigContext);
 
     useEffect(() => {
         let filtered = [...cccurrences]; // Create a mutable copy of the readonly array
@@ -159,12 +162,13 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                         <tr>
                             <th>Type</th>
                             <th style={{ width: '200px' }}>Title</th>
-                            <th>Decision Brief</th>
-                            <th>Read Ahead Due Date</th>
+                            {showLocation && <th>Location</th>}
+                            {showDecisionBrief && <th>Decision Brief</th>}
+                            {showReadAheadDueDate && <th>Read Ahead Due Date</th>}
                             <th style={{ width: '280px' }}>Event Date</th>                                                         
-                            <th>IPC OPR</th>
-                            <th>IPC Attendee</th>
-                            <th>Description</th>
+                            {showOPR && <th>IPC OPR</th>}
+                            {showAttendee && <th>IPC Attendee</th>}
+                            <th>Description</th>                            
                         </tr>
                     </thead>
                     <tbody>
@@ -207,23 +211,28 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                         ))}
                                     </td>
                                     <td style={{ width: '280px' }}>{event.title}</td>
-                                    <td>
+                                    {showLocation && <td>
+                                        {event.getRefinerValuesForRefinerName('Location').map(rv => (
+                                            <div key={rv.title}>{rv.title}</div>
+                                        ))}
+                                    </td>}
+                                    {showDecisionBrief && <td>
                                         {event.getRefinerValuesForRefinerName('Decision Brief').map(rv => (
                                             <div key={rv.title}>{rv.title}</div>
                                         ))}
-                                    </td>
-                                    <td>{event.readAheadDueDate ? event.readAheadDueDate.format('MM/DD/YYYY') : '-'}</td>
+                                    </td>}
+                                    {showReadAheadDueDate && <td>{event.readAheadDueDate ? event.readAheadDueDate.format('MM/DD/YYYY') : '-'}</td>}
                                     <td style={{ width: '280px' }}>{eventDateFormatted}</td> 
-                                    <td>
+                                    {showOPR && <td>
                                         {event.getRefinerValuesForRefinerName('IPC OPR').map(rv => (
                                             <div key={rv.title}>{rv.title}</div>
                                         ))}
-                                    </td>
-                                    <td>
+                                    </td>}
+                                    {showAttendee && <td>
                                         {event.getRefinerValuesForRefinerName('IPC Attendee').map(rv => (
                                             <div key={rv.title}>{rv.title}</div>
                                         ))}
-                                    </td>
+                                    </td>}
                                     <td style={{ whiteSpace: 'normal', wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                                         {event.description}
                                     </td>

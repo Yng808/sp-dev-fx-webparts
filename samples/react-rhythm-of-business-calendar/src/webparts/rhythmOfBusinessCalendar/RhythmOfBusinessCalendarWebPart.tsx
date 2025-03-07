@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDom from "react-dom";
 import { Version } from '@microsoft/sp-core-library';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
-import { IPropertyPaneConfiguration, PropertyPaneTextField } from '@microsoft/sp-property-pane';
+import { IPropertyPaneConfiguration, PropertyPaneCheckbox, PropertyPaneTextField } from '@microsoft/sp-property-pane';
 import { RhythmOfBusinessCalendarApp } from 'apps';
 import { FilterConfigContext } from 'components/shared/FilterConfigContext';
 
@@ -17,6 +17,11 @@ console.log('jsPDF:', jsPDF);
 
 export interface IWebPartProps {
     filterButtonsJson: string;
+    showOPR: boolean;
+    showAttendee: boolean;
+    showReadAheadDueDate: boolean;
+    showDecisionBrief: boolean;
+    showLocation: boolean;
 }
 
 export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPart<IWebPartProps> {
@@ -29,6 +34,12 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
             console.error('Error parsing filterButtonsJson:', error);
         }
         
+        let showOPR = this.properties.showOPR !== undefined ? this.properties.showOPR : true;
+        let showAttendee = this.properties.showAttendee !== undefined ? this.properties.showAttendee : true;
+        let showReadAheadDueDate = this.properties.showReadAheadDueDate !== undefined ? this.properties.showReadAheadDueDate : true;
+        let showDecisionBrief = this.properties.showDecisionBrief !== undefined ? this.properties.showDecisionBrief : true;
+        let showLocation = this.properties.showLocation !== undefined ? this.properties.showLocation : true;
+
         ReactDom.render(
             <div>
                 <button
@@ -37,7 +48,7 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
                 >
                     Download as PDF
                 </button>
-                <FilterConfigContext.Provider value={{ filterButtons }}>
+                <FilterConfigContext.Provider value={{ filterButtons, showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief, showLocation }}>
                     <RhythmOfBusinessCalendarApp webpart={this} />
                 </FilterConfigContext.Provider>
             </div>,
@@ -110,7 +121,33 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
                                   `[{"key": "filter-refiners", "text": "Filter refiners starting with A", "filterPrefixes": "Birthday;Work Meeting;No;109", "iconName": "Filter"}]`
                               })
                             ]
+                          },
+                          {
+                            groupName: "List View / Tab Settings",
+                            groupFields: [                              
+                              PropertyPaneCheckbox('showOPR', { 
+                                text: "Show OPR column on list view",
+                                checked: true                                
+                              }),
+                              PropertyPaneCheckbox('showAttendee', { 
+                                text: "Show OPR Attendee column on list view",
+                                checked: true                                
+                              }),
+                              PropertyPaneCheckbox('showReadAheadDueDate', { 
+                                text: "Show Read Ahead Due Date column on list view",
+                                checked: true                                
+                              }),
+                              PropertyPaneCheckbox('showDecisionBrief', { 
+                                text: "Show Decision Brief column on list view",
+                                checked: true                                
+                              }),
+                              PropertyPaneCheckbox('showLocation', { 
+                                text: "Show Location column on list view",
+                                checked: true                                
+                              })
+                            ]
                           }
+
                     ]
                 }
             ]
