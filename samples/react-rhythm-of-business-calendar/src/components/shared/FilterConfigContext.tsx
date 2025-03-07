@@ -9,8 +9,18 @@ export interface IFilterButtonConfig {
 
 export interface IFilterConfigContext {
   filterButtons: IFilterButtonConfig[];
+  showOPR: boolean;
+  showAttendee: boolean;
+  showReadAheadDueDate: boolean;
+  showDecisionBrief: boolean;
+  showLocation: boolean
 }
 
 export const FilterConfigContext = React.createContext<IFilterConfigContext>({
-  filterButtons: []
+  filterButtons: [],
+  showOPR: true,
+  showAttendee: true,
+  showReadAheadDueDate: true,
+  showDecisionBrief: true,
+  showLocation: true
 });
