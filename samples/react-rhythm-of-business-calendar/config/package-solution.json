@@ -3,7 +3,7 @@
     "solution": {
         "name": "TDC",
         "id": "8588904e-d33f-40ac-9ee0-2fcfcfb0ebc4",
-        "version": "1.4.0.0",
+        "version": "1.5.0.0",
         "includeClientSideAssets": true,
         "skipFeatureDeployment": true,
         "developer": {
