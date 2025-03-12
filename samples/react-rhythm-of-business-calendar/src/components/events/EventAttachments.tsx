@@ -17,6 +17,7 @@ const EventAttachments: React.FC<EventAttachmentsProps> = ({ itemId, isEditable 
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const siteUrl = window.location.origin; //dynamically retrieve the base URL of the current site
 
   // Fetch attachments when component mounts or itemId changes
   useEffect(() => {
@@ -24,7 +25,7 @@ const EventAttachments: React.FC<EventAttachmentsProps> = ({ itemId, isEditable 
       setLoading(true);
       try {
         const response = await fetch(
-          `/_api/web/lists/getbytitle('RoB Calendar Events')/items(${itemId})/AttachmentFiles`,
+          `${siteUrl}/_api/web/lists/getbytitle('RoB Calendar Events')/items(${itemId})/AttachmentFiles`,
           {
             method: 'GET',
             headers: {
@@ -98,7 +99,7 @@ const EventAttachments: React.FC<EventAttachmentsProps> = ({ itemId, isEditable 
       const digest = await getFormDigest();
       // Iterate over each selected file and upload them
       for (const file of files) {
-      const uploadUrl = `/_api/web/lists/getbytitle('RoB Calendar Events')/items(${itemId})/AttachmentFiles/add(FileName='${encodeURIComponent(file.name)}')`;
+      const uploadUrl = `${siteUrl}/_api/web/lists/getbytitle('RoB Calendar Events')/items(${itemId})/AttachmentFiles/add(FileName='${encodeURIComponent(file.name)}')`;
 
       const response = await fetch(uploadUrl, {
         method: 'POST',
