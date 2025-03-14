@@ -186,7 +186,7 @@ const EventAttachments: React.FC<EventAttachmentsProps> = ({
             const siteUrl = web.Url;
             const digest = await getFormDigest();
 
-            const deleteUrl = `${siteUrl}}/_api/web/getfilebyserverrelativeurl('${attachment.ServerRelativeUrl}')`;
+            const deleteUrl = `${siteUrl}/_api/web/getfilebyserverrelativeurl('${attachment.ServerRelativeUrl}')`;
 
             const response = await fetch(deleteUrl, {
                 method: "POST",
