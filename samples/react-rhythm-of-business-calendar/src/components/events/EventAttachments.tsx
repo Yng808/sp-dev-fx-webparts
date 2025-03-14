@@ -1,241 +1,290 @@
-import React, { useState, useEffect } from 'react';
-import styles from './EventAttachments.module.scss'
+import React, { useState, useEffect } from "react";
+import styles from "./EventAttachments.module.scss";
+import { sp } from "@pnp/sp";
 
 interface Attachment {
-  FileName: string;
-  ServerRelativeUrl: string;
+    FileName: string;
+    ServerRelativeUrl: string;
 }
 
 interface EventAttachmentsProps {
-  itemId: number;  // The event's ID
-  isEditable: boolean;
+    itemId: number; // The event's ID
+    isEditable: boolean;
 }
 
-const EventAttachments: React.FC<EventAttachmentsProps> = ({ itemId, isEditable }) => {
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [files, setFiles] = useState<File[]>([]);
-  const [uploading, setUploading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const siteUrl = window.location.origin; //dynamically retrieve the base URL of the current site
+const EventAttachments: React.FC<EventAttachmentsProps> = ({
+    itemId,
+    isEditable,
+}) => {
+    const [attachments, setAttachments] = useState<Attachment[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [files, setFiles] = useState<File[]>([]);
+    const [uploading, setUploading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
+    //const siteUrl = window.location.href; //dynamically retrieve the base URL of the current site
 
-  // Fetch attachments when component mounts or itemId changes
-  useEffect(() => {
-    const fetchAttachments = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `${siteUrl}/_api/web/lists/getbytitle('RoB Calendar Events')/items(${itemId})/AttachmentFiles`,
-          {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json;odata=verbose',
-            },
-          }
-        );
+    // Fetch attachments when component mounts or itemId changes
+    useEffect(() => {
+        const fetchAttachments = async () => {
+            setLoading(true);
+            try {
+                const web = await sp.web.get();
+                const siteUrl = web.Url;
 
-        if (!response.ok) {
-          throw new Error(`Error fetching attachments: ${response.statusText}`);
+                console.log("line 28:" + siteUrl);
+
+                const response = await fetch(
+                    `${siteUrl}/_api/web/lists/getbytitle('RoB Calendar Events')/items(${itemId})/AttachmentFiles`,
+                    {
+                        method: "GET",
+                        headers: {
+                            Accept: "application/json;odata=verbose",
+                        },
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Error fetching attachments: ${response.statusText}`
+                    );
+                }
+
+                const data = await response.json();
+                const fetchedAttachments: Attachment[] = data.d.results.map(
+                    (item: any) => ({
+                        FileName: item.FileName,
+                        ServerRelativeUrl: item.ServerRelativeUrl,
+                    })
+                );
+                setAttachments(fetchedAttachments);
+            } catch (error: any) {
+                console.error("Error fetching attachments:", error);
+                setError("Failed to load attachments.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAttachments();
+    }, [itemId]);
+
+    // Handle file selection
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setFiles(Array.from(e.target.files));
+            setError(null); // Clear previous errors
         }
-
-        const data = await response.json();
-        const fetchedAttachments: Attachment[] = data.d.results.map((item: any) => ({
-          FileName: item.FileName,
-          ServerRelativeUrl: item.ServerRelativeUrl,
-        }));
-        setAttachments(fetchedAttachments);
-      } catch (error: any) {
-        console.error('Error fetching attachments:', error);
-        setError('Failed to load attachments.');
-      } finally {
-        setLoading(false);
-      }
     };
 
-    fetchAttachments();
-  }, [itemId]);
+    // Helper function to get the form digest value
+    const getFormDigest = async () => {
+        try {
+          const web = await sp.web.get();
+                const siteUrl = web.Url;
+            const response = await fetch(`${siteUrl}/_api/contextinfo`, {
+                method: "POST",
+                headers: {
+                    Accept: "application/json;odata=verbose",
+                },
+            });
 
-  // Handle file selection
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFiles(Array.from(e.target.files));
-      setError(null); // Clear previous errors
-    }
-  };
+            if (!response.ok) {
+                throw new Error(
+                    `Error fetching form digest: ${response.statusText}`
+                );
+            }
 
-  // Helper function to get the form digest value
-  const getFormDigest = async () => {
-    try {
-      const response = await fetch(`/_api/contextinfo`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json;odata=verbose',
-        },
-      });
+            const data = await response.json();
+            return data.d.GetContextWebInformation.FormDigestValue;
+        } catch (error: any) {
+            console.error("Error fetching form digest:", error);
+            throw new Error("Unable to obtain form digest value.");
+        }
+    };
 
-      if (!response.ok) {
-        throw new Error(`Error fetching form digest: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data.d.GetContextWebInformation.FormDigestValue;
-    } catch (error: any) {
-      console.error('Error fetching form digest:', error);
-      throw new Error('Unable to obtain form digest value.');
-    }
-  };
-
-  // Upload the selected files to SharePoint
+    // Upload the selected files to SharePoint
     const uploadAttachments = async () => {
-      if (files.length === 0) {
-      setError('Please select a file to upload.');
-      return;
-    }
+        if (files.length === 0) {
+            setError("Please select a file to upload.");
+            return;
+        }
 
-    setUploading(true);
-    setError(null);
+        setUploading(true);
+        setError(null);
 
-    try {
-      const digest = await getFormDigest();
-      // Iterate over each selected file and upload them
-      for (const file of files) {
-      const uploadUrl = `${siteUrl}/_api/web/lists/getbytitle('RoB Calendar Events')/items(${itemId})/AttachmentFiles/add(FileName='${encodeURIComponent(file.name)}')`;
+        try {
+            const web = await sp.web.get();
+            const siteUrl = web.Url;
+            const digest = await getFormDigest();
+            // Iterate over each selected file and upload them
+            for (const file of files) {
+                const uploadUrl = `${siteUrl}/_api/web/lists/getbytitle('RoB Calendar Events')/items(${itemId})/AttachmentFiles/add(FileName='${encodeURIComponent(
+                    file.name
+                )}')`;
 
-      const response = await fetch(uploadUrl, {
-        method: 'POST',
-        body: file, // Send the raw file
-        headers: {
-          'Accept': 'application/json;odata=verbose',
-          'Content-Type': 'application/octet-stream',
-          'X-RequestDigest': digest,
-        },
-      });
+                const response = await fetch(uploadUrl, {
+                    method: "POST",
+                    body: file, // Send the raw file
+                    headers: {
+                        Accept: "application/json;odata=verbose",
+                        "Content-Type": "application/octet-stream",
+                        "X-RequestDigest": digest,
+                    },
+                });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        const errorMessage = errorData.error?.message?.value || response.statusText;
-        throw new Error(`Error uploading file: ${errorMessage}`);
-      }
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    const errorMessage =
+                        errorData.error?.message?.value || response.statusText;
+                    throw new Error(`Error uploading file: ${errorMessage}`);
+                }
 
-      const data = await response.json();
-      const newAttachment: Attachment = {
-        FileName: data.d.FileName,
-        ServerRelativeUrl: data.d.ServerRelativeUrl,
-      };
+                const data = await response.json();
+                const newAttachment: Attachment = {
+                    FileName: data.d.FileName,
+                    ServerRelativeUrl: data.d.ServerRelativeUrl,
+                };
 
-      setAttachments((prev) => [...prev, newAttachment]);
-    }
-      // Clear the selected files after successful upload
-      setFiles([]);
-    } catch (error: any) {
-      console.error('Error uploading file:', error);
-      setError(error.message || 'An unexpected error occurred during upload.');
-    } finally {
-      setUploading(false);
-    }
+                setAttachments((prev) => [...prev, newAttachment]);
+            }
+            // Clear the selected files after successful upload
+            setFiles([]);
+        } catch (error: any) {
+            console.error("Error uploading file:", error);
+            setError(
+                error.message || "An unexpected error occurred during upload."
+            );
+        } finally {
+            setUploading(false);
+        }
 
-    // Set a timer to remove the error after 5 seconds
-    setTimeout(() => {
-      setError(null); 
-    }, 5000);
-  };
+        // Set a timer to remove the error after 5 seconds
+        setTimeout(() => {
+            setError(null);
+        }, 5000);
+    };
 
-  // Optional: Handle Enter key for upload
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      uploadAttachments();
-    }
-  };
-  
-  // Remove an attachment from SharePoint
-  const removeAttachment = async (attachment: Attachment) => {
-    const confirmDelete = window.confirm(`Are you sure you want to remove ${attachment.FileName}?`);
-    if (!confirmDelete) return;
+    // Optional: Handle Enter key for upload
+    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            uploadAttachments();
+        }
+    };
 
-    setUploading(true);
-    setError(null);
+    // Remove an attachment from SharePoint
+    const removeAttachment = async (attachment: Attachment) => {
+        const confirmDelete = window.confirm(
+            `Are you sure you want to remove ${attachment.FileName}?`
+        );
+        if (!confirmDelete) return;
 
-    try {
-      const digest = await getFormDigest();
+        setUploading(true);
+        setError(null);
 
-      const deleteUrl = `/_api/web/getfilebyserverrelativeurl('${attachment.ServerRelativeUrl}')`;
+        try {
+            const web = await sp.web.get();
+            const siteUrl = web.Url;
+            const digest = await getFormDigest();
 
-      const response = await fetch(deleteUrl, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json;odata=verbose',
-          'X-RequestDigest': digest,
-          'IF-MATCH': '*',
-          'X-HTTP-Method': 'DELETE',
-        },
-      });
+            const deleteUrl = `${siteUrl}/_api/web/getfilebyserverrelativeurl('${attachment.ServerRelativeUrl}')`;
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        const errorMessage = errorData.error?.message?.value || response.statusText;
-        throw new Error(`Error removing attachment: ${errorMessage}`);
-      }
+            const response = await fetch(deleteUrl, {
+                method: "POST",
+                headers: {
+                    Accept: "application/json;odata=verbose",
+                    "X-RequestDigest": digest,
+                    "IF-MATCH": "*",
+                    "X-HTTP-Method": "DELETE",
+                },
+            });
 
-      // Update state after successful deletion
-      setAttachments((prev) => prev.filter(a => a.FileName !== attachment.FileName));
-    } catch (error: any) {
-      console.error('Error removing attachment:', error);
-      setError(error.message || 'An unexpected error occurred while removing the attachment.');
-    } finally {
-      setUploading(false);
-    }
-  };
+            if (!response.ok) {
+                const errorData = await response.json();
+                const errorMessage =
+                    errorData.error?.message?.value || response.statusText;
+                throw new Error(`Error removing attachment: ${errorMessage}`);
+            }
 
-  return (
-    <div>
-      <h3 className={styles.title}>Attachments</h3>
-      {/* Upload Section */}
-      <div className={styles.topSection}>
-            <input
-              type="file"
-              multiple
-              onChange={handleFileChange}
-              onKeyPress={handleKeyPress}
-              className={styles.spText}
-            />
-            <button onClick={uploadAttachments} disabled={uploading || files.length === 0 || !isEditable} className={`${styles.addButton} ${styles.spText}`}>
-              {uploading ? 'Saving Changes...' : 'Upload Attachments'}
-            </button>
-      </div>
+            // Update state after successful deletion
+            setAttachments((prev) =>
+                prev.filter((a) => a.FileName !== attachment.FileName)
+            );
+        } catch (error: any) {
+            console.error("Error removing attachment:", error);
+            setError(
+                error.message ||
+                    "An unexpected error occurred while removing the attachment."
+            );
+        } finally {
+            setUploading(false);
+        }
+    };
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-
-      {/* Display Loading State */}
-      {loading ? (
-        <div>Loading attachments...</div>
-      ) : (
-        <>
-          {/* Display Attachments List */}
-          {attachments.length === 0 ? (
-            <div style={{ marginTop: '20px' }}>No attachments available.</div>
-          ) : (
-            <div className={styles.fileList}>
-              {attachments.map((attachment) => (
-                <div key={attachment.FileName} className={styles.fileItem}>
-                  <a
-                    href={attachment.ServerRelativeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`${styles.fileName} ${styles.spText}`}
-                  >
-                    {attachment.FileName}
-                  </a>
-                  <button onClick={() => removeAttachment(attachment)} disabled={uploading || !isEditable} className={`${styles.removeButton} ${styles.spText}`}>
-                    Remove
-                  </button>
-                </div>
-              ))}
+    return (
+        <div>
+            <h3 className={styles.title}>Attachments</h3>
+            {/* Upload Section */}
+            <div className={styles.topSection}>
+                <input
+                    type="file"
+                    multiple
+                    onChange={handleFileChange}
+                    onKeyPress={handleKeyPress}
+                    className={styles.spText}
+                />
+                <button
+                    onClick={uploadAttachments}
+                    disabled={uploading || files.length === 0 || !isEditable}
+                    className={`${styles.addButton} ${styles.spText}`}
+                >
+                    {uploading ? "Saving Changes..." : "Upload Attachments"}
+                </button>
             </div>
-          )}
-        </>
-      )}
-    </div>
-  );
+
+            {error && <p style={{ color: "red" }}>{error}</p>}
+
+            {/* Display Loading State */}
+            {loading ? (
+                <div>Loading attachments...</div>
+            ) : (
+                <>
+                    {/* Display Attachments List */}
+                    {attachments.length === 0 ? (
+                        <div style={{ marginTop: "20px" }}>
+                            No attachments available.
+                        </div>
+                    ) : (
+                        <div className={styles.fileList}>
+                            {attachments.map((attachment) => (
+                                <div
+                                    key={attachment.FileName}
+                                    className={styles.fileItem}
+                                >
+                                    <a
+                                        href={attachment.ServerRelativeUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`${styles.fileName} ${styles.spText}`}
+                                    >
+                                        {attachment.FileName}
+                                    </a>
+                                    <button
+                                        onClick={() =>
+                                            removeAttachment(attachment)
+                                        }
+                                        disabled={uploading || !isEditable}
+                                        className={`${styles.removeButton} ${styles.spText}`}
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </>
+            )}
+        </div>
+    );
 };
 
 export default EventAttachments;
