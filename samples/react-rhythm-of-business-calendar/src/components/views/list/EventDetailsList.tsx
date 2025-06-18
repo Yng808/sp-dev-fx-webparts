@@ -110,7 +110,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     };
     
     return (
-        <div className="container">
+        <div className="container-fluid">
             {/* Filters section */}
             <div className="row mb-3">
                 <div className="col">
@@ -156,9 +156,17 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             </div>
 
             {/* table with sticky headers */}
-            <div className="table-responsive" style={{ height: '600px', overflowY: 'auto' }}>
+            <div className="table-responsive">
                 <table className="table table-bordered table-striped">
-                    <thead className="thead-dark sticky-top">
+                    <thead 
+            className="thead-dark"
+            style={{
+                position: 'sticky',
+                top: '0',
+                zIndex: 9999, // Very high z-index
+                backgroundColor: '#343a40'
+            }}
+        >
                         <tr>
                             <th>Type</th>
                             <th style={{ width: '200px' }}>Title</th>
