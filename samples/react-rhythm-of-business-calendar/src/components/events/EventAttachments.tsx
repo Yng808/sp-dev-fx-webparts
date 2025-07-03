@@ -34,7 +34,7 @@ const EventAttachments: React.FC<EventAttachmentsProps> = ({
                 console.log("line 28:" + siteUrl);
 
                 const response = await fetch(
-                    `${siteUrl}/_api/web/lists/getbytitle('RoB Calendar Events')/items(${itemId})/AttachmentFiles`,
+                    `${siteUrl}/_api/web/lists/getbytitle('RoB Calendar Events2')/items(${itemId})/AttachmentFiles`,
                     {
                         method: "GET",
                         headers: {
@@ -118,7 +118,7 @@ const EventAttachments: React.FC<EventAttachmentsProps> = ({
             const digest = await getFormDigest();
             // Iterate over each selected file and upload them
             for (const file of files) {
-                const uploadUrl = `${siteUrl}/_api/web/lists/getbytitle('RoB Calendar Events')/items(${itemId})/AttachmentFiles/add(FileName='${encodeURIComponent(
+                const uploadUrl = `${siteUrl}/_api/web/lists/getbytitle('RoB Calendar Events2')/items(${itemId})/AttachmentFiles/add(FileName='${encodeURIComponent(
                     file.name
                 )}')`;
 

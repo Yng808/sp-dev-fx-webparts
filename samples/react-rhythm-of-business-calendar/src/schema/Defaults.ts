@@ -15,7 +15,7 @@ const title = (baseTitle: string) => combine(Environment.Prefix, AppPrefix, base
 export const Defaults = {
     ListTitles: {
         Configuration: title("Configuration"),
-        Events: title('Events'),
+        Events: title('Events2'),
         Refiners: title('Refiners'),
         RefinerValues: title('Refiner Values'),
         Approvers: title('Approvers')
