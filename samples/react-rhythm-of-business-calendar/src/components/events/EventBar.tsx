@@ -96,12 +96,12 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
         );
 
     // Prepend the first character of comDecision to the title if it exists
-    const modifiedTitle = comDecision ? `(${comDecision.charAt(0)}) ${title}` : title;
+    //const modifiedTitle = comDecision ? `(${comDecision.charAt(0)}) ${title}` : title;
 
 
     return (
         <Stack className={eventClassName} style={style} tokens={useConst({ childrenGap: 2 })}>
-            <Stack horizontal verticalAlign="center" title={modifiedTitle} tokens={useConst({ childrenGap: 6 })}>
+            <Stack horizontal verticalAlign="center" title={title} tokens={useConst({ childrenGap: 6 })}>
                 {tag && <span>[{tag}]</span>}
                 
                 <StackItem className={styles.text} style={{ color: style.color }}>
@@ -111,7 +111,7 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
                     )}
                     
                     <div>
-                        {modifiedTitle}
+                        {title}
                     </div>
                     
                 </StackItem>
@@ -121,7 +121,7 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
                     {isRecurring && <RepeatAllIcon />}
                 </StackItem>
             </Stack>
-            {size === EventBarSize.Large && <>
+            {/* {size === EventBarSize.Large && <>
                 <Stack horizontal verticalAlign='center' tokens={useConst({ childrenGap: 4 })}>
                     <RecentIcon style={{ color: style.color }} />
                     <span className={styles.text} style={{ color: style.color }}>{startTimeString}</span>
@@ -130,7 +130,7 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
                     <POIIcon style={{ color: style.color }} />
                     <span className={styles.text} style={{ color: style.color }}>{location || '-'}</span>
                 </Stack>
-            </>}
+            </>}  */}
         </Stack>
     );
 }
