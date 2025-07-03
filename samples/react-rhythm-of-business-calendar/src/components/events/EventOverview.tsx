@@ -62,12 +62,12 @@ export const EventOverview: FC<IProps> = ({ event, className }) => {
                         </Stack>
                     }
                 </Stack>
-                {!isSeriesMaster &&
+                {/* {!isSeriesMaster &&
                     <Stack horizontal verticalAlign='center' tokens={iconTextStackTokens}>
                         <Text><RecentIcon /></Text>
                         <Text data-is-focusable>{humanizeDateRange(start, end, isAllDay)}</Text>
                     </Stack>
-                }
+                } */}
                 {isRecurring &&
                     <Stack horizontal verticalAlign='center' tokens={iconTextStackTokens}>
                         <Text><RepeatAllIcon /></Text>
