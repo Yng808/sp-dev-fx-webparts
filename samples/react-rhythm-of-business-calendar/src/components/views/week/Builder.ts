@@ -103,9 +103,17 @@ export class Builder {
             );
         });
 
-        const sortedEventOccurrences = [...filteredEventOccurrences].sort(EventOccurrence.StartAscComparer);
+        //const sortedEventOccurrences = [...filteredEventOccurrences].sort(EventOccurrence.StartAscComparer);
+        const sortedEventOccurrences = [...filteredEventOccurrences].sort((a, b) =>  a.title.localeCompare(b.title));
 
         for (const cccurrence of sortedEventOccurrences) {
+            if (cccurrence.isAllDay) {
+                const row = new ContentRowInfo(start, end);
+                row.include(cccurrence);
+                contentRows.push(row);
+                continue; // includes all day events
+            }
+
             let availableRow = contentRows.find(row => row.canInclude(cccurrence));
 
             if (!availableRow) {

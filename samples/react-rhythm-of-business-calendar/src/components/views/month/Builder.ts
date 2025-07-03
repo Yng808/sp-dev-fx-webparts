@@ -192,12 +192,12 @@ export class Builder {
     }
 
     private static _fillWeeksWithEvents(weeks: WeekInfo[], cccurrences: readonly EventOccurrence[]) {
-        const sortedEventOccurrences = [...cccurrences].sort(EventOccurrence.StartAscComparer);
+        const sortedOccurrences = [...cccurrences].sort((a, b) =>  a.title.localeCompare(b.title));
         //console.log('sortedEventOccurrences', sortedEventOccurrences);
         for (const week of weeks) {
             // console.log('inside for loop of fill weeks with events');
             //console.log('week:',week);
-            sortedEventOccurrences.forEach(occurrence => {
+            sortedOccurrences.forEach(occurrence => {
 
                 week.include(occurrence)
                 //console.log('fill weeks occurrence:', occurrence);

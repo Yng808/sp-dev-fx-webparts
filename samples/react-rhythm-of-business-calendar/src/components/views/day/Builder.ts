@@ -29,7 +29,9 @@ export class Builder {
         const dayInfo = new DayInfo(anchorDate);
 
         // Sort occurrences by start time
-        const sortedOccurrences = [...cccurrences].sort(EventOccurrence.StartAscComparer);
+        //const sortedOccurrences = [...cccurrences].sort(EventOccurrence.StartAscComparer);
+        // Sort occurences by title 
+        const sortedOccurrences = [...cccurrences].sort((a, b) =>  a.title.localeCompare(b.title));
 
         // Include occurrences in the DayInfo
         sortedOccurrences.forEach((occurrence) => dayInfo.include(occurrence));
