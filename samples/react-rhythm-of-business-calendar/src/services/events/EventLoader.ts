@@ -30,6 +30,7 @@ interface IEventListItemResult extends IListItemResult {
     Duration: SPField.Query_Integer;
     comDecision: SPField.Query_Choice;
     ReadAheadDueDate: SPField.Query_DateTime;
+    DVFirstName: SPField.Query_Text;
 }
 
 interface IEventUpdateListItem extends IUpdateListItem {
@@ -55,6 +56,7 @@ interface IEventUpdateListItem extends IUpdateListItem {
     Duration: SPField.Update_Integer;
     comDecision: SPField.Update_Choice;
     ReadAheadDueDate: SPField.Update_DateTime;
+    DVFirstName: SPField.Update_Text;
 }
 
 const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: ITimeZone, refinerValueLoader: RefinerValueLoader, eventsById: ReadonlyEventMap): Promise<void> => {
@@ -103,6 +105,8 @@ const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: IT
             event.recurrence = RecurrenceData.deserialize(decode(row.RecurrenceData || ''));
         }
     }
+
+    event.dvFirstName = decode(row.DVFirstName);
 };
 
 const getEventTypeValue = (event: Event) => {
@@ -137,7 +141,8 @@ const toUpdateListItem = (event: Event, siteTimeZone: ITimeZone): IEventUpdateLi
         MasterSeriesItemID: isSeriesException ? event.seriesMaster.get()?.id : undefined,
         RecurrenceID: isSeriesException ? SPField.toDateTime(event.recurrenceExceptionInstanceDate, siteTimeZone) : undefined,
         UID: isRecurring && isNew ? event.recurrenceUID?.toString() : undefined,
-        Duration: event.duration.asSeconds()
+        Duration: event.duration.asSeconds(),
+        DVFirstName: event.dvFirstName
     };
 };
 

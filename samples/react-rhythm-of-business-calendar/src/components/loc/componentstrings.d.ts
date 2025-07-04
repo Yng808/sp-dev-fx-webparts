@@ -144,6 +144,7 @@ declare module 'ComponentStrings' {
         Field_Confidential: IToggleFieldStrings;
         Field_RestrictedToAccounts_Display: IFieldStrings;
         Field_RestrictedToAccounts_Edit: IFieldStrings;
+        Field_DVFirstName: IFieldStrings;
         Recurrence: {
             Daily: string;
             Weekly: string;

@@ -33,6 +33,7 @@ interface IState {
     moderationMessage: string;
     comDecision: string;
     readAheadDueDate: Moment;
+    dvFirstName: string;
 }
 
 export class Event extends ListItemEntity<IState> implements IEvent {
@@ -107,6 +108,7 @@ export class Event extends ListItemEntity<IState> implements IEvent {
         this.state.moderationTimestamp = undefined;
         this.state.moderationMessage = "";
         this.state.comDecision = "";
+        this.state.dvFirstName = "";
         //this.state.readAheadDueDate = null;
 
         this.refinerValues = ManyToManyRelationship.create<Event, RefinerValue>(this, 'events', { comparer: Event.RefinerValueOrderAscComparer });
@@ -441,6 +443,9 @@ export class Event extends ListItemEntity<IState> implements IEvent {
             ...Event.Count_Until_Recurrence_Validations
         ];
     }
+
+    public get dvFirstName(): string { return this.state.dvFirstName; }
+    public set dvFirstName(val: string) { this.state.dvFirstName = val; }
 }
 
 export type EventMap = Map<number, Event>;

@@ -159,54 +159,54 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         }
     }
 
-    private _renderModerationStatus() {
-        const {
-            [DirectoryService]: { currentUserIsSiteAdmin, currentUser },
-            [ConfigurationService]: { active: { useApprovals } }
-        } = this.props.services;
-        const { creator, isApproved, isPendingApproval, isRejected, moderator, moderationMessage, moderationTimestamp } = this.entity
+    // private _renderModerationStatus() {
+    //     const {
+    //         [DirectoryService]: { currentUserIsSiteAdmin, currentUser },
+    //         [ConfigurationService]: { active: { useApprovals } }
+    //     } = this.props.services;
+    //     const { creator, isApproved, isPendingApproval, isRejected, moderator, moderationMessage, moderationTimestamp } = this.entity
 
-        if (!useApprovals) return <></>;
+    //     if (!useApprovals) return <></>;
 
-        const userCanApprove = currentUserIsSiteAdmin || this._currentUserIsAnApprover();
-        const userIsCreator = this.isNew || User.equal(creator, currentUser);
+    //     const userCanApprove = currentUserIsSiteAdmin || this._currentUserIsAnApprover();
+    //     const userIsCreator = this.isNew || User.equal(creator, currentUser);
 
-        return <>
-            {this.inDisplayMode && isPendingApproval && <>
-                <MessageBar messageBarType={MessageBarType.warning} data-is-focusable>
-                    {strings.Moderation.EventIsPendingApproval}
-                </MessageBar>
-            </>}
-            {this.inEditMode && isPendingApproval && !userCanApprove && <>
-                <MessageBar messageBarType={MessageBarType.warning} data-is-focusable>
-                    {strings.Moderation.EventWillNeedApproval}
-                </MessageBar>
-            </>}
-            {this.inEditMode && isPendingApproval && userCanApprove && <>
-                <MessageBar messageBarType={MessageBarType.success} data-is-focusable>
-                    {strings.Moderation.EventWillBeAutoApproved}
-                </MessageBar>
-            </>}
-            {isApproved && (userIsCreator || userCanApprove) && <>
-                <MessageBar messageBarType={MessageBarType.success} data-is-focusable>
-                    {format(strings.Moderation.EventIsApproved, moderator.title, moderationTimestamp.format('LLL'))}
-                    {moderationMessage && <>
-                        <Label>{strings.Moderation.ModeratorMessage}</Label>
-                        <Text>{moderationMessage}</Text>
-                    </>}
-                </MessageBar>
-            </>}
-            {isRejected && (userIsCreator || userCanApprove) && <>
-                <MessageBar messageBarType={MessageBarType.severeWarning} data-is-focusable>
-                    {format(strings.Moderation.EventIsRejected, moderator.title, moderationTimestamp.format('LLL'))}
-                    {moderationMessage && <>
-                        <Label>{strings.Moderation.ModeratorMessage}</Label>
-                        <Text>{moderationMessage}</Text>
-                    </>}
-                </MessageBar>
-            </>}
-        </>;
-    }
+    //     return <>
+    //         {this.inDisplayMode && isPendingApproval && <>
+    //             <MessageBar messageBarType={MessageBarType.warning} data-is-focusable>
+    //                 {strings.Moderation.EventIsPendingApproval}
+    //             </MessageBar>
+    //         </>}
+    //         {this.inEditMode && isPendingApproval && !userCanApprove && <>
+    //             <MessageBar messageBarType={MessageBarType.warning} data-is-focusable>
+    //                 {strings.Moderation.EventWillNeedApproval}
+    //             </MessageBar>
+    //         </>}
+    //         {this.inEditMode && isPendingApproval && userCanApprove && <>
+    //             <MessageBar messageBarType={MessageBarType.success} data-is-focusable>
+    //                 {strings.Moderation.EventWillBeAutoApproved}
+    //             </MessageBar>
+    //         </>}
+    //         {isApproved && (userIsCreator || userCanApprove) && <>
+    //             <MessageBar messageBarType={MessageBarType.success} data-is-focusable>
+    //                 {format(strings.Moderation.EventIsApproved, moderator.title, moderationTimestamp.format('LLL'))}
+    //                 {moderationMessage && <>
+    //                     <Label>{strings.Moderation.ModeratorMessage}</Label>
+    //                     <Text>{moderationMessage}</Text>
+    //                 </>}
+    //             </MessageBar>
+    //         </>}
+    //         {isRejected && (userIsCreator || userCanApprove) && <>
+    //             <MessageBar messageBarType={MessageBarType.severeWarning} data-is-focusable>
+    //                 {format(strings.Moderation.EventIsRejected, moderator.title, moderationTimestamp.format('LLL'))}
+    //                 {moderationMessage && <>
+    //                     <Label>{strings.Moderation.ModeratorMessage}</Label>
+    //                     <Text>{moderationMessage}</Text>
+    //                 </>}
+    //             </MessageBar>
+    //         </>}
+    //     </>;
+    // }
 
     protected renderDisplayContent(): JSX.Element {
         const { [ConfigurationService]: { active: config } } = this.props.services;
@@ -379,7 +379,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             </LiveText>
                         </GridCol>
                     </GridRow> */}
-                    <GridRow>
+                    {/* <GridRow>
                         <GridCol sm={12}>
                             <LiveText
                                 label={strings.Field_Description.Label}
@@ -559,8 +559,18 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                 />
                             </GridCol>
                         </GridRow>
-                    }
-
+                    } */}
+                    <GridRow>
+                        <GridCol sm={12}>
+                            <LiveText label="DV First Name" {...liveProps} propertyName="dvFirstName">
+                            {(val) => {
+                                return (
+                                <Text data-is-focusable>{val || "-"}</Text>
+                                );
+                            }}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow>
                     <GridRow>
                         <GridCol sm={12}>
                             <ListItemTechnicals
@@ -631,7 +641,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                         disabled={isAllDay}
                                     />
                                 </GridCol>
-                                <GridCol sm={4} lg={3}>
+                                {/* <GridCol sm={4} lg={3}>
                                     <LiveToggle
                                         {...liveProps}
                                         label={strings.Field_AllDayEvent.Label}
@@ -639,7 +649,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                         offText={strings.Field_AllDayEvent.OffText}
                                         propertyName='isAllDay'
                                     />
-                                </GridCol>
+                                </GridCol> */}
                             </GridRow>
                             <GridRow>
                                 {(!isRecurring || isSeriesException) &&
@@ -675,7 +685,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         </ResponsiveGrid>
                     </GridCol>
                 </GridRow>
-                {isSeriesException &&
+                {/* {isSeriesException &&
                     <GridRow>
                         <GridCol>
                             <Label>{strings.Field_Recurring.Label}</Label>
@@ -740,7 +750,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             }
                         </GridCol>
                     </GridRow>
-                }
+                } */}
                 {/* <GridRow>
                     <GridCol sm={12}>
                         <LiveTextField
@@ -751,7 +761,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         />
                     </GridCol>
                 </GridRow> */}
-                <GridRow>
+                {/* <GridRow>
                     <GridCol sm={12}>
                         <LiveTextField
                             {...liveProps}
@@ -913,6 +923,15 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         ) : (
                             <div/>
                         )}
+                    </GridCol>
+                </GridRow> */}
+                <GridRow>
+                    <GridCol sm={12}>
+                        <LiveTextField
+                        {...liveProps}
+                        label="DV First Name"
+                        propertyName="dvFirstName"
+                        />
                     </GridCol>
                 </GridRow>
                 <GridRow>
