@@ -29,8 +29,22 @@ interface IEventListItemResult extends IListItemResult {
     UID: SPField.Query_Guid;
     Duration: SPField.Query_Integer;
     comDecision: SPField.Query_Choice;
-    ReadAheadDueDate: SPField.Query_DateTime;
+    ReadAheadDueDate: SPField.Query_DateTime; 
+    DVPayGrade: SPField.Query_Choice;
+    DVRank: SPField.Query_Text;
     DVFirstName: SPField.Query_Text;
+    DVSurname: SPField.Query_Text;
+    JDIRVisiting: SPField.Query_Text;
+    DVVisiting: SPField.Query_Text;
+    RequestorRank: SPField.Query_Text;
+    RequestorFirstName: SPField.Query_Text;
+    RequestorLastName: SPField.Query_Text;
+    RequestorOffice: SPField.Query_Text;
+    RequestorDutyPhone: SPField.Query_Text;
+    RequestorCellPhone: SPField.Query_Text;
+    RequestorEmail: SPField.Query_Text;
+    // RequestStatus: SPField.Query_Choice;
+    // ParkingStalls: SPField.Query_LookupIdMulti;
 }
 
 interface IEventUpdateListItem extends IUpdateListItem {
@@ -56,7 +70,21 @@ interface IEventUpdateListItem extends IUpdateListItem {
     Duration: SPField.Update_Integer;
     comDecision: SPField.Update_Choice;
     ReadAheadDueDate: SPField.Update_DateTime;
+    DVPayGrade: SPField.Update_Choice;
+    DVRank: SPField.Update_Text;
     DVFirstName: SPField.Update_Text;
+    DVSurname: SPField.Update_Text;
+    JDIRVisiting: SPField.Update_Text;
+    DVVisiting: SPField.Update_Text;
+    RequestorRank: SPField.Update_Text;
+    RequestorFirstName: SPField.Update_Text;
+    RequestorLastName: SPField.Update_Text;
+    RequestorOffice: SPField.Update_Text;
+    RequestorDutyPhone: SPField.Update_Text;
+    RequestorCellPhone: SPField.Update_Text;
+    RequestorEmail: SPField.Update_Text;
+    // RequestStatus: SPField.Update_Choice;
+    // ParkingStalls: SPField.Query_LookupMulti;
 }
 
 const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: ITimeZone, refinerValueLoader: RefinerValueLoader, eventsById: ReadonlyEventMap): Promise<void> => {
@@ -106,7 +134,21 @@ const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: IT
         }
     }
 
+    event.dvPayGrade = row.DVPayGrade;
+    event.dvRank = decode(row.DVRank); 
     event.dvFirstName = decode(row.DVFirstName);
+    event.dvSurname = decode(row.DVSurname);
+    event.jdirVisiting = decode(row.JDIRVisiting); 
+    event.dvVisiting = decode(row.DVVisiting); 
+    event.requestorRank = decode(row.RequestorRank); 
+    event.requestorFirstName = decode(row.RequestorFirstName); 
+    event.requestorLastName = decode(row.RequestorLastName); 
+    event.requestorOffice = decode(row.RequestorOffice);
+    event.requestorDutyPhone = decode(row.RequestorDutyPhone); 
+    event.requestorCellPhone = decode(row.RequestorCellPhone); 
+    event.requestorEmail = decode(row.RequestorEmail); 
+    // event.requestStatus = decode(row.RequestStatus); 
+    // event.parkingStalls = decode(row.ParkingStalls);
 };
 
 const getEventTypeValue = (event: Event) => {
@@ -142,7 +184,21 @@ const toUpdateListItem = (event: Event, siteTimeZone: ITimeZone): IEventUpdateLi
         RecurrenceID: isSeriesException ? SPField.toDateTime(event.recurrenceExceptionInstanceDate, siteTimeZone) : undefined,
         UID: isRecurring && isNew ? event.recurrenceUID?.toString() : undefined,
         Duration: event.duration.asSeconds(),
-        DVFirstName: event.dvFirstName
+        DVPayGrade: event.dvPayGrade,
+        DVRank: event.dvRank,
+        DVFirstName: event.dvFirstName,
+        DVSurname: event.dvSurname,
+        JDIRVisiting: event.jdirVisiting, 
+        DVVisiting: event.dvVisiting,
+        RequestorRank: event.requestorRank,
+        RequestorFirstName: event.requestorFirstName,
+        RequestorLastName: event.requestorLastName, 
+        RequestorOffice: event.requestorOffice,
+        RequestorDutyPhone: event.requestorDutyPhone,
+        RequestorCellPhone: event.requestorCellPhone, 
+        RequestorEmail: event.requestorEmail, 
+        // RequestStatus: event.requestStatus, 
+        // ParkingStalls: event.parkingStalls
     };
 };
 

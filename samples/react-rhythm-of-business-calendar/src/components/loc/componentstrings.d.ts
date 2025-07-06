@@ -144,7 +144,22 @@ declare module 'ComponentStrings' {
         Field_Confidential: IToggleFieldStrings;
         Field_RestrictedToAccounts_Display: IFieldStrings;
         Field_RestrictedToAccounts_Edit: IFieldStrings;
+        // comDecision isn't on this list so I took out DVPayGrades as its also a choice field
+        // Field_DVPayGrade: IFieldStrings; 
+        Field_DVRank: IFieldStrings;
         Field_DVFirstName: IFieldStrings;
+        Field_DVSurname: IFieldStrings;
+        Field_JDIRVisiting: IFieldStrings;
+        Field_DVVisiting: IFieldStrings;
+        Field_RequestorRank: IFieldStrings;
+        Field_RequestorFirstName: IFieldStrings;
+        Field_RequestorLastName: IFieldStrings;
+        Field_RequestorOffice: IFieldStrings;
+        Field_RequestorDutyPhone: IFieldStrings;
+        Field_RequestorCellPhone: IFieldStrings;
+        Field_RequestorEmail: IFieldStrings;
+        Field_RequestStatus: IFieldStrings;
+        Field_ParkingStall: IFieldStrings;
         Recurrence: {
             Daily: string;
             Weekly: string;

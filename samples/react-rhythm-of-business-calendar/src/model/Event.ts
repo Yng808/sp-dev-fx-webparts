@@ -33,7 +33,21 @@ interface IState {
     moderationMessage: string;
     comDecision: string;
     readAheadDueDate: Moment;
+    dvPayGrade: string;
+    dvRank: string;
     dvFirstName: string;
+    dvSurname: string;
+    jdirVisiting: string;
+    dvVisiting: string;
+    requestorRank: string;
+    requestorFirstName: string;
+    requestorLastName: string;
+    requestorOffice: string;
+    requestorDutyPhone: string;
+    requestorCellPhone: string;
+    requestorEmail: string;
+    // requestStatus: string;
+    // parkingStalls: number[];
 }
 
 export class Event extends ListItemEntity<IState> implements IEvent {
@@ -108,7 +122,21 @@ export class Event extends ListItemEntity<IState> implements IEvent {
         this.state.moderationTimestamp = undefined;
         this.state.moderationMessage = "";
         this.state.comDecision = "";
+        this.state.dvPayGrade = "";
+        this.state.dvRank = "";
         this.state.dvFirstName = "";
+        this.state.dvSurname = "";
+        this.state.jdirVisiting = "";
+        this.state.dvVisiting = "";
+        this.state.requestorRank = "";
+        this.state.requestorFirstName = "";
+        this.state.requestorLastName = "";
+        this.state.requestorOffice = ""; 
+        this.state.requestorDutyPhone = "";
+        this.state.requestorCellPhone = "";
+        this.state.requestorEmail = "";
+        // this.state.requestStatus = "";
+        // this.state.parkingStalls = [];
         //this.state.readAheadDueDate = null;
 
         this.refinerValues = ManyToManyRelationship.create<Event, RefinerValue>(this, 'events', { comparer: Event.RefinerValueOrderAscComparer });
@@ -443,9 +471,51 @@ export class Event extends ListItemEntity<IState> implements IEvent {
             ...Event.Count_Until_Recurrence_Validations
         ];
     }
+    
+    public get dvPayGrade(): string { return this.state.dvPayGrade; }
+    public set dvPayGrade(val: string) { this.state.dvPayGrade = val; }
+
+    public get dvRank(): string { return this.state.dvRank; }
+    public set dvRank(val: string) { this.state.dvRank = val; }
 
     public get dvFirstName(): string { return this.state.dvFirstName; }
     public set dvFirstName(val: string) { this.state.dvFirstName = val; }
+
+    public get dvSurname(): string { return this.state.dvSurname; }
+    public set dvSurname(val: string) { this.state.dvSurname = val; }
+
+    public get jdirVisiting(): string { return this.state.jdirVisiting; }
+    public set jdirVisiting(val: string) { this.state.jdirVisiting = val; }
+
+    public get dvVisiting(): string { return this.state.dvVisiting; }
+    public set dvVisiting(val: string) { this.state.dvVisiting = val; }
+
+    public get requestorRank(): string { return this.state.requestorRank; }
+    public set requestorRank(val: string) { this.state.requestorRank = val; }
+
+    public get requestorFirstName(): string { return this.state.requestorFirstName; }
+    public set requestorFirstName(val: string) { this.state.requestorFirstName = val; }
+
+    public get requestorLastName(): string { return this.state.requestorLastName; }
+    public set requestorLastName(val: string) { this.state.requestorLastName = val; }
+
+    public get requestorOffice(): string { return this.state.requestorOffice; }
+    public set requestorOffice(val: string) { this.state.requestorOffice = val; }
+
+    public get requestorDutyPhone(): string { return this.state.requestorDutyPhone; }
+    public set requestorDutyPhone(val: string) { this.state.requestorDutyPhone = val; }
+    
+    public get requestorCellPhone(): string { return this.state.requestorCellPhone; }
+    public set requestorCellPhone(val: string) { this.state.requestorCellPhone = val; }
+
+    public get requestorEmail(): string { return this.state.requestorEmail; }
+    public set requestorEmail(val: string) { this.state.requestorEmail = val; }
+
+    // public get requestStatus(): string { return this.state.requestStatus; }
+    // public set requestStatus(val: string) { this.state.requestStatus = val; }
+
+    // public get parkingStalls(): number[] { return this.state.parkingStalls; }
+    // public set parkingStalls(val: number[]) { this.state.parkingStalls = val; }
 }
 
 export type EventMap = Map<number, Event>;

@@ -164,10 +164,82 @@ const Field_ReadAheadDueDate: IDateTimeFieldDefinition = {
     dateTimeFormat: DateTimeFieldFormatType.DateTime
 };
 
+const Field_DVPayGrade: IChoiceFieldDefinition = {
+    type: FieldType.Choice,
+    name: 'DVPayGrade',
+    choices: ['O-6', 'O-7', 'O-8', 'O-9', 'O-10', 'GS-15', 'SES-1', 'SES-2', 'SES-3', 'SES-4'],
+    default: ''
+};
+
+const Field_DVRank: ITextFieldDefinition = {
+    type: FieldType.Text,
+    name: 'DVRank'
+};
+
 const Field_DVFirstName: ITextFieldDefinition = {
     type: FieldType.Text,
     name: 'DVFirstName'
 };
+
+const Field_DVSurname: ITextFieldDefinition = {
+    type: FieldType.Text,
+    name: 'DVSurname'
+};
+
+const Field_JDIRVisiting: ITextFieldDefinition = {
+    type: FieldType.Text,
+    name: 'JDIRVisiting'
+};
+
+const Field_DVVisiting: ITextFieldDefinition = {
+    type: FieldType.Text,
+    name: 'DVVisiting'
+};
+
+const Field_RequestorRank: ITextFieldDefinition = {
+    type: FieldType.Text,
+    name: 'RequestorRank'
+};
+
+const Field_RequestorFirstName: ITextFieldDefinition = {
+    type: FieldType.Text,
+    name: 'RequestorFirstName'
+};
+
+const Field_RequestorLastName: ITextFieldDefinition = {
+    type: FieldType.Text,
+    name: 'RequestorLastName'
+};
+
+const Field_RequestorOffice: ITextFieldDefinition = {
+    type: FieldType.Text,
+    name: 'RequestorOffice'
+};
+
+const Field_RequestorDutyPhone: ITextFieldDefinition = {
+    type: FieldType.Text,
+    name: 'RequestorDutyPhone'
+};
+
+const Field_RequestorCellPhone: ITextFieldDefinition = {
+    type: FieldType.Text,
+    name: 'RequestorCellPhone'
+};
+
+const Field_RequestorEmail: ITextFieldDefinition = {
+    type: FieldType.Text,
+    name: 'RequestorEmail'
+};
+
+// const Field_RequestStatus: ITextFieldDefinition = {
+//     type: FieldType.Text,
+//     name: 'RequestStatus'
+// };
+
+// const Field_ParkingStalls: ITextFieldDefinition = {
+//     type: FieldType.Text,
+//     name: 'ParkingStalls'
+// };
 
 const View_AllEvents: IViewDefinition = {
     title: "All RoB Events",
@@ -197,7 +269,21 @@ const View_AllEvents: IViewDefinition = {
         Field_ModerationMessage,
         Field_COMDecision,
         Field_ReadAheadDueDate,
-        Field_DVFirstName
+        Field_DVPayGrade,
+        Field_DVRank,
+        Field_DVFirstName,
+        Field_DVSurname,
+        Field_JDIRVisiting,
+        Field_DVVisiting,
+        Field_RequestorRank,
+        Field_RequestorFirstName,
+        Field_RequestorLastName,
+        Field_RequestorOffice,
+        Field_RequestorDutyPhone,
+        Field_RequestorCellPhone,
+        Field_RequestorEmail,
+        // Field_RequestStatus,
+        // Field_ParkingStalls
     ),
     // need to sort by ID ascending in order to ensure the series master is loaded before any exceptions to the series
     query: `
@@ -248,7 +334,21 @@ export const EventsList: IEventsListDefinition = {
         Field_ModerationMessage,
         Field_COMDecision,
         Field_ReadAheadDueDate,
-        Field_DVFirstName
+        Field_DVPayGrade,
+        Field_DVRank,
+        Field_DVFirstName,
+        Field_DVSurname,
+        Field_JDIRVisiting,
+        Field_DVVisiting,
+        Field_RequestorRank,
+        Field_RequestorFirstName,
+        Field_RequestorLastName,
+        Field_RequestorOffice,
+        Field_RequestorDutyPhone,
+        Field_RequestorCellPhone,
+        Field_RequestorEmail,
+        // Field_RequestStatus,
+        // Field_ParkingStalls
     ],
     views: [
         View_AllEvents

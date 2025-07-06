@@ -562,6 +562,28 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     } */}
                     <GridRow>
                         <GridCol sm={12}>
+                            <LiveText label="DV Pay Grade" {...liveProps} propertyName="dvPayGrade">
+                            {(val) => {
+                                return (
+                                <Text data-is-focusable>{val || "-"}</Text>
+                                 );
+                            }}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow> 
+                    <GridRow>
+                        <GridCol sm={12}>
+                            <LiveText label="DV Rank/Mr./Mrs./Dr." {...liveProps} propertyName="dvRank">
+                            {(val) => {
+                                return (
+                                <Text data-is-focusable>{val || "-"}</Text>
+                                 );
+                            }}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow>
+                    <GridRow>
+                        <GridCol sm={12}>
                             <LiveText label="DV First Name" {...liveProps} propertyName="dvFirstName">
                             {(val) => {
                                 return (
@@ -571,6 +593,116 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             </LiveText>
                         </GridCol>
                     </GridRow>
+                    <GridRow>
+                        <GridCol sm={12}>
+                            <LiveText label="DV Last Name (Surname)" {...liveProps} propertyName="dvSurname">
+                            {(val) => {
+                                return (
+                                <Text data-is-focusable>{val || "-"}</Text>
+                                );
+                            }}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow>
+                    <GridRow>
+                        <GridCol sm={12}>
+                            <LiveText label="Which JDIR/Office is DV Visiting" {...liveProps} propertyName="jdirVisiting">
+                            {(val) => {
+                                return (
+                                <Text data-is-focusable>{val || "-"}</Text>
+                                 );
+                            }}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow> 
+                    <GridRow>
+                        <GridCol sm={12}>
+                            <LiveText label="Is DV visiting COM, DCOM or COS?" {...liveProps} propertyName="dvVisiting">
+                            {(val) => {
+                                return (
+                                <Text data-is-focusable>{val || "-"}</Text>
+                                 );
+                            }}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow> 
+                    <GridRow>
+                        <GridCol sm={12}>
+                            <LiveText label="Requestor Rank/Mr./Mrs./Dr." {...liveProps} propertyName="requestorRank">
+                            {(val) => {
+                                return (
+                                <Text data-is-focusable>{val || "-"}</Text>
+                                 );
+                            }}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow> 
+                    <GridRow>
+                        <GridCol sm={12}>
+                            <LiveText label="Requestor First Name" {...liveProps} propertyName="requestorFirstName">
+                            {(val) => {
+                                return (
+                                <Text data-is-focusable>{val || "-"}</Text>
+                                 );
+                            }}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow>
+                    <GridRow>
+                        <GridCol sm={12}>
+                            <LiveText label="Requestor Last Name" {...liveProps} propertyName="requestorLastName">
+                            {(val) => {
+                                return (
+                                <Text data-is-focusable>{val || "-"}</Text>
+                                 );
+                            }}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow>  
+                    <GridRow>
+                        <GridCol sm={12}>
+                            <LiveText label="Requestor Office" {...liveProps} propertyName="requestorOffice">
+                            {(val) => {
+                                return (
+                                <Text data-is-focusable>{val || "-"}</Text>
+                                 );
+                            }}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow>  
+                    <GridRow>
+                        <GridCol sm={12}>
+                            <LiveText label="Requestor Duty Phone" {...liveProps} propertyName="requestorDutyPhone">
+                            {(val) => {
+                                return (
+                                <Text data-is-focusable>{val || "-"}</Text>
+                                 );
+                            }}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow>  
+                    <GridRow>
+                        <GridCol sm={12}>
+                            <LiveText label="Requestor Cell Phone" {...liveProps} propertyName="requestorCellPhone">
+                            {(val) => {
+                                return (
+                                <Text data-is-focusable>{val || "-"}</Text>
+                                 );
+                            }}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow>  
+                    <GridRow>
+                        <GridCol sm={12}>
+                            <LiveText label="Requestor Email" {...liveProps} propertyName="requestorEmail">
+                            {(val) => {
+                                return (
+                                <Text data-is-focusable>{val || "-"}</Text>
+                                 );
+                            }}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow>    
                     <GridRow>
                         <GridCol sm={12}>
                             <ListItemTechnicals
@@ -927,10 +1059,132 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                 </GridRow> */}
                 <GridRow>
                     <GridCol sm={12}>
+                        <LiveDropdown
+                        {...liveProps}
+                        label="DV Pay Grade"
+                        propertyName="dvPayGrade"
+                        options={[
+                            { key: 'O-6', text: 'O-6' },
+                            { key: 'O-7', text: 'O-7' },
+                            { key: 'O-8', text: 'O-8' },
+                            { key: 'O-9', text: 'O-9' },
+                            { key: 'O-10', text: 'O-10' },
+                            { key: 'GS-15', text: 'GS-15' },
+                            { key: 'SES-1', text: 'SES-1' },
+                            { key: 'SES-2', text: 'SES-2' },
+                            { key: 'SES-3', text: 'SES-3' },
+                            { key: 'SES-4', text: 'SES-4' }
+                        ]}
+                        required={false}
+                        getKeyFromValue={(val) => val}
+                        />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
+                    <GridCol sm={12}>
+                        <LiveTextField
+                        {...liveProps}
+                        label="DV Rank/Mr./Mrs./Dr."
+                        propertyName="dvRank"
+                        />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
+                    <GridCol sm={12}>
                         <LiveTextField
                         {...liveProps}
                         label="DV First Name"
                         propertyName="dvFirstName"
+                        />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
+                    <GridCol sm={12}>
+                        <LiveTextField
+                        {...liveProps} 
+                        label="DV Last Name (Surname)" 
+                        propertyName="dvSurname"
+                        />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
+                    <GridCol sm={12}>
+                        <LiveTextField
+                        {...liveProps}
+                        label="Which JDIR/Office is DV Visiting"
+                        propertyName="jdirVisiting"
+                        />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
+                    <GridCol sm={12}>
+                        <LiveTextField
+                        {...liveProps}
+                        label="Is DV visiting COM, DCOM or COS?"
+                        propertyName="dvVisiting"
+                        />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
+                    <GridCol sm={12}>
+                        <LiveTextField
+                        {...liveProps}
+                        label="Requestor Rank/Mr./Mrs./Dr."
+                        propertyName="requestorRank"
+                        />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
+                    <GridCol sm={12}>
+                        <LiveTextField
+                        {...liveProps}
+                        label="Requestor First Name"
+                        propertyName="requestorFirstName"
+                        />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
+                    <GridCol sm={12}>
+                        <LiveTextField
+                        {...liveProps}
+                        label="Requestor Last Name"
+                        propertyName="requestorLastName"
+                        />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
+                    <GridCol sm={12}>
+                        <LiveTextField
+                        {...liveProps}
+                        label="Requestor Office"
+                        propertyName="requestorOffice"
+                        />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
+                    <GridCol sm={12}>
+                        <LiveTextField
+                        {...liveProps}
+                        label="Requestor Duty Phone"
+                        propertyName="requestorDutyPhone"
+                        />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
+                    <GridCol sm={12}>
+                        <LiveTextField
+                        {...liveProps}
+                        label="Requestor Cell Phone"
+                        propertyName="requestorCellPhone"
+                        />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
+                    <GridCol sm={12}>
+                        <LiveTextField
+                        {...liveProps}
+                        label="Requestor Email"
+                        propertyName="requestorEmail"
                         />
                     </GridCol>
                 </GridRow>
