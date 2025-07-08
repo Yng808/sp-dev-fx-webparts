@@ -30,6 +30,7 @@ interface IEventListItemResult extends IListItemResult {
     Duration: SPField.Query_Integer;
     comDecision: SPField.Query_Choice;
     ReadAheadDueDate: SPField.Query_DateTime; 
+    RequestStatus: SPField.Query_Choice;
     DVPayGrade: SPField.Query_Choice;
     DVRank: SPField.Query_Text;
     DVFirstName: SPField.Query_Text;
@@ -43,8 +44,7 @@ interface IEventListItemResult extends IListItemResult {
     RequestorDutyPhone: SPField.Query_Text;
     RequestorCellPhone: SPField.Query_Text;
     RequestorEmail: SPField.Query_Text;
-    // RequestStatus: SPField.Query_Choice;
-    // ParkingStalls: SPField.Query_LookupIdMulti;
+    ParkingStalls: SPField.Query_Lookup;
 }
 
 interface IEventUpdateListItem extends IUpdateListItem {
@@ -70,6 +70,7 @@ interface IEventUpdateListItem extends IUpdateListItem {
     Duration: SPField.Update_Integer;
     comDecision: SPField.Update_Choice;
     ReadAheadDueDate: SPField.Update_DateTime;
+    RequestStatus: SPField.Update_Choice;
     DVPayGrade: SPField.Update_Choice;
     DVRank: SPField.Update_Text;
     DVFirstName: SPField.Update_Text;
@@ -83,17 +84,16 @@ interface IEventUpdateListItem extends IUpdateListItem {
     RequestorDutyPhone: SPField.Update_Text;
     RequestorCellPhone: SPField.Update_Text;
     RequestorEmail: SPField.Update_Text;
-    // RequestStatus: SPField.Update_Choice;
-    // ParkingStalls: SPField.Query_LookupMulti;
+    ParkingStallsId: SPField.Update_LookupId;
 }
 
 const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: ITimeZone, refinerValueLoader: RefinerValueLoader, eventsById: ReadonlyEventMap): Promise<void> => {
     //console.log("Raw data from SharePoint:", row);
     event.title = decode(row.Title);
-    event.description = decode(row.Description);
+    event.description = decode(row.Description ?? '');
     event.comDecision = row.comDecision;
 
-    event.location = decode(row.Location);
+    event.location = decode(row.Location ?? '');
     event.contacts = SPField.toUsers(row.Contacts);
     event.refinerValues.set(await SPField.fromLookupMultiAsync(row.RefinerValues, refinerValueLoader.getById));
 
@@ -116,7 +116,7 @@ const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: IT
     event.moderationStatus = EventModerationStatus.fromName(row.ModerationStatus);
     event.moderator = SPField.toUser(row.Moderator);
     event.moderationTimestamp = SPField.fromDateTime(row, 'ModerationTimestamp', siteTimeZone);
-    event.moderationMessage = decode(row.ModerationMessage);
+    event.moderationMessage = decode(row.ModerationMessage ?? '');
     event.isRecurring = SPField.fromRecurrence(row, 'fRecurrence');
     event.recurrenceUID = SPField.fromGuid(row, 'UID');
 
@@ -134,6 +134,7 @@ const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: IT
         }
     }
 
+    event.requestStatus = row.RequestStatus; 
     event.dvPayGrade = row.DVPayGrade;
     event.dvRank = decode(row.DVRank); 
     event.dvFirstName = decode(row.DVFirstName);
@@ -147,8 +148,7 @@ const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: IT
     event.requestorDutyPhone = decode(row.RequestorDutyPhone); 
     event.requestorCellPhone = decode(row.RequestorCellPhone); 
     event.requestorEmail = decode(row.RequestorEmail); 
-    // event.requestStatus = decode(row.RequestStatus); 
-    // event.parkingStalls = decode(row.ParkingStalls);
+    event.parkingStalls = row.ParkingStalls?.[0]?.lookupId ?? undefined;
 };
 
 const getEventTypeValue = (event: Event) => {
@@ -184,6 +184,7 @@ const toUpdateListItem = (event: Event, siteTimeZone: ITimeZone): IEventUpdateLi
         RecurrenceID: isSeriesException ? SPField.toDateTime(event.recurrenceExceptionInstanceDate, siteTimeZone) : undefined,
         UID: isRecurring && isNew ? event.recurrenceUID?.toString() : undefined,
         Duration: event.duration.asSeconds(),
+        RequestStatus: event.requestStatus, 
         DVPayGrade: event.dvPayGrade,
         DVRank: event.dvRank,
         DVFirstName: event.dvFirstName,
@@ -197,8 +198,7 @@ const toUpdateListItem = (event: Event, siteTimeZone: ITimeZone): IEventUpdateLi
         RequestorDutyPhone: event.requestorDutyPhone,
         RequestorCellPhone: event.requestorCellPhone, 
         RequestorEmail: event.requestorEmail, 
-        // RequestStatus: event.requestStatus, 
-        // ParkingStalls: event.parkingStalls
+        ParkingStallsId: event.parkingStalls
     };
 };
 

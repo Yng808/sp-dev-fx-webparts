@@ -144,8 +144,6 @@ declare module 'ComponentStrings' {
         Field_Confidential: IToggleFieldStrings;
         Field_RestrictedToAccounts_Display: IFieldStrings;
         Field_RestrictedToAccounts_Edit: IFieldStrings;
-        // comDecision isn't on this list so I took out DVPayGrades as its also a choice field
-        // Field_DVPayGrade: IFieldStrings; 
         Field_DVRank: IFieldStrings;
         Field_DVFirstName: IFieldStrings;
         Field_DVSurname: IFieldStrings;

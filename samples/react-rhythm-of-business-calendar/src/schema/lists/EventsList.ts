@@ -164,6 +164,13 @@ const Field_ReadAheadDueDate: IDateTimeFieldDefinition = {
     dateTimeFormat: DateTimeFieldFormatType.DateTime
 };
 
+const Field_RequestStatus: IChoiceFieldDefinition = {
+    type: FieldType.Choice,
+    name: 'RequestStatus',
+    choices: ['New Request', 'Approve Request', 'Cancel Request', 'Reject Request'],
+    default: ''
+};
+
 const Field_DVPayGrade: IChoiceFieldDefinition = {
     type: FieldType.Choice,
     name: 'DVPayGrade',
@@ -231,15 +238,12 @@ const Field_RequestorEmail: ITextFieldDefinition = {
     name: 'RequestorEmail'
 };
 
-// const Field_RequestStatus: ITextFieldDefinition = {
-//     type: FieldType.Text,
-//     name: 'RequestStatus'
-// };
-
-// const Field_ParkingStalls: ITextFieldDefinition = {
-//     type: FieldType.Text,
-//     name: 'ParkingStalls'
-// };
+const Field_ParkingStalls: ILookupFieldDefinition = {
+    type: FieldType.Lookup,
+    name: 'ParkingStalls',
+    lookupListTitle: 'DVParkingStalls',
+    showField: 'ID'
+};
 
 const View_AllEvents: IViewDefinition = {
     title: "All RoB Events",
@@ -269,6 +273,7 @@ const View_AllEvents: IViewDefinition = {
         Field_ModerationMessage,
         Field_COMDecision,
         Field_ReadAheadDueDate,
+        Field_RequestStatus,
         Field_DVPayGrade,
         Field_DVRank,
         Field_DVFirstName,
@@ -282,8 +287,7 @@ const View_AllEvents: IViewDefinition = {
         Field_RequestorDutyPhone,
         Field_RequestorCellPhone,
         Field_RequestorEmail,
-        // Field_RequestStatus,
-        // Field_ParkingStalls
+        Field_ParkingStalls
     ),
     // need to sort by ID ascending in order to ensure the series master is loaded before any exceptions to the series
     query: `
@@ -334,6 +338,7 @@ export const EventsList: IEventsListDefinition = {
         Field_ModerationMessage,
         Field_COMDecision,
         Field_ReadAheadDueDate,
+        Field_RequestStatus,
         Field_DVPayGrade,
         Field_DVRank,
         Field_DVFirstName,
@@ -347,8 +352,7 @@ export const EventsList: IEventsListDefinition = {
         Field_RequestorDutyPhone,
         Field_RequestorCellPhone,
         Field_RequestorEmail,
-        // Field_RequestStatus,
-        // Field_ParkingStalls
+        Field_ParkingStalls
     ],
     views: [
         View_AllEvents

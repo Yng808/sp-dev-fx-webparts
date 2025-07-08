@@ -1,7 +1,7 @@
 import { PrincipalType } from '@pnp/sp';
 import { Guid } from '@microsoft/sp-core-library';
 import React from 'react';
-import { FocusZone, format, ICommandBarItemProps, IDropdownOption, Label, Link, MessageBar, MessageBarType, Stack, Text } from "@fluentui/react";
+import { FocusZone, format, ICommandBarItemProps, IDropdownOption, Label, Link, MessageBar, MessageBarType, Stack, Text, DefaultButton } from "@fluentui/react";
 import { Entity, ErrorHandler, humanizeDuration, mapToArray, now, User, ValidationRule } from 'common';
 import { EntityPanelBase, IEntityPanelProps, IDataPanelBaseState, ResponsiveGrid, GridRow, GridCol, LiveText, LiveUpdate, IDataPanelBase, LiveToggle, LiveUserPicker, LiveTextField, LiveTimePicker, LiveDatePicker, Validation, ITransformer, LiveMultiselectDropdown, LiveDropdown } from "common/components";
 import { Event, Refiner, RefinerValue, RecurPattern, EventModerationStatus, Approvers, humanizeRecurrencePattern } from "model";
@@ -16,6 +16,7 @@ import { PersistConcurrencyFailureMessage, Validation as validationStrings, Even
 
 import styles from './EventPanel.module.scss';
 import EventAttachments from './EventAttachments';
+import { sp } from "@pnp/sp";
 
 export class RefinerValueValidationRule extends ValidationRule<Event> {
     constructor(
@@ -40,6 +41,8 @@ type IProps = IOwnProps & IEntityPanelProps<Event> & ServicesProp<DirectoryServi
 interface IOwnState {
     refinerValueOptionsByRefiner: Map<Refiner, IDropdownOption[]>;
     refiners: readonly Refiner[];
+    parkingStallsOptions: IDropdownOption[];
+    loadingSpots: boolean;
 }
 type IState = IOwnState & IDataPanelBaseState<Event>;
 
@@ -52,12 +55,14 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
 
     protected resetState(): IState {
         this._buildRefinerValueOptions();
-        this._buildRefinerValueValidationRules();
+        //this._buildRefinerValueValidationRules();
 
         return {
             ...super.resetState(),
             refinerValueOptionsByRefiner: new Map(),
-            refiners: []
+            refiners: [],
+            parkingStallsOptions: [],
+            loadingSpots: false
         };
     }
 
@@ -69,7 +74,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
     public componentShouldRender() {
         super.componentShouldRender();
         this._buildRefinerValueOptions();
-        this._buildRefinerValueValidationRules();
+        //this._buildRefinerValueValidationRules();
     }
 
     private async _buildRefinerValueOptions() {
@@ -102,18 +107,77 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         this.setState({ refinerValueOptionsByRefiner, refiners });
     }
 
-    private async _buildRefinerValueValidationRules() {
-        const { [EventsService]: { refinersAsync } } = this.props.services;
+    private async _loadAvailableParking(start: Date, end: Date) {
+        this.setState({ loadingSpots: true });
 
-        await refinersAsync.promise;
+        try {
+            const web = await sp.web.get();
+            const siteUrl = web.Url;
 
-        const { data: refiners } = refinersAsync;
+            // STEP 1: Fetch all parking stalls
+            const parkingResponse = await fetch(
+            `${siteUrl}/_api/web/lists/getbytitle('DVParkingStalls')/items?$select=ID,ParkingAssigment`,
+            {
+                method: "GET",
+                headers: {
+                Accept: "application/json;odata=verbose",
+                },
+            }
+            );
 
-        this._refinerValueValidationRulesByRefiner.clear();
+            if (!parkingResponse.ok) {
+            throw new Error(`Failed to fetch spots: ${parkingResponse.statusText}`);
+            }
 
-        for (const refiner of refiners.filter(Entity.NotDeletedFilter)) {
-            const rule = new RefinerValueValidationRule(refiner);
-            this._refinerValueValidationRulesByRefiner.set(refiner, rule);
+            const allParkingData = await parkingResponse.json();
+            const allParking = allParkingData.d.results.map((item: any) => ({
+            id: item.ID,
+            //title: item.Title,
+            parking :item.ParkingAssigment
+            }));
+
+            // STEP 2: Fetch booked parking assignments in the time window
+            const bookingsResponse = await fetch(
+            `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items` +
+                `?$select=ParkingStallsId,EventDate,EndDate,RequestStatus` +
+                `&$filter=RequestStatus eq 'Approve Request' 
+                and (EndDate gt datetime'${start.toISOString()}' 
+                and EventDate lt datetime'${end.toISOString()}')`,
+            {
+                method: "GET",
+                headers: {
+                Accept: "application/json;odata=verbose",
+                },
+            }
+            );
+
+            if (!bookingsResponse.ok) {
+            throw new Error(`Failed to fetch bookings: ${bookingsResponse.statusText}`);
+            }
+
+            const bookingsData = await bookingsResponse.json();
+            const bookedParkingIds = new Set(
+            bookingsData.d.results
+                .map((item: any) => item.ParkingStallsId)
+                .filter((id: number | null) => id != null)
+            );
+
+            // STEP 3: Filter parking that aren't booked
+            const availableParking = allParking
+            .filter((parkingSpot: { id: number; parking: string }) => !bookedParkingIds.has(parkingSpot.id))
+            .map((parkingSpot: { id: number; parking: string }) => ({
+                key: parkingSpot.id,
+                text: parkingSpot.parking,
+            }));
+
+            this.setState({
+            parkingStallsOptions: availableParking,
+            loadingSpots: false,
+            });
+
+        } catch (error) {
+            console.error("Error determining available parking:", error);
+            this.setState({ loadingSpots: false });
         }
     }
 
@@ -562,6 +626,17 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     } */}
                     <GridRow>
                         <GridCol sm={12}>
+                            <LiveText label="Request Status" {...liveProps} propertyName="requestStatus">
+                            {(val) => {
+                                return (
+                                <Text data-is-focusable>{val || "-"}</Text>
+                                 );
+                            }}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow> 
+                    <GridRow>
+                        <GridCol sm={12}>
                             <LiveText label="DV Pay Grade" {...liveProps} propertyName="dvPayGrade">
                             {(val) => {
                                 return (
@@ -702,7 +777,19 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             }}
                             </LiveText>
                         </GridCol>
-                    </GridRow>    
+                    </GridRow>
+                    <GridRow>
+                        <GridCol sm={12}>
+                            <Label></Label>
+                            <LiveText label="Parking Assignment" {...liveProps} propertyName="parkingStalls">
+                            {(val) => {
+                                return (
+                                <Text data-is-focusable>{val || "-"}</Text>
+                                 );
+                            }}
+                            </LiveText>
+                        </GridCol>
+                    </GridRow>
                     <GridRow>
                         <GridCol sm={12}>
                             <ListItemTechnicals
@@ -1061,6 +1148,23 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     <GridCol sm={12}>
                         <LiveDropdown
                         {...liveProps}
+                        label="Request Status"
+                        propertyName="requestStatus"
+                        options={[
+                            { key: 'New Request', text: 'New Request' },
+                            { key: 'Approve Request', text: 'Approve Request' },
+                            { key: 'Cancel Request', text: 'Cancel Request' },
+                            { key: 'Reject Request', text: 'Reject Request' }
+                        ]}
+                        required={false}
+                        getKeyFromValue={(val) => val}
+                        />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
+                    <GridCol sm={12}>
+                        <LiveDropdown
+                        {...liveProps}
                         label="DV Pay Grade"
                         propertyName="dvPayGrade"
                         options={[
@@ -1185,6 +1289,35 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         {...liveProps}
                         label="Requestor Email"
                         propertyName="requestorEmail"
+                        />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
+                    <GridCol sm={12}>
+                        <DefaultButton
+                        text="Click to load Available Parking"
+                        onClick={async () => {
+                            const start = this.entity.start;
+                            const end = this.entity.end;
+
+                            if (start && end) {
+                            await this._loadAvailableParking(start.toDate(), end.toDate());
+                            } else {
+                            console.warn("Start and end dates must be set before checking room availability.");
+                            }
+                        }}
+                        disabled={this.state.loadingSpots}
+                        />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
+                    <GridCol sm={12}>
+                        <LiveDropdown
+                        {...liveProps}
+                        label="Parking Assignment"
+                        propertyName="parkingStalls"
+                        options={this.state.parkingStallsOptions}
+                        getKeyFromValue={(val) => val}
                         />
                     </GridCol>
                 </GridRow>
