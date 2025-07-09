@@ -14,6 +14,9 @@ const daysOfWeek = [
 
 export class RecurrenceData {
     public static deserialize(data: string): Recurrence {
+
+        data = data.replace(/'/g, '"');
+        data = data.replace(/(\s\w+)=([^\s"'>]+)/g, '$1="$2"');
         const recurrence = new Recurrence();
 
         if (!data) return recurrence;
@@ -21,7 +24,7 @@ export class RecurrenceData {
         const parser = new DOMParser();
         const doc = parser.parseFromString(data, 'application/xml');
 
-        const ruleNode = this._evaluate(doc, '/recurrence/rule');
+        const ruleNode = doc.getElementsByTagName('rule')[0];
         if (!ruleNode) return recurrence;
 
         const firstDayOfWeekNode = this._evaluate(doc, 'firstDayOfWeek', ruleNode);
@@ -33,25 +36,34 @@ export class RecurrenceData {
         const repeatNode = this._evaluate(doc, 'repeat', ruleNode);
         if (!repeatNode) return recurrence;
 
-        const repeatInstancesNode = this._evaluate(doc, 'repeatInstances', ruleNode);
-        const repeatForeverNode = this._evaluate(doc, 'repeatForever', ruleNode);
-        const windowEndNode = this._evaluate(doc, 'windowEnd', ruleNode);
+        const repeatInstancesNode = ruleNode.getElementsByTagName('repeatInstances')[0];
+        const repeatForeverNode = ruleNode.getElementsByTagName('repeatForever')[0];
+        const windowEndNode = ruleNode.getElementsByTagName('windowEnd')[0];
 
         if (!(repeatInstancesNode || repeatForeverNode || windowEndNode)) return recurrence;
 
-        const repeatInstances = repeatInstancesNode && parseInt(repeatInstancesNode.textContent);
+        const repeatInstancesText = repeatInstancesNode?.textContent?.trim();
+        const repeatInstances = repeatInstancesText && !isNaN(Number(repeatInstancesText))
+            ? parseInt(repeatInstancesText, 10)
+            : null;
+
         const repeatForever = !!repeatForeverNode;
         const windowEnd = windowEndNode && moment(windowEndNode.textContent);
 
         const { until } = recurrence;
-        if (repeatForever) {
-            until.type = RecurUntilType.forever;
-        } else if (repeatInstances) {
+
+        if (repeatInstances !== null) {
             until.type = RecurUntilType.count;
             until.count = repeatInstances;
-        } else if (windowEnd) {
+            until.date = null;
+        } else if (windowEnd?.isValid()) {
             until.type = RecurUntilType.date;
             until.date = windowEnd.clone();
+            until.count = null;
+        } else if (repeatForeverNode) {
+            until.type = RecurUntilType.forever;
+            until.count = null;
+            until.date = null;
         }
 
         const dailyNode = this._evaluate(doc, 'daily', repeatNode);
