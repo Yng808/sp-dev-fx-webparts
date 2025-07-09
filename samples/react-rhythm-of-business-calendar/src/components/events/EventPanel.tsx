@@ -286,7 +286,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         const itemId = event.id;
         const masterEvent = event.isSeriesException ? event.getSeriesMaster() : event;
         const eventId = masterEvent.id;
-        
+
 
         return (
             <FocusZone>
@@ -626,7 +626,6 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     } */}
                     <GridRow>
                         <GridCol sm={6}>
-                            <Label></Label>
                             <LiveText label="Parking Assignment" {...liveProps} propertyName="parkingStalls">
                             {(val) => {
                                 return (
@@ -1492,7 +1491,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
             onClick: onGetLink
         };
 
-        console.log("EventPanel line 885", currentUserIsContributor);
+        //console.log("EventPanel line 885", currentUserIsContributor);
 
         const userCanApprove = currentUserIsSiteAdmin || this._currentUserIsAnApprover() || currentUserIsContributor;
         const userIsCreator = User.equal(creator, currentUser);

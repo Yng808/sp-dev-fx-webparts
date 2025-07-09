@@ -160,7 +160,7 @@ export class ListItemCache<E extends ListItemEntity<any>> {
         const { title, [ListDefinition]: list } = this._view;
 
         const cacheKey = this._cacheKey();
-        console.log('Attempting to rehydrate', title, 'from cache with key', cacheKey);
+        //console.log('Attempting to rehydrate', title, 'from cache with key', cacheKey);
 
         const response = await this._cache.match(cacheKey);
         const data = await response?.json();

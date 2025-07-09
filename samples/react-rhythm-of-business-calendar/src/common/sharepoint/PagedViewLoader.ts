@@ -226,7 +226,7 @@ export abstract class PagedViewLoader<E extends ListItemEntity<any>> extends Loa
             cacheSuccess = await this._fastLoad.load(this._fastLoadConfig.expiration);
 
             if (cacheSuccess) {
-                console.log('rehydrated', this.view.title, 'from local storage');
+                //console.log('rehydrated', this.view.title, 'from local storage');
                 this._queryForLatestChanges().then(this._dehydrate);
             }
         }
@@ -253,7 +253,7 @@ export abstract class PagedViewLoader<E extends ListItemEntity<any>> extends Loa
 
     private _ensureLatestPromise: Promise<void> = null;
     private readonly _ensureLatest = async () => {
-        console.log('Processing live update for', this.view[ListDefinition].title);
+        //console.log('Processing live update for', this.view[ListDefinition].title);
         try {
             this._dependencies.forEach(dependency => dependency._ensureLatest());
             await (this._ensureLatestPromise = (this._ensureLatestPromise || this._queryForLatestChanges()));
