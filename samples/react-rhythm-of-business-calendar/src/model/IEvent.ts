@@ -22,6 +22,22 @@ export interface IEvent {
     readonly refinerValues: IManyToManyRelationship<RefinerValue>;
     readonly comDecision: string;
     readonly readAheadDueDate: Moment;
+    readonly parkingStalls: number;
+    readonly requestStatus: string;
+    readonly dvFirstName: string;
+    readonly dvSurname: string;
+    readonly dvRank: string;
+    readonly dvPayGrade: string;
+    readonly jdirVisiting: string;
+    readonly dvVisiting: string;
+    readonly requestorRank: string;
+    readonly requestorFirstName: string;
+    readonly requestorLastName: string;
+    readonly requestorOffice: string;
+    readonly requestorDutyPhone: string;
+    readonly requestorCellPhone: string;
+    readonly requestorEmail: string;
+
     getWrappedEvent(): Event;
     getSeriesMaster(): Event;
     getExceptionOrEvent(): Event;

@@ -40,6 +40,21 @@ export class EventOccurrence implements IEvent {
     public get description() { return this.event.description; }
     public get readAheadDueDate() { return this.event.readAheadDueDate; }
 
+    public get parkingStalls() { return this.event.parkingStalls; }
+    public get requestStatus() { return this.event.requestStatus; }
+    public get dvPayGrade() { return this.event.dvPayGrade; }
+    public get dvRank() { return this.event.dvRank; }
+    public get dvFirstName() { return this.event.dvFirstName; }
+    public get dvSurname() { return this.event.dvSurname; }
+    public get jdirVisiting() { return this.event.jdirVisiting; }
+    public get dvVisiting() { return this.event.dvVisiting; }
+    public get requestorRank() { return this.event.requestorRank; }
+    public get requestorFirstName() { return this.event.requestorFirstName; }
+    public get requestorLastName() { return this.event.requestorLastName; }
+    public get requestorOffice() { return this.event.requestorOffice; }
+    public get requestorDutyPhone() { return this.event.requestorDutyPhone; }
+    public get requestorCellPhone() { return this.event.requestorCellPhone; }
+    public get requestorEmail() { return this.event.requestorEmail; }
 
     public getRefinerValuesForRefinerId(refinerId: number): RefinerValue[] {
         return this.event.refinerValues.filter(refinerValue => refinerValue.refiner.get()?.id === refinerId);
@@ -59,9 +74,35 @@ export class EventOccurrence implements IEvent {
 
     public getExceptionOrEvent(): Event {
         if (this.event.isSeriesMaster) {
-            return this.event.createSeriesException(this.start, this.end);
-        } else {
-            return this.event;
+        const exception = this.event.createSeriesException(this.start, this.end);
+        
+        exception.title = this.event.title;
+        exception.start = this.start;
+        exception.end = this.end;
+        exception.parkingStalls = this.event.parkingStalls;
+        exception.requestStatus = this.event.requestStatus;
+        exception.dvPayGrade = this.event.dvPayGrade;
+        exception.dvRank = this.event.dvRank;
+        exception.dvFirstName = this.event.dvFirstName;
+        exception.dvSurname = this.event.dvSurname;
+        exception.jdirVisiting = this.event.jdirVisiting;
+        exception.dvVisiting = this.event.dvVisiting;
+        exception.requestorRank = this.event.requestorRank;
+        exception.requestorFirstName = this.event.requestorFirstName;
+        exception.requestorLastName = this.event.requestorLastName;
+        exception.requestorOffice = this.event.requestorOffice;
+        exception.requestorDutyPhone = this.event.requestorDutyPhone;
+        exception.requestorCellPhone = this.event.requestorCellPhone;
+        exception.requestorEmail = this.event.requestorEmail;
+
+        exception.seriesMaster.set(this.event);
+        return exception;
         }
+
+        else if (this.event.isSeriesException) {
+            return this.event; 
+        }
+
+        return this.event;
     }
 }
