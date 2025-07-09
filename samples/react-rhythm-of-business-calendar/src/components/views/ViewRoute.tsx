@@ -141,11 +141,11 @@ const ViewRoute: FC = () => {
   const fullRefinerValuesRef = useRef<RefinerValue[] | null>(null);
 
   useEffect(() => {
-    console.log("selectedRefinerValues size:", selectedRefinerValues.size);
+    //console.log("selectedRefinerValues size:", selectedRefinerValues.size);
     if (!fullRefinerValuesRef.current ||
         selectedRefinerValues.size > fullRefinerValuesRef.current.length) {
       fullRefinerValuesRef.current = Array.from(selectedRefinerValues);
-      console.log("Captured fullRefinerValuesRef:", fullRefinerValuesRef.current);
+      //console.log("Captured fullRefinerValuesRef:", fullRefinerValuesRef.current);
     }
   }, [selectedRefinerValues.size]);
 
@@ -163,7 +163,7 @@ const ViewRoute: FC = () => {
                 .map((prefix) => prefix.trim());
 
             const fullValuesArray = fullRefinerValuesRef.current || Array.from(selectedRefinerValues);
-            console.log('fullValuesArray: ' + fullValuesArray.length);
+            //console.log('fullValuesArray: ' + fullValuesArray.length);
 
             // Reset the selected refiners to select all before filtering again below
             onSelectedRefinerValuesChanged({ added: Array.from(fullValuesArray), removed: [] });

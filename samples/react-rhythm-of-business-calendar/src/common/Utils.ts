@@ -19,9 +19,9 @@ export type PropsOfType<T, TProp> = keyof Pick<T, { [Key in keyof T]: T[Key] ext
 export type PartlyPartial<T, K extends keyof T> = Partial<Pick<T, K>> & Omit<T, K>;
 
 export const perf = async <T = void>(label: string, action: () => Promise<T>): Promise<T> => {
-    console.time(label);
+    // console.time(label);
     const result = await action();
-    console.timeEnd(label);
+    // console.timeEnd(label);
     return result;
 };
 
