@@ -68,18 +68,18 @@ export const EventOverview: FC<IProps> = ({ event, className }) => {
                         <Text data-is-focusable>{humanizeDateRange(start, end, isAllDay)}</Text>
                     </Stack>
                 } */}
-                {isRecurring &&
+                {/* {isRecurring &&
                     <Stack horizontal verticalAlign='center' tokens={iconTextStackTokens}>
                         <Text><RepeatAllIcon /></Text>
                         <Text data-is-focusable>{event.getSeriesMaster().start.format('LT')} - {event.getSeriesMaster().end.format('LT')}, {humanizeRecurrencePattern(start, recurrence)}</Text>
                     </Stack>
-                }
-                {location &&
+                } */}
+                {/* {location &&
                     <Stack horizontal verticalAlign='center' tokens={iconTextStackTokens}>
                         <Text><POIIcon /></Text>
                         <Text data-is-focusable>{location}</Text>
                     </Stack>
-                }
+                } */}
             </Stack>
         </>}</LiveUpdate>
     );

@@ -416,7 +416,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             )}
                         </GridCol>
                     </GridRow>
-                    {isRecurring && (
+                    {/* {isRecurring && (
                         <GridRow>
                             <GridCol>
                                 <LiveText
@@ -435,7 +435,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                 </LiveText>
                             </GridCol>
                         </GridRow>
-                    )}
+                    )} */}
                     {/* <GridRow>
                         <GridCol sm={12}>
                             <LiveText label={strings.Field_Location.Label} {...liveProps} propertyName='location'>
@@ -625,7 +625,17 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         </GridRow>
                     } */}
                     <GridRow>
-                        <GridCol sm={12}>
+                        <GridCol sm={6}>
+                            <Label></Label>
+                            <LiveText label="Parking Assignment" {...liveProps} propertyName="parkingStalls">
+                            {(val) => {
+                                return (
+                                <Text data-is-focusable>{val || "-"}</Text>
+                                 );
+                            }}
+                            </LiveText>
+                        </GridCol>
+                        <GridCol sm={6}>
                             <LiveText label="Request Status" {...liveProps} propertyName="requestStatus">
                             {(val) => {
                                 return (
@@ -636,7 +646,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         </GridCol>
                     </GridRow> 
                     <GridRow>
-                        <GridCol sm={12}>
+                        <GridCol sm={6}>
                             <LiveText label="DV Pay Grade" {...liveProps} propertyName="dvPayGrade">
                             {(val) => {
                                 return (
@@ -645,9 +655,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             }}
                             </LiveText>
                         </GridCol>
-                    </GridRow> 
-                    <GridRow>
-                        <GridCol sm={12}>
+                        <GridCol sm={6}>
                             <LiveText label="DV Rank/Mr./Mrs./Dr." {...liveProps} propertyName="dvRank">
                             {(val) => {
                                 return (
@@ -658,7 +666,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         </GridCol>
                     </GridRow>
                     <GridRow>
-                        <GridCol sm={12}>
+                        <GridCol sm={6}>
                             <LiveText label="DV First Name" {...liveProps} propertyName="dvFirstName">
                             {(val) => {
                                 return (
@@ -667,9 +675,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             }}
                             </LiveText>
                         </GridCol>
-                    </GridRow>
-                    <GridRow>
-                        <GridCol sm={12}>
+                        <GridCol sm={6}>
                             <LiveText label="DV Last Name (Surname)" {...liveProps} propertyName="dvSurname">
                             {(val) => {
                                 return (
@@ -680,7 +686,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         </GridCol>
                     </GridRow>
                     <GridRow>
-                        <GridCol sm={12}>
+                        <GridCol sm={6}>
                             <LiveText label="Which JDIR/Office is DV Visiting" {...liveProps} propertyName="jdirVisiting">
                             {(val) => {
                                 return (
@@ -689,9 +695,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             }}
                             </LiveText>
                         </GridCol>
-                    </GridRow> 
-                    <GridRow>
-                        <GridCol sm={12}>
+                        <GridCol sm={6}>
                             <LiveText label="Is DV visiting COM, DCOM or COS?" {...liveProps} propertyName="dvVisiting">
                             {(val) => {
                                 return (
@@ -702,7 +706,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         </GridCol>
                     </GridRow> 
                     <GridRow>
-                        <GridCol sm={12}>
+                        <GridCol sm={6}>
                             <LiveText label="Requestor Rank/Mr./Mrs./Dr." {...liveProps} propertyName="requestorRank">
                             {(val) => {
                                 return (
@@ -711,9 +715,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             }}
                             </LiveText>
                         </GridCol>
-                    </GridRow> 
-                    <GridRow>
-                        <GridCol sm={12}>
+                        <GridCol sm={6}>
                             <LiveText label="Requestor First Name" {...liveProps} propertyName="requestorFirstName">
                             {(val) => {
                                 return (
@@ -724,7 +726,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         </GridCol>
                     </GridRow>
                     <GridRow>
-                        <GridCol sm={12}>
+                        <GridCol sm={6}>
                             <LiveText label="Requestor Last Name" {...liveProps} propertyName="requestorLastName">
                             {(val) => {
                                 return (
@@ -733,9 +735,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             }}
                             </LiveText>
                         </GridCol>
-                    </GridRow>  
-                    <GridRow>
-                        <GridCol sm={12}>
+                        <GridCol sm={6}>
                             <LiveText label="Requestor Office" {...liveProps} propertyName="requestorOffice">
                             {(val) => {
                                 return (
@@ -746,7 +746,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         </GridCol>
                     </GridRow>  
                     <GridRow>
-                        <GridCol sm={12}>
+                        <GridCol sm={6}>
                             <LiveText label="Requestor Duty Phone" {...liveProps} propertyName="requestorDutyPhone">
                             {(val) => {
                                 return (
@@ -755,9 +755,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             }}
                             </LiveText>
                         </GridCol>
-                    </GridRow>  
-                    <GridRow>
-                        <GridCol sm={12}>
+                        <GridCol sm={6}>
                             <LiveText label="Requestor Cell Phone" {...liveProps} propertyName="requestorCellPhone">
                             {(val) => {
                                 return (
@@ -770,18 +768,6 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     <GridRow>
                         <GridCol sm={12}>
                             <LiveText label="Requestor Email" {...liveProps} propertyName="requestorEmail">
-                            {(val) => {
-                                return (
-                                <Text data-is-focusable>{val || "-"}</Text>
-                                 );
-                            }}
-                            </LiveText>
-                        </GridCol>
-                    </GridRow>
-                    <GridRow>
-                        <GridCol sm={12}>
-                            <Label></Label>
-                            <LiveText label="Parking Assignment" {...liveProps} propertyName="parkingStalls">
                             {(val) => {
                                 return (
                                 <Text data-is-focusable>{val || "-"}</Text>
@@ -1146,6 +1132,33 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                 </GridRow> */}
                 <GridRow>
                     <GridCol sm={12}>
+                        <DefaultButton
+                        text="Click to load Available Parking"
+                        onClick={async () => {
+                            const start = this.entity.start;
+                            const end = this.entity.end;
+
+                            if (start && end) {
+                            await this._loadAvailableParking(start.toDate(), end.toDate());
+                            } else {
+                            console.warn("Start and end dates must be set before checking room availability.");
+                            }
+                        }}
+                        disabled={this.state.loadingSpots}
+                        />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
+                    <GridCol sm={6}>
+                        <LiveDropdown
+                        {...liveProps}
+                        label="Parking Assignment"
+                        propertyName="parkingStalls"
+                        options={this.state.parkingStallsOptions}
+                        getKeyFromValue={(val) => val}
+                        />
+                    </GridCol>
+                    <GridCol sm={6}>
                         <LiveDropdown
                         {...liveProps}
                         label="Request Status"
@@ -1162,7 +1175,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     </GridCol>
                 </GridRow>
                 <GridRow>
-                    <GridCol sm={12}>
+                    <GridCol sm={6}>
                         <LiveDropdown
                         {...liveProps}
                         label="DV Pay Grade"
@@ -1183,9 +1196,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         getKeyFromValue={(val) => val}
                         />
                     </GridCol>
-                </GridRow>
-                <GridRow>
-                    <GridCol sm={12}>
+                    <GridCol sm={6}>
                         <LiveTextField
                         {...liveProps}
                         label="DV Rank/Mr./Mrs./Dr."
@@ -1194,16 +1205,14 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     </GridCol>
                 </GridRow>
                 <GridRow>
-                    <GridCol sm={12}>
+                    <GridCol sm={6}>
                         <LiveTextField
                         {...liveProps}
                         label="DV First Name"
                         propertyName="dvFirstName"
                         />
                     </GridCol>
-                </GridRow>
-                <GridRow>
-                    <GridCol sm={12}>
+                    <GridCol sm={6}>
                         <LiveTextField
                         {...liveProps} 
                         label="DV Last Name (Surname)" 
@@ -1212,16 +1221,14 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     </GridCol>
                 </GridRow>
                 <GridRow>
-                    <GridCol sm={12}>
+                    <GridCol sm={6}>
                         <LiveTextField
                         {...liveProps}
                         label="Which JDIR/Office is DV Visiting"
                         propertyName="jdirVisiting"
                         />
                     </GridCol>
-                </GridRow>
-                <GridRow>
-                    <GridCol sm={12}>
+                    <GridCol sm={6}>
                         <LiveTextField
                         {...liveProps}
                         label="Is DV visiting COM, DCOM or COS?"
@@ -1230,16 +1237,14 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     </GridCol>
                 </GridRow>
                 <GridRow>
-                    <GridCol sm={12}>
+                    <GridCol sm={6}>
                         <LiveTextField
                         {...liveProps}
                         label="Requestor Rank/Mr./Mrs./Dr."
                         propertyName="requestorRank"
                         />
                     </GridCol>
-                </GridRow>
-                <GridRow>
-                    <GridCol sm={12}>
+                    <GridCol sm={6}>
                         <LiveTextField
                         {...liveProps}
                         label="Requestor First Name"
@@ -1248,16 +1253,14 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     </GridCol>
                 </GridRow>
                 <GridRow>
-                    <GridCol sm={12}>
+                    <GridCol sm={6}>
                         <LiveTextField
                         {...liveProps}
                         label="Requestor Last Name"
                         propertyName="requestorLastName"
                         />
                     </GridCol>
-                </GridRow>
-                <GridRow>
-                    <GridCol sm={12}>
+                    <GridCol sm={6}>
                         <LiveTextField
                         {...liveProps}
                         label="Requestor Office"
@@ -1266,16 +1269,14 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     </GridCol>
                 </GridRow>
                 <GridRow>
-                    <GridCol sm={12}>
+                    <GridCol sm={6}>
                         <LiveTextField
                         {...liveProps}
                         label="Requestor Duty Phone"
                         propertyName="requestorDutyPhone"
                         />
                     </GridCol>
-                </GridRow>
-                <GridRow>
-                    <GridCol sm={12}>
+                    <GridCol sm={6}>
                         <LiveTextField
                         {...liveProps}
                         label="Requestor Cell Phone"
@@ -1284,40 +1285,11 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     </GridCol>
                 </GridRow>
                 <GridRow>
-                    <GridCol sm={12}>
+                    <GridCol sm={6}>
                         <LiveTextField
                         {...liveProps}
                         label="Requestor Email"
                         propertyName="requestorEmail"
-                        />
-                    </GridCol>
-                </GridRow>
-                <GridRow>
-                    <GridCol sm={12}>
-                        <DefaultButton
-                        text="Click to load Available Parking"
-                        onClick={async () => {
-                            const start = this.entity.start;
-                            const end = this.entity.end;
-
-                            if (start && end) {
-                            await this._loadAvailableParking(start.toDate(), end.toDate());
-                            } else {
-                            console.warn("Start and end dates must be set before checking room availability.");
-                            }
-                        }}
-                        disabled={this.state.loadingSpots}
-                        />
-                    </GridCol>
-                </GridRow>
-                <GridRow>
-                    <GridCol sm={12}>
-                        <LiveDropdown
-                        {...liveProps}
-                        label="Parking Assignment"
-                        propertyName="parkingStalls"
-                        options={this.state.parkingStallsOptions}
-                        getKeyFromValue={(val) => val}
                         />
                     </GridCol>
                 </GridRow>

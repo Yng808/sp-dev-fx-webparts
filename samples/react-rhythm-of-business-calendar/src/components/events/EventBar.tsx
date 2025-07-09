@@ -106,9 +106,9 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
                 
                 <StackItem className={styles.text} style={{ color: style.color }}>
                 
-                    {size === EventBarSize.Compact && startTimeString && (
+                    {/* {size === EventBarSize.Compact && startTimeString && (
                         <span style={{ fontWeight: 'bold' }}>{startTimeString} </span>
-                    )}
+                    )} */}
                     
                     <div>
                         {title}
@@ -117,9 +117,9 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
                 </StackItem>
                 
                 {isConfidential && <LockIcon />}
-                <StackItem grow className={styles.recur}>
+                {/* <StackItem grow className={styles.recur}>
                     {isRecurring && <RepeatAllIcon />}
-                </StackItem>
+                </StackItem> */}
             </Stack>
             {/* {size === EventBarSize.Large && <>
                 <Stack horizontal verticalAlign='center' tokens={useConst({ childrenGap: 4 })}>
