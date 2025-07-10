@@ -29,8 +29,7 @@ interface IEventCardProps {
 const EventCard: FC<IEventCardProps> = ({ occurrence, commands }) => {
     const [
         viewCommand,
-        addToOutlookCommand,
-        getLinkCommand
+        addToOutlookCommand
     ] = useEventCommandActionButtons(commands, occurrence);
 
     const { width } = useWindowSize();
@@ -46,7 +45,6 @@ const EventCard: FC<IEventCardProps> = ({ occurrence, commands }) => {
                 <Stack horizontal={layoutCommandsHorizontally} wrap>
                     {viewCommand}
                     {addToOutlookCommand}
-                    {getLinkCommand}
                 </Stack>
             </StackItem>
         </Stack>

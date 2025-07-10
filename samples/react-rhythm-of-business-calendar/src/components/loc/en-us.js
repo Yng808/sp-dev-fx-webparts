@@ -174,8 +174,8 @@ define([], function () {
                 ModeratorMessage: "Message from moderator:"
             },
             Command_Edit: { Text: "Edit" },
-            Command_Edit_Recurring_Series: { Text: "Series" },
-            Command_Edit_Recurring_Instance: { Text: "This occurence" },
+            Command_Edit_Recurring_Series: { Text: "All Days" },
+            Command_Edit_Recurring_Instance: { Text: "Single Day" },
             Command_Save: { Text: "Save" },
             Command_Discard: { Text: "Discard changes" },
             Command_AddToOutlook: { Text: "Add to Outlook" },
@@ -187,8 +187,8 @@ define([], function () {
             Command_Approval_Reject: { Text: "Decline" },
             Command_Delete: { Text: "Delete" },
             Command_Delete_Series: { Text: "Delete series" },
-            Command_Delete_Recurring_Series: { Text: "Entire series" },
-            Command_Delete_Recurring_Instance: { Text: "Just this occurence" }
+            Command_Delete_Recurring_Series: { Text: "All Days" },
+            Command_Delete_Recurring_Instance: { Text: "Single Day" }
         },
         ApprovalEmails: {
             RequestEmail: {

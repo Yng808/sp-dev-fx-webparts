@@ -66,7 +66,6 @@ export const EventDetailsCallout: FC<IProps> = ({ componentRef, commands }) => {
                 <Stack horizontal wrap tokens={stackTokens}>
                     {viewCommand}
                     {addToOutlookCommand}
-                    {getLinkCommand}
                 </Stack>
             </FocusZone>
         </FocusTrapCallout>
