@@ -147,7 +147,7 @@ const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: IT
     event.requestorOffice = decode(row.RequestorOffice);
     event.requestorDutyPhone = decode(row.RequestorDutyPhone); 
     event.requestorCellPhone = decode(row.RequestorCellPhone); 
-    event.requestorEmail = decode(row.RequestorEmail); 
+    event.requestorEmail = row.RequestorEmail.replace(/<[^>]+>/g, '').trim();
     event.parkingStalls = row.ParkingStalls?.[0]?.lookupId ?? undefined;
 };
 

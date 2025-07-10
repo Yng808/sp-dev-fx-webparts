@@ -82,7 +82,9 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
 
         await refinersAsync.promise;
 
-        const refiners = [...refinersAsync.data];
+        const refiners = refinersAsync.data.filter(refiner =>
+        refiner.title !== "Decision Brief" && refiner.title !== "IPC OPR" && refiner.title !== "IPC Attendee" && refiner.title !== "Location"
+        );
         refiners.sort(Refiner.OrderAscComparer);
 
         const refinerValueToDropdownOption = (value: RefinerValue) => {
@@ -1013,7 +1015,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             allowTextInput
                         />
                     </GridCol>
-                </GridRow>
+                </GridRow> */}
                 
                 <GridRow>
                     {refiners.filter(Entity.NotDeletedFilter).map(refiner => {
@@ -1077,7 +1079,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         );
                     })}
                 </GridRow>
-                <GridRow>
+                {/* <GridRow>
                     <GridCol sm={12}>
                         {this._renderModerationStatus()}
                     </GridCol>
@@ -1130,32 +1132,14 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     </GridCol>
                 </GridRow> */}
                 <GridRow>
-                    <GridCol sm={12}>
-                        <DefaultButton
-                        text="Click to load Available Parking"
-                        onClick={async () => {
-                            const start = this.entity.start;
-                            const end = this.entity.end;
-
-                            if (start && end) {
-                            await this._loadAvailableParking(start.toDate(), end.toDate());
-                            } else {
-                            console.warn("Start and end dates must be set before checking room availability.");
-                            }
-                        }}
-                        disabled={this.state.loadingSpots}
-                        />
-                    </GridCol>
-                </GridRow>
-                <GridRow>
                     <GridCol sm={6}>
-                        <LiveDropdown
-                        {...liveProps}
-                        label="Parking Assignment"
-                        propertyName="parkingStalls"
-                        options={this.state.parkingStallsOptions}
-                        getKeyFromValue={(val) => val}
-                        />
+                        <LiveText label="Parking Assignment" {...liveProps} propertyName="parkingStalls">
+                        {(val) => {
+                            return (
+                            <Text data-is-focusable>{val || "-"}</Text>
+                            );
+                        }}
+                        </LiveText>
                     </GridCol>
                     <GridCol sm={6}>
                         <LiveDropdown
@@ -1290,6 +1274,35 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         label="Requestor Email"
                         propertyName="requestorEmail"
                         />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
+                    <GridCol sm={6}>
+                        <LiveDropdown
+                        {...liveProps}
+                        label="Parking Assignment"
+                        propertyName="parkingStalls"
+                        options={this.state.parkingStallsOptions}
+                        getKeyFromValue={(val) => val}
+                        />
+                    </GridCol>
+                    <GridCol sm={6}>
+                        <div style={{ marginTop: '28px' }}>
+                        <DefaultButton
+                        text="Search"
+                        onClick={async () => {
+                            const start = this.entity.start;
+                            const end = this.entity.end;
+
+                            if (start && end) {
+                            await this._loadAvailableParking(start.toDate(), end.toDate());
+                            } else {
+                            console.warn("Start and end dates must be set before checking room availability.");
+                            }
+                        }}
+                        disabled={this.state.loadingSpots}
+                        />
+                        </div>
                     </GridCol>
                 </GridRow>
                 <GridRow>
