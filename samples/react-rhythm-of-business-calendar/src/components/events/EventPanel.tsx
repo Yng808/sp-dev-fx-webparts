@@ -1522,7 +1522,6 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     )
                     : editSingleCommand
             ),
-            canModerate && moderationCommand,
             canDelete && (
                 isRecurring
                     ? (isSeriesMaster
@@ -1530,16 +1529,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         : deleteRecurringCommand
                     )
                     : deleteSingleCommand
-            ),
-            canAddToOutlook && (
-                isRecurring
-                    ? (isSeriesMaster
-                        ? addToOutlookSeriesCommand
-                        : addToOutlookRecurringCommand
-                    )
-                    : addToOutlookSingleCommand
-            ),
-            getLinkCommand
+            )
         ].filter(Boolean);
     }
 
