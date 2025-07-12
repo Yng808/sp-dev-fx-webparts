@@ -2,10 +2,10 @@ import React, { FC, useContext, useEffect, useRef, useState } from 'react';
 import { EventOccurrence } from 'model';
 import { useTimeZoneService } from 'services';
 import moment from 'moment';
-import * as XLSX from 'xlsx';
-import { saveAs } from 'file-saver';
+//import * as XLSX from 'xlsx';
+//import { saveAs } from 'file-saver';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { FilterConfigContext } from 'components/shared/FilterConfigContext';
+//import { FilterConfigContext } from 'components/shared/FilterConfigContext';
 
 interface EventDetailsListProps {
     cccurrences: readonly EventOccurrence[];
@@ -16,11 +16,12 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [startDate, setStartDate] = useState<string>(moment().format('YYYY-MM-DD'));
     const [endDate, setEndDate] = useState<string>(moment().format('YYYY-MM-DD'));
     const [searchQuery, setSearchQuery] = useState<string>('');
+    const [requestStatusFilter, setRequestStatusFilter] = useState<string>(''); 
 
     const timeZoneService = useTimeZoneService();
     const siteTimeZone = timeZoneService.siteTimeZone;
-
-    const { showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief, showLocation } = useContext(FilterConfigContext);
+    //const { showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief, showLocation } = useContext(FilterConfigContext);
+    const predefinedStatuses = ['New Request', 'Approve Request', 'Cancel Request', 'Reject Request'];
 
     useEffect(() => {
         let filtered = [...cccurrences]; // Create a mutable copy of the readonly array
@@ -61,58 +62,87 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             filtered = filtered.filter(event => {
-                return (
-                    event.title.toLowerCase().includes(query) ||
-                    (event.description && event.description.toLowerCase().includes(query)) || 
-                    Object.values(event).some(value =>
-                        typeof value === 'string' && value.toLowerCase().includes(query)
+                return ( 
+                    `${event.dvRank} ${event.dvFirstName} ${event.dvSurname}`.toLowerCase().includes(query) ||
+                    `${event.requestorRank} ${event.requestorFirstName} ${event.requestorLastName} ${event.requestorCellPhone}`.toLowerCase().includes(query) ||  
+                    event.requestStatus.toLowerCase().includes(query) || 
+                    event.start.format('MM/DD/YYYY').includes(query) || 
+                    event.end.format('MM/DD/YYYY').includes(query 
                     )
                 );
             });
+        }
+
+        if (requestStatusFilter) {
+            filtered = filtered.filter(event => event.requestStatus === requestStatusFilter);
         }
 
         // Sort the filtered events by start date
         filtered.sort((a, b) => moment(a.start).diff(moment(b.start)));
 
         setFilteredEvents(filtered);
-        console.log('filtered events', filteredEvents);
-    }, [startDate, endDate, searchQuery, cccurrences]);
-  
-    const handleExportToExcel = () => {
-        // Prepare data for Excel
-        const data = filteredEvents.map(event => ({
-            Type: event.getRefinerValuesForRefinerId(1).map(rv => rv.title).join(', '),
-            Title: event.title,
-            DecisionBrief: event.getRefinerValuesForRefinerName('Decision Brief').map(rv => rv.title).join(', '),
-            ReadAheadDueDate: event.readAheadDueDate ? event.readAheadDueDate.format('MM/DD/YYYY') : '-',
-            EventDate: moment(event.start).format('MM/DD/YYYY HH:mm') + ' - ' + moment(event.end).format('MM/DD/YYYY HH:mm'),
-            IPCOPR: event.getRefinerValuesForRefinerName('IPC OPR').map(rv => rv.title).join(', '),
-            IPCAttendee: event.getRefinerValuesForRefinerName('IPC Attendee').map(rv => rv.title).join(', '),
-            Description: event.description || '',
-        }));
+        //console.log('filtered events', filteredEvents);
+    }, [startDate, endDate, searchQuery, cccurrences, requestStatusFilter]);
 
-        // Create a new workbook
-        const workbook = XLSX.utils.book_new();
+    // const handleExportToExcel = () => {
+    //     // Prepare data for Excel
+    //     const data = filteredEvents.map(event => ({
+    //         Type: event.getRefinerValuesForRefinerId(1).map(rv => rv.title).join(', '),
+    //         Title: event.title,
+    //         DecisionBrief: event.getRefinerValuesForRefinerName('Decision Brief').map(rv => rv.title).join(', '),
+    //         ReadAheadDueDate: event.readAheadDueDate ? event.readAheadDueDate.format('MM/DD/YYYY') : '-',
+    //         EventDate: moment(event.start).format('MM/DD/YYYY HH:mm') + ' - ' + moment(event.end).format('MM/DD/YYYY HH:mm'),
+    //         IPCOPR: event.getRefinerValuesForRefinerName('IPC OPR').map(rv => rv.title).join(', '),
+    //         IPCAttendee: event.getRefinerValuesForRefinerName('IPC Attendee').map(rv => rv.title).join(', '),
+    //         Description: event.description || '',
+    //     }));
 
-        // Convert data to a worksheet
-        const worksheet = XLSX.utils.json_to_sheet(data);
+    //     // Create a new workbook
+    //     const workbook = XLSX.utils.book_new();
 
-        // Append worksheet to workbook
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Events');
+    //     // Convert data to a worksheet
+    //     const worksheet = XLSX.utils.json_to_sheet(data);
 
-        // Generate a binary string for the workbook
-        const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    //     // Append worksheet to workbook
+    //     XLSX.utils.book_append_sheet(workbook, worksheet, 'Events');
 
-        // Save the Excel file
-        const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-        saveAs(blob, 'Events.xlsx');
+    //     // Generate a binary string for the workbook
+    //     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
 
-    };
+    //     // Save the Excel file
+    //     const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    //     saveAs(blob, 'Events.xlsx');
+
+    // };
     
     return (
         <div className="container">
             {/* Filters section */}
             <div className="row mb-3">
+                 <div className="col">
+                    <label htmlFor="requestStatus">Status</label>
+                    <select
+                        id="requestStatus"
+                        className="form-control"
+                        value={requestStatusFilter}
+                        onChange={(e) => setRequestStatusFilter(e.target.value)}
+                    >
+                        <option value="">All</option>
+                        {predefinedStatuses.map(status => (
+                            <option key={status} value={status}>{status}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="col">
+                    <label htmlFor="searchQuery">Search</label>
+                    <input
+                        type="text"
+                        id="searchQuery"
+                        className="form-control"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
                 <div className="col">
                     <label htmlFor="startDate">Start Date</label>
                     <input
@@ -133,17 +163,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                         onChange={(e) => setEndDate(e.target.value)}
                     />
                 </div>
-                <div className="col">
-                    <label htmlFor="searchQuery">Search</label>
-                    <input
-                        type="text"
-                        id="searchQuery"
-                        className="form-control"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
-                <div className="col">
+                {/* <div className="col">
                     <label></label>
                     <button
                         className="form-control"
@@ -152,7 +172,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     >
                         Export to Excel
                     </button>
-                </div>
+                </div> */}
             </div>
 
             {/* table with sticky headers */}
@@ -160,7 +180,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 <table className="table table-bordered table-striped">
                     <thead className="thead-dark sticky-top">
                         <tr>
-                            <th>Type</th>
+                            {/* <th>Type</th>
                             <th style={{ width: '200px' }}>Title</th>
                             {showLocation && <th>Location</th>}
                             {showDecisionBrief && <th>Decision Brief</th>}
@@ -168,7 +188,13 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             <th style={{ width: '280px' }}>Event Date</th>                                                         
                             {showOPR && <th>IPC OPR</th>}
                             {showAttendee && <th>IPC Attendee</th>}
-                            <th>Description</th>                            
+                            <th>Description</th> */}
+                            <th>Edit</th>
+                            <th>Parking Assignment</th>
+                            <th>Status</th>
+                            <th>Parking Request Date</th>
+                            <th>DV Info</th>
+                            <th>Requestor Info</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -193,7 +219,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
                             return (
                                 <tr key={index}>
-                                    <td>
+                                {/* <td>
                                         {event.getRefinerValuesForRefinerId(1).map((rv, index) => (
                                             <span
                                                 key={index}
@@ -235,7 +261,15 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     </td>}
                                     <td style={{ whiteSpace: 'normal', wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                                         {event.description}
+                                    </td> */}
+                                    <td>
+                                        <button>View Event</button>
                                     </td>
+                                    <td>{event.parkingStalls}</td>
+                                    <td>{event.requestStatus}</td>
+                                    <td>{eventDateFormatted}</td>
+                                    <td>{`${event.dvRank} ${event.dvFirstName} ${event.dvSurname}`}</td>
+                                    <td>{`${event.requestorRank} ${event.requestorFirstName} ${event.requestorLastName} ${event.requestorCellPhone}`}</td>
                                 </tr>
                             );
                         })}
