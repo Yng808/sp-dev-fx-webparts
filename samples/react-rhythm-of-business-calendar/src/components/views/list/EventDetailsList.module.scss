@@ -1,0 +1,52 @@
+/* EventDetailsList.module.scss */
+
+/* Custom styles for table headers */
+.tdHeader {
+  background-color: lightblue;
+}
+//protocol action buttons
+.tdCell {
+  display: flex;
+}
+
+.openAssignButton {
+  background-color: rgba(162, 238, 153, 0.5);
+  flex-grow: 1;
+}
+
+.denyButton {
+  background-color: rgba(245, 178, 178, 0.5);
+  flex-grow: 1;
+}
+
+.cancelButton {
+  background-color: rgba(241, 243, 134, 0.5);
+  flex-grow: 1;
+}
+// after panel is opened
+.panel {
+  position: fixed;
+  top: 50%; 
+  left: 50%; 
+  background-color: white;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 300px;
+  z-index: 1050;
+}
+
+.panel button {
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.closeButton {
+  background-color: rgba(73, 220, 240, 0.87);
+  color: white;
+}
+
+.assignButton {
+  background-color: rgba(255, 255, 255, 0.5);
+  color: rgb(0, 0, 0);
+}
+

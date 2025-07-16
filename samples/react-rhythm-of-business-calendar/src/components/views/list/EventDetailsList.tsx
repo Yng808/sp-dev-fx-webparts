@@ -6,6 +6,7 @@ import moment from 'moment';
 //import { saveAs } from 'file-saver';
 import 'bootstrap/dist/css/bootstrap.min.css';
 //import { FilterConfigContext } from 'components/shared/FilterConfigContext';
+import styles from './EventDetailsList.module.scss';
 
 interface EventDetailsListProps {
     cccurrences: readonly EventOccurrence[];
@@ -22,6 +23,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const siteTimeZone = timeZoneService.siteTimeZone;
     //const { showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief, showLocation } = useContext(FilterConfigContext);
     const predefinedStatuses = ['New Request', 'Approve Request', 'Cancel Request', 'Reject Request'];
+    const [isPanelOpen, setIsPanelOpen] = useState<boolean>(false); // Corrected state declaration for panel visibility
+    const [groupIDToDisplay, setGroupIDToDisplay] = useState<string>(''); // Track groupID for buttons
 
     useEffect(() => {
         let filtered = [...cccurrences]; // Create a mutable copy of the readonly array
@@ -78,12 +81,26 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         }
 
         // Sort the filtered events by start date
-        filtered.sort((a, b) => moment(a.start).diff(moment(b.start)));
+        filtered.sort((a, b) => {
+        const groupComparison = a.groupID.localeCompare(b.groupID);
+        if (groupComparison !== 0) return groupComparison;
+        return moment(a.start).diff(moment(b.start)); // secondary sort
+        });
+
 
         setFilteredEvents(filtered);
         //console.log('filtered events', filteredEvents);
     }, [startDate, endDate, searchQuery, cccurrences, requestStatusFilter]);
 
+    // Function to open the panel
+    const openPanel = (groupID: string) => {
+        setGroupIDToDisplay(groupID); 
+        setIsPanelOpen(true); 
+    };
+
+    // Function to close the panel
+    const closePanel = () => setIsPanelOpen(false);
+    
     // const handleExportToExcel = () => {
     //     // Prepare data for Excel
     //     const data = filteredEvents.map(event => ({
@@ -114,7 +131,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     //     saveAs(blob, 'Events.xlsx');
 
     // };
-    
+
     return (
         <div className="container">
             {/* Filters section */}
@@ -189,12 +206,13 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             {showOPR && <th>IPC OPR</th>}
                             {showAttendee && <th>IPC Attendee</th>}
                             <th>Description</th> */}
-                            <th>Edit</th>
-                            <th>Parking Assignment</th>
-                            <th>Status</th>
-                            <th>Parking Request Date</th>
-                            <th>DV Info</th>
-                            <th>Requestor Info</th>
+                            <th className={styles.tdHeader}>Protocol Actions</th>
+                            <th className={styles.tdHeader}>Group ID</th>
+                            <th className={styles.tdHeader}>Parking Assignment</th>
+                            <th className={styles.tdHeader}>Status</th>
+                            <th className={styles.tdHeader}>Parking Request Date</th>
+                            <th className={styles.tdHeader}>DV Info</th>
+                            <th className={styles.tdHeader}>Requestor Info</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -219,7 +237,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
                             return (
                                 <tr key={index}>
-                                {/* <td>
+                                    {/* <td>
                                         {event.getRefinerValuesForRefinerId(1).map((rv, index) => (
                                             <span
                                                 key={index}
@@ -262,9 +280,17 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     <td style={{ whiteSpace: 'normal', wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                                         {event.description}
                                     </td> */}
-                                    <td>
-                                        <button>View Event</button>
+                                    <td className={styles.tdCell}>
+                                        <button 
+                                            className={styles.openAssignButton}
+                                            onClick={() => openPanel(event.groupID)} // Pass the groupID to open the panel
+                                        >
+                                            Assign
+                                        </button>
+                                        <button className={styles.denyButton}>Deny</button>
+                                        <button className={styles.cancelButton}>Cancel</button>
                                     </td>
+                                    <td>{event.groupID}</td>
                                     <td>{event.parkingStalls}</td>
                                     <td>{event.requestStatus}</td>
                                     <td>{eventDateFormatted}</td>
@@ -276,6 +302,16 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     </tbody>
                 </table>
             </div>
+            {isPanelOpen && (
+                <div className={styles.panel}>
+                    <button onClick={closePanel} className={styles.closeButton}>X</button>
+                    {filteredEvents.filter(event => event.groupID === groupIDToDisplay).map((event, index) => (
+                        <button key={index} className={styles.assignButton}>
+                            Parking Assignment
+                        </button>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };
