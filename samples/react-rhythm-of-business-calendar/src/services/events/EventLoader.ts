@@ -45,6 +45,7 @@ interface IEventListItemResult extends IListItemResult {
     RequestorCellPhone: SPField.Query_Text;
     RequestorEmail: SPField.Query_Text;
     ParkingStalls: SPField.Query_Lookup;
+    GroupID: SPField.Query_Text;
 }
 
 interface IEventUpdateListItem extends IUpdateListItem {
@@ -85,6 +86,7 @@ interface IEventUpdateListItem extends IUpdateListItem {
     RequestorCellPhone: SPField.Update_Text;
     RequestorEmail: SPField.Update_Text;
     ParkingStallsId: SPField.Update_LookupId;
+    GroupID: SPField.Update_Text;
 }
 
 const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: ITimeZone, refinerValueLoader: RefinerValueLoader, eventsById: ReadonlyEventMap): Promise<void> => {
@@ -149,6 +151,7 @@ const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: IT
     event.requestorCellPhone = decode(row.RequestorCellPhone); 
     event.requestorEmail = row.RequestorEmail.replace(/<[^>]+>/g, '').trim();
     event.parkingStalls = row.ParkingStalls?.[0]?.lookupId ?? undefined;
+    event.groupID = decode(row.GroupID);
 };
 
 const getEventTypeValue = (event: Event) => {
@@ -198,7 +201,8 @@ const toUpdateListItem = (event: Event, siteTimeZone: ITimeZone): IEventUpdateLi
         RequestorDutyPhone: event.requestorDutyPhone,
         RequestorCellPhone: event.requestorCellPhone, 
         RequestorEmail: event.requestorEmail, 
-        ParkingStallsId: event.parkingStalls
+        ParkingStallsId: event.parkingStalls,
+        GroupID: event.groupID
     };
 };
 

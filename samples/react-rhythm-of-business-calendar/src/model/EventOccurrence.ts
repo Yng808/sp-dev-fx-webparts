@@ -55,6 +55,7 @@ export class EventOccurrence implements IEvent {
     public get requestorDutyPhone() { return this.event.requestorDutyPhone; }
     public get requestorCellPhone() { return this.event.requestorCellPhone; }
     public get requestorEmail() { return this.event.requestorEmail; }
+    public get groupID() { return this.event.groupID; }
 
     public getRefinerValuesForRefinerId(refinerId: number): RefinerValue[] {
         return this.event.refinerValues.filter(refinerValue => refinerValue.refiner.get()?.id === refinerId);
