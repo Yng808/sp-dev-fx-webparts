@@ -151,7 +151,7 @@ const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: IT
     event.requestorCellPhone = decode(row.RequestorCellPhone); 
     event.requestorEmail = row.RequestorEmail.replace(/<[^>]+>/g, '').trim();
     event.parkingStalls = row.ParkingStalls?.[0]?.lookupId ?? undefined;
-    event.groupID = decode(row.GroupID);
+    event.groupID = Number(row.GroupID); 
 };
 
 const getEventTypeValue = (event: Event) => {
@@ -202,7 +202,7 @@ const toUpdateListItem = (event: Event, siteTimeZone: ITimeZone): IEventUpdateLi
         RequestorCellPhone: event.requestorCellPhone, 
         RequestorEmail: event.requestorEmail, 
         ParkingStallsId: event.parkingStalls,
-        GroupID: event.groupID
+        GroupID: event.groupID.toString()
     };
 };
 

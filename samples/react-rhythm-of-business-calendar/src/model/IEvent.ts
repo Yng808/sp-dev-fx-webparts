@@ -37,7 +37,7 @@ export interface IEvent {
     readonly requestorDutyPhone: string;
     readonly requestorCellPhone: string;
     readonly requestorEmail: string;
-    readonly groupID: string;
+    readonly groupID: number;
 
     getWrappedEvent(): Event;
     getSeriesMaster(): Event;
