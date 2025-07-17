@@ -21,6 +21,7 @@ export class EventOccurrence implements IEvent {
     ) {
     }
 
+    public get id() { return this.event.id }
     public get displayName() { return this.event.displayName; }
     public get title() { return this.event.title; }
     public get isAllDay() { return this.event.isAllDay; }
