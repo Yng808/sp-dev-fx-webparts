@@ -9,6 +9,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from './EventDetailsList.module.scss';
 import { sp } from '@pnp/sp';
 import { IDropdownOption } from '@fluentui/react';
+import { fetchParkingStalls, fetchBookingsForGroup, fetchBookedParkingForEvent, filterAvailableParking, formatParkingOptions, fetchFromSharePoint } from './spEventDetailsList';
 
 interface EventDetailsListProps {
   cccurrences: readonly EventOccurrence[];
@@ -26,8 +27,9 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [requestStatusFilter, setRequestStatusFilter] = useState<string>('New Request');
     const [isPanelOpen, setIsPanelOpen] = useState<boolean>(false);
-    const [groupIDToDisplay, setGroupIDToDisplay] = useState<string>('');
+    const [groupIDToDisplay, setGroupIDToDisplay] = useState<number>(0);
     const [parkingStallsOptions, setParkingStallsOptions] = useState<IDropdownOption[]>([]);
+    const [parkingStallsOptionsEach, setParkingStallsOptionsEach] = useState<{ [key: number]: IDropdownOption[] }>({});
     const [loadingSpots, setLoadingSpots] = useState<boolean>(false);
 
     const timeZoneService = useTimeZoneService();
@@ -102,15 +104,35 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         //console.log('filtered events', filteredEvents);
     }, [startDate, endDate, searchQuery, cccurrences, requestStatusFilter]);
 
-    const openPanel = (groupID: string) => {
+    useEffect(() => {
+        if (groupIDToDisplay !== 0) {
+            loadAvailableParkingForAllEvents(groupIDToDisplay); 
+        }
+    }, [groupIDToDisplay]);
+
+    const resetFilters = () => { setStartDate(''); setEndDate(''); setSearchQuery(''); setRequestStatusFilter(''); };
+
+    const openPanel = (groupID: number) => {
         setGroupIDToDisplay(groupID); 
-        setIsPanelOpen(true); 
-        loadAvailableParking();
+        setIsPanelOpen(true);
+        setParkingStallsOptions([]); 
+        setParkingStallsOptionsEach([]);
+        loadAvailableParkingForAllEvents(groupID);
+
+        filteredEvents
+        .filter((event) => event.groupID === groupID)
+        .forEach((event) => {
+            loadAvailableParking(event); 
+        });
     };
 
-    const closePanel = () => setIsPanelOpen(false);
+    const closePanel = () => {
+        setIsPanelOpen(false); 
+        setParkingStallsOptions([]);
+        setParkingStallsOptionsEach([]);
+    }
 
-        // const handleExportToExcel = () => {
+    // const handleExportToExcel = () => {
     //     // Prepare data for Excel
     //     const data = filteredEvents.map(event => ({
     //         Type: event.getRefinerValuesForRefinerId(1).map(rv => rv.title).join(', '),
@@ -140,104 +162,66 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     //     saveAs(blob, 'Events.xlsx');
 
     // };
-    
-    // Handle the apply to all events button
-    const loadAvailableParking = async () => {
+
+    // Handle the apply to ALL events button
+    const loadAvailableParkingForAllEvents = async (groupID: number) => {
         setLoadingSpots(true);
-
+        let allAvailableParking: ParkingSpot[] = [];
+        let allBookedParkingIds: Set<number> = new Set(); 
+        
         try {
-        const web = await sp.web.get();
-        const siteUrl = web.Url;
+            const web = await sp.web.get();
+            const siteUrl = web.Url;
 
-        // STEP 1: Fetch all parking stalls
-        const parkingResponse = await fetch(
-            `${siteUrl}/_api/web/lists/getbytitle('DVParkingStalls')/items?$select=ID,ParkingAssigment`,
-            {
-            method: "GET",
-            headers: {
-                Accept: "application/json;odata=verbose",
-            },
+            // STEP 1: Fetch all parking stalls
+            const allParking = await fetchParkingStalls(siteUrl);
+            // STEP 2: Fetch events for the group
+            const bookingsData = await fetchBookingsForGroup(siteUrl, groupID);
+            // STEP 3: Iterate through each event in the group and filter parking
+            for (let event of bookingsData.d.results) {
+                const eventStart = moment(event.EventDate);
+                const eventEnd = moment(event.EndDate);
+
+                // STEP 4: Fetch booked parking for this event date range
+                const bookedParkingIds = await fetchBookedParkingForEvent(siteUrl, eventStart, eventEnd);
+                // Add the booked parking IDs for this event to the overall set
+                bookedParkingIds.forEach(id => allBookedParkingIds.add(id));
+
+                // STEP 5: Exclude booked parking for this event and keep available ones
+                const availableParking = filterAvailableParking(allParking, allBookedParkingIds);
+                // Merge the available parking for this event with the already filtered parking
+                allAvailableParking = allAvailableParking.concat(availableParking); 
             }
-        );
 
-        if (!parkingResponse.ok) {
-            throw new Error(`Failed to fetch spots: ${parkingResponse.statusText}`);
-        }
+            // STEP 6: Remove duplicates by parking spot id
+            const uniqueAvailableParking = Array.from(new Map(allAvailableParking.map(spot => [spot.id, spot])).values());
 
-        const allParkingData = await parkingResponse.json();
-        const allParking: ParkingSpot[] = allParkingData.d.results.map((item: any) => ({
-            id: item.ID,
-            parking: item.ParkingAssigment,
-        }));
+            // STEP 7: Map them to the IDropdownOption format
+            const availableParkingOptions = formatParkingOptions(uniqueAvailableParking);
 
-        // STEP 2: Filter out parking spots already booked in the time window
-        const bookingsResponse = await fetch(
-            `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items?$select=ParkingStallsId,EventDate,EndDate,RequestStatus&$filter=RequestStatus eq 'Approve Request' and (EndDate gt datetime'${startDate}T00:00:00' and EventDate lt datetime'${endDate}T23:59:59')`,
-            {
-            method: "GET",
-            headers: {
-                Accept: "application/json;odata=verbose",
-            },
-            }
-        );
-
-        if (!bookingsResponse.ok) {
-            throw new Error(`Failed to fetch bookings: ${bookingsResponse.statusText}`);
-        }
-
-        const bookingsData = await bookingsResponse.json();
-        const bookedParkingIds = new Set(
-            bookingsData.d.results
-            .map((item: any) => item.ParkingStallsId)
-            .filter((id: number | null) => id != null)
-        );
-
-        // STEP 3: Filter out available parking
-        const availableParking = allParking.filter(
-            (parkingSpot: ParkingSpot) => !bookedParkingIds.has(parkingSpot.id)
-        );
-
-        // Update parking stalls options for dropdown
-        setParkingStallsOptions(
-            availableParking.map((parkingSpot) => ({
-            key: parkingSpot.id,
-            text: parkingSpot.parking,
-            }))
-        );
+            // STEP 8: Update the state with the available parking spots
+            setParkingStallsOptions(availableParkingOptions);
         } catch (error) {
-        console.error("Error determining available parking:", error);
+            console.error("Error determining available parking:", error);
         } finally {
-        setLoadingSpots(false);
+            setLoadingSpots(false);
         }
     };
-    
+
     const getEventIdsByGroupId = async (groupID: number): Promise<number[]> => {
         try {
             const web = await sp.web.get();
             const siteUrl = web.Url;
-    
-            // Fetch items that match the groupID and retrieve the ID field
-            const response = await fetch(
-                `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items?$filter=GroupID eq ${groupID}&$select=ID`,
-                {
-                    method: 'GET',
-                    headers: {
-                        Accept: 'application/json;odata=verbose',
-                    },
-                }
-            );
-    
-            const data = await response.json();
-    
-            // Check if there are matching items and return their IDs
-            if (data.d.results.length > 0) {
-                return data.d.results.map((item: any) => item.ID); // Return all matching event IDs
-            } else {
-                return []; // No items found
-            }
+
+            // Fetch the data for events by groupID
+            const query = `$filter=GroupID eq ${groupID}&$select=ID`;
+            const data = await fetchFromSharePoint(siteUrl, 'Rob Calendar Events2', query);
+
+            // Directly map the results to extract event IDs
+            return data.d.results.map((item: any) => item.ID); 
         } catch (error) {
-            console.error('Error fetching item IDs:', error);
-            return []; // Return an empty array in case of an error
+            console.error('Error fetching event IDs by group ID:', error);
+            return [];  // Return an empty array in case of error
         }
     };
 
@@ -261,44 +245,10 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
                 if (selectedStall) {
                     await updateEventsInDatabase({
-                        displayName: event.displayName,
-                        title: event.title,
-                        start: event.start,
-                        end: event.end,
-                        isAllDay: event.isAllDay,
-                        location: event.location,
-                        color: event.color,
-                        tag: event.tag,
-                        recurrence: event.recurrence,
-                        isPendingApproval: event.isPendingApproval,
-                        isApproved: event.isApproved,
-                        isRejected: event.isRejected,
-                        isRecurring: event.isRecurring,
-                        isSeriesMaster: event.isSeriesMaster,
-                        isSeriesException: event.isSeriesException,
-                        isConfidential: event.isConfidential,
-                        refinerValues: event.refinerValues,
-                        comDecision: event.comDecision,
-                        readAheadDueDate: event.readAheadDueDate,
+                        ...event,
                         parkingStalls: selectedStall, 
-                        requestStatus: 'Approve Request', 
-                        dvFirstName: event.dvFirstName,
-                        dvSurname: event.dvSurname,
-                        dvRank: event.dvRank,
-                        dvPayGrade: event.dvPayGrade,
-                        jdirVisiting: event.jdirVisiting,
-                        dvVisiting: event.dvVisiting,
-                        requestorRank: event.requestorRank,
-                        requestorFirstName: event.requestorFirstName,
-                        requestorLastName: event.requestorLastName,
-                        requestorOffice: event.requestorOffice,
-                        requestorDutyPhone: event.requestorDutyPhone,
-                        requestorCellPhone: event.requestorCellPhone,
-                        requestorEmail: event.requestorEmail,
+                        requestStatus: 'Approve Request',
                         groupID: event.groupID,
-                        getWrappedEvent: function (): Event { throw new Error('Function not implemented.'); },
-                        getSeriesMaster: function (): Event { throw new Error('Function not implemented.'); },
-                        getExceptionOrEvent: function (): Event { throw new Error('Function not implemented.'); }
                     });
                 } else {
                     alert(`Please select a parking stall for group ${event.groupID}`);
@@ -316,7 +266,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         }
     };
 
-    const updateEventsInDatabase = async (event: IEvent) => {
+    const updateEventsInDatabase = async (event: Partial<IEvent>) => {
         try {
             // Get all event IDs with the given groupID
             const itemIds = await getEventIdsByGroupId(event.groupID);
@@ -331,8 +281,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 // Check if the parking stall is valid and proceed with the update
                 if (event.parkingStalls) {
                     await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(itemId).update({
-                        ParkingStallsId: event.parkingStalls, // Update the lookup field
-                        RequestStatus: event.requestStatus, // Update the status
+                        ParkingStallsId: event.parkingStalls, 
+                        RequestStatus: event.requestStatus, 
                     });
                 } else {
                     alert('Please select a valid parking stall.');
@@ -347,24 +297,55 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         }
     };
 
-    // Handle the apply to individual event button
-    const handleIndividualParkingChange = (index: number, selectedStall: string) => {
+    // Handle the apply to SINGLE event button
+    const loadAvailableParking = async (event: EventOccurrence) => {
+        setLoadingSpots(true);
+
+        try {
+            const web = await sp.web.get();
+            const siteUrl = web.Url;
+
+            // STEP 1: Fetch all parking stalls using the function from spEventDetailsList
+            const allParking = await fetchParkingStalls(siteUrl);
+
+            // STEP 2: Fetch booked parking for this event using the function from spEventDetailsList
+            const bookedParkingIds = await fetchBookedParkingForEvent(siteUrl, event.start, event.end);
+
+            // STEP 3: Filter available parking using the function from spEventDetailsList
+            const availableParking = filterAvailableParking(allParking, bookedParkingIds);
+
+            // STEP 4: Format the available parking into IDropdownOption format using the function from spEventDetailsList
+            const availableParkingOptions = formatParkingOptions(availableParking);
+
+            // STEP 5: Update state with the available parking spots
+            setParkingStallsOptionsEach((prevState) => ({
+                ...prevState,
+                [event.id]: availableParkingOptions,
+            }));
+        } catch (error) {
+            console.error("Error determining available parking:", error);
+        } finally {
+            setLoadingSpots(false);
+        }
+    };
+
+    const handleIndividualParkingChange = (eventId: number, selectedStall: string) => {
         setIndividualSelections(prevSelections => ({
             ...prevSelections,
-            [index]: Number(selectedStall), // Use index as the key
+            [eventId]: Number(selectedStall), // Use event.id as the key
         }));
     };
 
-    const updateEventInDatabase = async (index: number, selectedStall: number) => {
+    const updateEventInDatabase = async (eventId: number, selectedStall: number) => {
         try {
-            const event = filteredEvents[index];  // Get the event from filtered events based on index
+            const event = filteredEvents.find(event => event.id === eventId);  // Find the event by id
 
             if (!event) {
                 alert('No valid event found to update.');
                 return;
             }
 
-            const itemId = event.id;  // Access the event ID using the getter `id` from EventOccurrence
+            const itemId = event.id;  // Access the event ID
 
             if (!itemId) {
                 alert('No valid event ID found to update.');
@@ -383,7 +364,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             alert('There was an error updating the event.');
         }
     };
-    
+
     return (
         <div className="container">
             {/* Filters section */}
@@ -432,6 +413,9 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                         onChange={(e) => setEndDate(e.target.value)}
                     />
                 </div>
+                <div className="col">
+                    <button onClick={resetFilters} className="btn btn-secondary">Reset Filters</button>
+                </div>
                 {/* <div className="col">
                     <label></label>
                     <button
@@ -458,13 +442,16 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             {showOPR && <th>IPC OPR</th>}
                             {showAttendee && <th>IPC Attendee</th>}
                             <th>Description</th> */}
-                            <th className={styles.tdHeader}>Protocol Actions</th>
-                            <th className={styles.tdHeader}>Group ID</th>
-                            <th className={styles.tdHeader}>Parking Assignment</th>
-                            <th className={styles.tdHeader}>Status</th>
-                            <th className={styles.tdHeader}>Parking Request Date</th>
-                            <th className={styles.tdHeader}>DV Info</th>
-                            <th className={styles.tdHeader}>Requestor Info</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>Protocol Actions</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>Group ID</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>Parking Assignment</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>Status</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>Bridge?</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>JDIR</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>Parking Request Date</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>DV Pay Grade</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>DV Info</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>Requestor Info</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -533,19 +520,17 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                         {event.description}
                                     </td> */}
                                     <td className={styles.tdCell}>
-                                        <button
-                                            className={styles.openAssignButton}
-                                            onClick={() => openPanel(String(event.groupID))}
-                                        >
-                                            Assign
-                                        </button>
-                                        <button className={styles.denyButton}>Deny</button>
-                                        <button className={styles.cancelButton}>Cancel</button>
+                                        <button className="btn btn-primary btn-sm me-2" onClick={() => openPanel(event.groupID)}>Assign</button>
+                                        <button className="btn btn-danger btn-sm me-2">Deny</button>
+                                        <button className="btn btn-warning btn-sm">Cancel</button>
                                     </td>
                                     <td>{event.groupID}</td>
                                     <td>{event.parkingStalls}</td>
                                     <td>{event.requestStatus}</td>
+                                    <td>{event.dvVisiting}</td>
+                                    <td>{event.jdirVisiting}</td>
                                     <td>{eventDateFormatted}</td>
+                                    <td>{event.dvPayGrade}</td>
                                     <td>{`${event.dvRank} ${event.dvFirstName} ${event.dvSurname}`}</td>
                                     <td>{`${event.requestorRank} ${event.requestorFirstName} ${event.requestorLastName} ${event.requestorCellPhone}`}</td>
                                 </tr>
@@ -559,11 +544,10 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 <button onClick={closePanel} className={styles.closeButton}>x</button>
                     <div>
                         <p>Assign Parking for Group ID: {groupIDToDisplay}</p>
-
                         <div className={styles.flexContainer}>
-                        {/* Parking Assignment Dropdown */}
+                        {/* Parking Assignment Dropdown  For all*/}
                         <select
-                                className={`form-control ${styles.dropdown}`}
+                                className={`form-control dropdown w-100`}
                                 value={selectedParkingStall}  
                                 onChange={(e) => setSelectedParkingStall(e.target.value)}
                             >
@@ -574,35 +558,30 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             </option>
                             ))}
                         </select>
-
                         {/* Assign Parking Button */}
-                        <button className={styles.assignButtonAll} onClick={handleAssignToAllEvents}>
-                        Assign to all events
+                        <button className="btn btn-primary w-100" onClick={handleAssignToAllEvents}>
+                            Assign to all requests
                         </button>
                         </div>
-
                         {/* Render buttons for each event within GroupID */}
                         {filteredEvents
-                        .filter((event) => event.groupID === Number(groupIDToDisplay))
-                        .map((event, index) => (
+                        .filter((event) => event.groupID === groupIDToDisplay)
+                        .map((event) => (
                             <div key={event.id} className={styles.flexContainer} style={{ marginTop: '10px' }}>
                                 <select
-                                    className={`form-control ${styles.dropdown}`}
+                                    className={`form-control dropdown w-100`}
                                     value={individualSelections[event.id]?.toString() || ''}  // Use event.id to track parking selection
                                     onChange={(e) => handleIndividualParkingChange(event.id, e.target.value)}  // Use event.id here
                                 >
                                     <option value="">Select Parking Stall</option>
-                                    {parkingStallsOptions.map((option) => (
+                                    {parkingStallsOptionsEach[event.id]?.map((option) => (
                                         <option key={option.key} value={option.key}>
                                             {option.text}
                                         </option>
                                     ))}
                                 </select>
-                                <button
-                                    className={`${styles.assignButton} ${styles.eventButton}`}
-                                    onClick={() => updateEventInDatabase(index, individualSelections[event.id])} // Use event.id here
-                                >
-                                    Assign to individual event
+                                <button className="btn btn-primary w-100" onClick={() => updateEventInDatabase(event.id, individualSelections[event.id])}>
+                                    Assign to request: {event.id}
                                 </button>
                             </div>
                         ))}
