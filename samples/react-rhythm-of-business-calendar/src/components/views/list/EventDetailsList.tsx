@@ -35,7 +35,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const timeZoneService = useTimeZoneService();
     const siteTimeZone = timeZoneService.siteTimeZone;
         //const { showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief, showLocation } = useContext(FilterConfigContext);
-    const predefinedStatuses = ['New Request', 'Approve Request', 'Cancel Request', 'Reject Request'];
+    const predefinedStatuses = ['New', 'Approved', 'Cancelled', 'Rejected'];
     const [selectedParkingStall, setSelectedParkingStall] = useState<string>(''); 
     const [individualSelections, setIndividualSelections] = useState<{ [key: string]: number }>({});
 
@@ -247,7 +247,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     await updateEventsInDatabase({
                         ...event,
                         parkingStalls: selectedStall, 
-                        requestStatus: 'Approve Request',
+                        requestStatus: 'Approved',
                         groupID: event.groupID,
                     });
                 } else {
@@ -355,7 +355,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             // Now update the event using the itemId and the selected parking stall
             await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(itemId).update({
                 ParkingStallsId: selectedStall,  // Update parking stall
-                RequestStatus: 'Approve Request',  // Update request status
+                RequestStatus: 'Approved',  // Update request status
             });
 
             alert(`Event ${itemId} updated successfully!`);

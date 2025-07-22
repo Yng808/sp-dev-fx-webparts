@@ -57,7 +57,7 @@ export const fetchBookedParkingForEvent = async (siteUrl: string, eventStart: mo
     const bookedParkingResponse = await fetch(
         `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items` +
         `?$select=ParkingStallsId,EventDate,EndDate` +
-        `&$filter=RequestStatus eq 'Approve Request' and ` +
+        `&$filter=RequestStatus eq 'Approved' and ` +
         `(EndDate gt datetime'${eventStart.toISOString()}' and EventDate lt datetime'${eventEnd.toISOString()}')`,
         {
             method: "GET",
