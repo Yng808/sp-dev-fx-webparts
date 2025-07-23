@@ -31,7 +31,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [parkingStallsOptions, setParkingStallsOptions] = useState<IDropdownOption[]>([]);
     const [parkingStallsOptionsEach, setParkingStallsOptionsEach] = useState<{ [key: number]: IDropdownOption[] }>({});
     const [loadingSpots, setLoadingSpots] = useState<boolean>(false);
-
+    const [parkingMap, setParkingMap] = useState<{ [id: number]: string }>({});
     const timeZoneService = useTimeZoneService();
     const siteTimeZone = timeZoneService.siteTimeZone;
     //const { showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief, showLocation } = useContext(FilterConfigContext);
@@ -110,6 +110,20 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             loadAvailableParkingForAllEvents(groupIDToDisplay); 
         }
     }, [groupIDToDisplay]);
+
+    useEffect(() => {
+        const fetchParkingNames = async () => {
+            const web = await sp.web.get();
+            const siteUrl = web.Url;
+            const stalls = await fetchParkingStalls(siteUrl);
+            const map: { [id: number]: string } = {};
+            stalls.forEach(stall => {
+                map[stall.id] = stall.parking;
+            });
+            setParkingMap(map);
+        };
+        fetchParkingNames();
+    }, []);
 
     const resetFilters = () => { setStartDate(''); setEndDate(''); setSearchQuery(''); setRequestStatusFilter(''); };
 
@@ -563,7 +577,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     </td>
                                     <td>{event.requestStatus}</td>
                                     <td>{event.groupID}</td>
-                                    <td>{event.parkingStalls}</td>
+                                    <td>{parkingMap[event.parkingStalls] || event.parkingStalls}</td>
                                     <td>{eventDateFormatted}</td>
                                     <td>{event.dvVisiting}</td>
                                     <td>{event.jdirVisiting}</td>
