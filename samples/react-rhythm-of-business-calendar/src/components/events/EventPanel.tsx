@@ -1514,22 +1514,22 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         const canAddToOutlook = (!isNew || isSeriesException) && isApproved;
 
         return [
-            canEdit && (
-                isRecurring
-                    ? (isSeriesMaster
-                        ? editSeriesCommand
-                        : editRecurringCommand
-                    )
-                    : editSingleCommand
-            ),
-            canDelete && (
-                isRecurring
-                    ? (isSeriesMaster
-                        ? deleteSeriesMasterCommand
-                        : deleteRecurringCommand
-                    )
-                    : deleteSingleCommand
-            )
+            // canEdit && (
+            //     isRecurring
+            //         ? (isSeriesMaster
+            //             ? editSeriesCommand
+            //             : editRecurringCommand
+            //         )
+            //         : editSingleCommand
+            // ),
+            // canDelete && (
+            //     isRecurring
+            //         ? (isSeriesMaster
+            //             ? deleteSeriesMasterCommand
+            //             : deleteRecurringCommand
+            //         )
+            //         : deleteSingleCommand
+            // )
         ].filter(Boolean);
     }
 

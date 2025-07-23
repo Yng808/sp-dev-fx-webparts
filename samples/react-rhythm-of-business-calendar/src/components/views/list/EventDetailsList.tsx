@@ -35,7 +35,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const timeZoneService = useTimeZoneService();
     const siteTimeZone = timeZoneService.siteTimeZone;
     //const { showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief, showLocation } = useContext(FilterConfigContext);
-    const predefinedStatuses = ['New', 'Approved', 'Cancelled', 'Rejected'];
+    const predefinedStatuses = ['New', 'Approved', 'Cancelled', 'Denied'];
     const [selectedParkingStall, setSelectedParkingStall] = useState<string>(''); 
     const [individualSelections, setIndividualSelections] = useState<{ [key: string]: number }>({});
     const [panelParkingLoading, setPanelParkingLoading] = useState(false);
@@ -311,7 +311,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 }
             }
     
-            alert('All events updated successfully!');
+            // alert('All events updated successfully!');
         } catch (error) {
             console.error('Error updating events in database:', error);
             alert('There was an error updating the events.');
@@ -412,6 +412,34 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         return dateRange; // Return the array of dates
     };
 
+    // Deny entire group and Cancel buttons
+    const handleDeny = async (groupId: number) => {
+        const eventIds = filteredEvents.filter(ev => ev.groupID === groupId).map(ev => ev.id);
+        try {
+            for (const id of eventIds) {
+                await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(id).update({
+                    RequestStatus: 'Denied',
+                });
+            }
+            alert(`All events in group ${groupId} denied successfully!`);
+        } catch (error) {
+            console.error('Error denying events:', error);
+            alert('There was an error denying the group events.');
+        }
+    };
+
+    const handleCancel = async (eventId: number) => {
+        try {
+            await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(eventId).update({
+                RequestStatus: 'Cancelled',
+            });
+            alert(`Event ${eventId} cancelled successfully!`);
+        } catch (error) {
+            alert('Failed to update status to Cancelled.');
+            console.error(error);
+        }
+    };
+
     return (
         <div className="container">
             {/* Filters section */}
@@ -490,7 +518,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             {showAttendee && <th>IPC Attendee</th>}
                             <th>Description</th> */}
                             <th style={{ backgroundColor: 'lightblue' }}>Edit</th>
-                            <th style={{ backgroundColor: 'lightblue', minWidth: '210px' }}>Protocol Actions</th>
+                            <th style={{ backgroundColor: 'lightblue', minWidth: '225px' }}>Protocol Actions</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Status</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Group ID</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Parking Assignment</th>
@@ -508,18 +536,18 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             
                             // all day and in one day. Example output: 1/1/2024 
                             if (event.isAllDay && event.start.format('MM/DD/YYYY') === event.end.format('MM/DD/YYYY')) {
-                                eventDateFormatted = event.start.format('MM/DD/YYYY');
+                                eventDateFormatted = event.start.format('DD MMM, YYYY');
                             // all day and more than one day. Example output: 1/1/2024 - 1/3/2024
                             } else if(event.isAllDay && event.start.format('MM/DD/YYYY') !== event.end.format('MM/DD/YYYY')) { 
-                                eventDateFormatted = event.start.format('MM/DD/YYYY') + " - " + event.end.format('MM/DD/YYYY');
+                                eventDateFormatted = event.start.format('DD MMM, YYYY') + " - " + event.end.format('DD MMM, YYYY');
                             // not all day and in one day. Example output: 1/1/2024 0600-0800
                             } else if (!event.isAllDay && event.start.format('MM/DD/YYYY') === event.end.format('MM/DD/YYYY')) {
-                                eventDateFormatted = event.start.format('MM/DD/YYYY HHmm') + "-" + event.end.format('HHmm');
+                                eventDateFormatted = event.start.format('DD MMM, YYYY HHmm') + "-" + event.end.format('HHmm');
                             // not all day and more than one day. Example output: 1/1/2024 0600 - 1/3/2024 1400
                             } else if (!event.isAllDay && event.start.format('MM/DD/YYYY') !== event.end.format('MM/DD/YYYY')) {
-                                eventDateFormatted = event.start.format('MM/DD/YYYY HHmm') + " - " + event.end.format('MM/DD/YYYY HHmm');    
+                                eventDateFormatted = event.start.format('DD MMM, YYYY HHmm') + " - " + event.end.format('DD MMM, YYYY HHmm');    
                             } else {
-                                eventDateFormatted = event.start.format('MM/DD/YYYY HHmm') + " - " + event.end.format('MM/DD/YYYY HHmm');
+                                eventDateFormatted = event.start.format('DD MMM, YYYY HHmm') + " - " + event.end.format('DD MMM, YYYY HHmm');
                             }                         
 
                             return (
@@ -570,10 +598,10 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     <td>
                                         <button className="btn btn-primary btn-sm me-2">Edit</button>
                                     </td>
-                                    <td style={{ minWidth: '210px' }}>
+                                    <td style={{ minWidth: '225px' }}>
                                         <button className="btn btn-primary btn-sm me-2" onClick={() => openPanel(event.groupID)}>Assign</button>
-                                        <button className="btn btn-danger btn-sm me-2">Deny</button>
-                                        <button className="btn btn-warning btn-sm">Cancel</button>
+                                        <button className="btn btn-danger btn-sm me-2" onClick={() => handleDeny(event.groupID)}>Deny All</button>
+                                        <button className="btn btn-warning btn-sm" onClick={() => handleCancel(event.id)}>Cancel</button>
                                     </td>
                                     <td>{event.requestStatus}</td>
                                     <td>{event.groupID}</td>
@@ -583,7 +611,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     <td>{event.jdirVisiting}</td>
                                     <td>{event.dvPayGrade}</td>
                                     <td>{`${event.dvRank} ${event.dvFirstName} ${event.dvSurname}`}</td>
-                                    <td>{`${event.requestorRank} ${event.requestorFirstName} ${event.requestorLastName} ${event.requestorCellPhone}`}</td>
+                                    <td>{`${event.requestorRank} ${event.requestorFirstName} ${event.requestorLastName} ${event.requestorCellPhone?.replace(/^(\(\d{3}\))(\d{3}-\d{4})$/, '$1 $2') || ''}`}</td>
                                 </tr>
                             );
                         })}
