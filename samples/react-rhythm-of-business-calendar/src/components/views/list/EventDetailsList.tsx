@@ -22,8 +22,8 @@ interface ParkingSpot {
 
 const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [filteredEvents, setFilteredEvents] = useState<EventOccurrence[]>([...cccurrences]);
-    const [startDate, setStartDate] = useState<string>(moment().format('YYYY-MM-DD'));
-    const [endDate, setEndDate] = useState<string>(moment().format('YYYY-MM-DD'));
+    const [startDate, setStartDate] = useState<string>('');
+    const [endDate, setEndDate] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [requestStatusFilter, setRequestStatusFilter] = useState<string>('New');
     const [isPanelOpen, setIsPanelOpen] = useState<boolean>(false);
@@ -38,6 +38,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const predefinedStatuses = ['New', 'Approved', 'Cancelled', 'Rejected'];
     const [selectedParkingStall, setSelectedParkingStall] = useState<string>(''); 
     const [individualSelections, setIndividualSelections] = useState<{ [key: string]: number }>({});
+    const [panelParkingLoading, setPanelParkingLoading] = useState(false);
 
     useEffect(() => {
         let filtered = [...cccurrences]; // Create a mutable copy of the readonly array
@@ -112,18 +113,16 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
     const resetFilters = () => { setStartDate(''); setEndDate(''); setSearchQuery(''); setRequestStatusFilter(''); };
 
-    const openPanel = (groupID: number) => {
+    const openPanel = async (groupID: number) => {
         setGroupIDToDisplay(groupID); 
         setIsPanelOpen(true);
         setParkingStallsOptions([]); 
         setParkingStallsOptionsEach([]);
-        loadAvailableParkingForAllEvents(groupID);
+        setPanelParkingLoading(true);
 
-        filteredEvents
-        .filter((event) => event.groupID === groupID)
-        .forEach((event) => {
-            loadAvailableParking(event); 
-        });
+        await loadAvailableParkingForAllEvents(groupID);
+        
+        setPanelParkingLoading(false);
     };
 
     const closePanel = () => {
@@ -201,6 +200,14 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
             // STEP 8: Update the state with the available parking spots
             setParkingStallsOptions(availableParkingOptions);
+
+            // If group parking is empty, load individual event parking
+            if (availableParkingOptions.length === 0) {
+                const events = filteredEvents.filter(event => event.groupID === groupID);
+                for (const event of events) {
+                    await loadAvailableParking(event);
+                }
+            }
         } catch (error) {
             console.error("Error determining available parking:", error);
         } finally {
@@ -608,10 +615,13 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     {/* Right Side - Parking Assignment */}
                     <div>
                     <p>Assign Parking for Group ID: {groupIDToDisplay}</p>
+                    {panelParkingLoading ? (
+                        <div>Loading...</div>
+                    ) : parkingStallsOptions.length > 0 ? (
                     <div className={styles.flexContainer}>
                         {/* Parking Assignment Dropdown  For all*/}
                         <select
-                                className={`form-control dropdown`}
+                                className="form-control dropdown"
                                 value={selectedParkingStall}  
                                 onChange={(e) => setSelectedParkingStall(e.target.value)}
                             >
@@ -627,13 +637,14 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             Assign to all events
                         </button>
                         </div>
-                        {/* Render buttons for each event within GroupID */}
-                        {filteredEvents
-                        .filter((event) => event.groupID === groupIDToDisplay)
-                        .map((event) => (
+                    ) : (() => {
+                        const events = filteredEvents.filter(event => event.groupID === groupIDToDisplay);
+                        const atLeastOneAvailable = events.some(event => (parkingStallsOptionsEach[event.id] || []).length > 0);
+                        if (atLeastOneAvailable) {
+                            return events.map(event => (
                             <div key={event.id} className={styles.flexContainer} style={{ marginTop: '10px' }}>
                                 <select
-                                    className={`form-control dropdown`}
+                                    className="form-control dropdown"
                                     value={individualSelections[event.id]?.toString() || ''}  // Use event.id to track parking selection
                                     onChange={(e) => handleIndividualParkingChange(event.id, e.target.value)}  // Use event.id here
                                 >
@@ -648,8 +659,12 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     Assign to {event.id}
                                 </button>
                             </div>
-                        ))}
-                    </div>
+                            ));
+                        } else {
+                            return <div>No available parking</div>;
+                        }
+                    })()}
+                </div>
                 </div>
             </div>
             )}
