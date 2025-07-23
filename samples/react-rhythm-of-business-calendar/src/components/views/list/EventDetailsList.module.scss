@@ -8,10 +8,13 @@
   background-color: rgb(253, 255, 208);
   padding: 20px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  width: 650px;
+  width: auto;
   z-index: 1050; 
-  transform: relative;
+  transform: translate(-50%, -50%); 
   border: 2px solid black;
+  border-radius: 8px; 
+  display: flex; 
+  flex-direction: row; 
 }
 
 .panel .closeButton {
@@ -29,11 +32,41 @@
 
 .dropdown {
   flex: 2;
-  width: 250px;
+  width: 200px;
 }
 
 .flexContainer {
   display: flex;
   align-items: center;
   gap: 20px;
+}
+
+.panel .leftSide {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  flex-wrap: wrap;
+  width: auto;
+}
+
+.panel .dayBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 100px;
+}
+
+.parkingOptionWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.parkingOption {
+  padding: 10px;
+  background-color: #d9d9d9;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  text-align: center;
 }

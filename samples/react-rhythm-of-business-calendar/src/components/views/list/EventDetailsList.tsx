@@ -25,7 +25,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [startDate, setStartDate] = useState<string>(moment().format('YYYY-MM-DD'));
     const [endDate, setEndDate] = useState<string>(moment().format('YYYY-MM-DD'));
     const [searchQuery, setSearchQuery] = useState<string>('');
-    const [requestStatusFilter, setRequestStatusFilter] = useState<string>('New Request');
+    const [requestStatusFilter, setRequestStatusFilter] = useState<string>('New');
     const [isPanelOpen, setIsPanelOpen] = useState<boolean>(false);
     const [groupIDToDisplay, setGroupIDToDisplay] = useState<number>(0);
     const [parkingStallsOptions, setParkingStallsOptions] = useState<IDropdownOption[]>([]);
@@ -34,7 +34,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
     const timeZoneService = useTimeZoneService();
     const siteTimeZone = timeZoneService.siteTimeZone;
-        //const { showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief, showLocation } = useContext(FilterConfigContext);
+    //const { showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief, showLocation } = useContext(FilterConfigContext);
     const predefinedStatuses = ['New', 'Approved', 'Cancelled', 'Rejected'];
     const [selectedParkingStall, setSelectedParkingStall] = useState<string>(''); 
     const [individualSelections, setIndividualSelections] = useState<{ [key: string]: number }>({});
@@ -365,6 +365,32 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         }
     };
 
+    // Left side of panel event parking 
+    const getEventDateRange = (events: EventOccurrence[], groupID: number) => {
+        // First filter the events by the provided groupID
+        const filteredEventsByGroup = events.filter((event) => event.groupID === groupID);
+
+        // If no events are found for the group, return an empty array
+        if (filteredEventsByGroup.length === 0) {
+            return [];
+        }
+
+        // Get the earliest start date and the latest end date from the filtered events
+        const startDate = moment.min(filteredEventsByGroup.map((event) => moment(event.start)));
+        const endDate = moment.max(filteredEventsByGroup.map((event) => moment(event.end)));
+
+        let currentDate = startDate.clone();
+        const dateRange = [];
+
+        // Add each date from start to end date to the dateRange array
+        while (currentDate.isBefore(endDate) || currentDate.isSame(endDate, 'day')) {
+            dateRange.push(currentDate.clone());
+            currentDate.add(1, 'days');
+        }
+
+        return dateRange; // Return the array of dates
+    };
+
     return (
         <div className="container">
             {/* Filters section */}
@@ -442,13 +468,14 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             {showOPR && <th>IPC OPR</th>}
                             {showAttendee && <th>IPC Attendee</th>}
                             <th>Description</th> */}
-                            <th style={{ backgroundColor: 'lightblue' }}>Protocol Actions</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>Edit</th>
+                            <th style={{ backgroundColor: 'lightblue', minWidth: '210px' }}>Protocol Actions</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>Status</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Group ID</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Parking Assignment</th>
-                            <th style={{ backgroundColor: 'lightblue' }}>Status</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>Parking Request Date</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Bridge?</th>
                             <th style={{ backgroundColor: 'lightblue' }}>JDIR</th>
-                            <th style={{ backgroundColor: 'lightblue' }}>Parking Request Date</th>
                             <th style={{ backgroundColor: 'lightblue' }}>DV Pay Grade</th>
                             <th style={{ backgroundColor: 'lightblue' }}>DV Info</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Requestor Info</th>
@@ -519,17 +546,20 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     <td style={{ whiteSpace: 'normal', wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                                         {event.description}
                                     </td> */}
-                                    <td className={styles.tdCell}>
+                                    <td>
+                                        <button className="btn btn-primary btn-sm me-2">Edit</button>
+                                    </td>
+                                    <td style={{ minWidth: '210px' }}>
                                         <button className="btn btn-primary btn-sm me-2" onClick={() => openPanel(event.groupID)}>Assign</button>
                                         <button className="btn btn-danger btn-sm me-2">Deny</button>
                                         <button className="btn btn-warning btn-sm">Cancel</button>
                                     </td>
+                                    <td>{event.requestStatus}</td>
                                     <td>{event.groupID}</td>
                                     <td>{event.parkingStalls}</td>
-                                    <td>{event.requestStatus}</td>
+                                    <td>{eventDateFormatted}</td>
                                     <td>{event.dvVisiting}</td>
                                     <td>{event.jdirVisiting}</td>
-                                    <td>{eventDateFormatted}</td>
                                     <td>{event.dvPayGrade}</td>
                                     <td>{`${event.dvRank} ${event.dvFirstName} ${event.dvSurname}`}</td>
                                     <td>{`${event.requestorRank} ${event.requestorFirstName} ${event.requestorLastName} ${event.requestorCellPhone}`}</td>
@@ -542,16 +572,50 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             {isPanelOpen && (
                 <div className={styles.panel}>
                 <button onClick={closePanel} className={styles.closeButton}>x</button>
+                <div className={styles.flexContainer}> 
+                    {/* Left Side - Parking Display */}
+                    <div className={styles.leftSide}>
+                        {getEventDateRange(filteredEvents, groupIDToDisplay).map((day) => {
+                            const dayOfWeek = moment(day);
+
+                            const eventsForDay = filteredEvents.filter((event) =>
+                                event.groupID === groupIDToDisplay && moment(event.start).isSame(dayOfWeek, 'day')
+                            );
+
+                            return (
+                                <div key={dayOfWeek.format('YYYY-MM-DD')}  className={styles.dayBlock}>
+                                    <p>{dayOfWeek.format('DD MMM, YYYY')}</p>
+                                    <div style={{ display: "flex", gap: "8px" }}>
+                                        {eventsForDay.length > 0 ? (
+                                            eventsForDay.map((event) => (
+                                                <div key={event.id} className={styles.parkingOptionWrapper}>
+                                                    {parkingStallsOptionsEach[event.id]?.map((option) => (
+                                                        <div key={option.key} className={styles.parkingOption}>
+                                                            {option.text}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p>No available parking</p>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Right Side - Parking Assignment */}
                     <div>
-                        <p>Assign Parking for Group ID: {groupIDToDisplay}</p>
-                        <div className={styles.flexContainer}>
+                    <p>Assign Parking for Group ID: {groupIDToDisplay}</p>
+                    <div className={styles.flexContainer}>
                         {/* Parking Assignment Dropdown  For all*/}
                         <select
-                                className={`form-control dropdown w-100`}
+                                className={`form-control dropdown`}
                                 value={selectedParkingStall}  
                                 onChange={(e) => setSelectedParkingStall(e.target.value)}
                             >
-                            <option value="">Select Parking Stall</option>
+                            <option value="">select parking</option>
                             {parkingStallsOptions.map((option) => (
                             <option key={option.key} value={option.key}>
                                 {option.text}
@@ -559,8 +623,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             ))}
                         </select>
                         {/* Assign Parking Button */}
-                        <button className="btn btn-primary w-100" onClick={handleAssignToAllEvents}>
-                            Assign to all requests
+                        <button className="btn btn-primary" onClick={handleAssignToAllEvents} style={{ width: '300px' }}>
+                            Assign to all events
                         </button>
                         </div>
                         {/* Render buttons for each event within GroupID */}
@@ -569,24 +633,25 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                         .map((event) => (
                             <div key={event.id} className={styles.flexContainer} style={{ marginTop: '10px' }}>
                                 <select
-                                    className={`form-control dropdown w-100`}
+                                    className={`form-control dropdown`}
                                     value={individualSelections[event.id]?.toString() || ''}  // Use event.id to track parking selection
                                     onChange={(e) => handleIndividualParkingChange(event.id, e.target.value)}  // Use event.id here
                                 >
-                                    <option value="">Select Parking Stall</option>
+                                    <option value="">select parking</option>
                                     {parkingStallsOptionsEach[event.id]?.map((option) => (
                                         <option key={option.key} value={option.key}>
                                             {option.text}
                                         </option>
                                     ))}
-                                </select>
-                                <button className="btn btn-primary w-100" onClick={() => updateEventInDatabase(event.id, individualSelections[event.id])}>
-                                    Assign to request: {event.id}
+                                </select> 
+                                <button className="btn btn-primary" onClick={() => updateEventInDatabase(event.id, individualSelections[event.id])} style={{ width: '300px' }}>
+                                    Assign to {event.id}
                                 </button>
                             </div>
                         ))}
                     </div>
                 </div>
+            </div>
             )}
         </div>
     );
