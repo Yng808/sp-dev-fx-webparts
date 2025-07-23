@@ -582,7 +582,10 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 <div className={styles.flexContainer}> 
                     {/* Left Side - Parking Display */}
                     <div className={styles.leftSide}>
-                        {getEventDateRange(filteredEvents, groupIDToDisplay).map((day) => {
+                    {panelParkingLoading ? (
+                        <div></div>
+                    ) : (
+                        getEventDateRange(filteredEvents, groupIDToDisplay).map((day) => {
                             const dayOfWeek = moment(day);
 
                             const eventsForDay = filteredEvents.filter((event) =>
@@ -594,22 +597,34 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     <p>{dayOfWeek.format('DD MMM, YYYY')}</p>
                                     <div style={{ display: "flex", gap: "8px" }}>
                                         {eventsForDay.length > 0 ? (
-                                            eventsForDay.map((event) => (
-                                                <div key={event.id} className={styles.parkingOptionWrapper}>
-                                                    {parkingStallsOptionsEach[event.id]?.map((option) => (
-                                                        <div key={option.key} className={styles.parkingOption}>
-                                                            {option.text}
-                                                        </div>
-                                                    ))}
+                                            eventsForDay.map((event) => {
+                                        // If group-level options, use those. Otherwise, per-event.
+                                        const visualOptions =
+                                            parkingStallsOptions.length > 0
+                                            ? parkingStallsOptions
+                                            : parkingStallsOptionsEach[event.id] || [];
+                                        return (
+                                            <div key={event.id} className={styles.parkingOptionWrapper}>
+                                            {visualOptions.length > 0 ? (
+                                                visualOptions.map((option) => (
+                                                <div key={option.key} className={styles.parkingOption}>
+                                                    {option.text}
                                                 </div>
-                                            ))
-                                        ) : (
-                                            <p>No available parking</p>
+                                                ))
+                                            ) : (
+                                            <span>No available parking</span>
                                         )}
-                                    </div>
+                                        </div>
+                                    );
+                                    })
+                                ) : (
+                                    <p>No events for this day</p>
+                                )}
                                 </div>
+                            </div>
                             );
-                        })}
+                        })
+                    )}
                     </div>
 
                     {/* Right Side - Parking Assignment */}
