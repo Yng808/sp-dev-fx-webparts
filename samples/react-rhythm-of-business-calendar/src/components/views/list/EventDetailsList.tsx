@@ -39,6 +39,9 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [selectedParkingStall, setSelectedParkingStall] = useState<string>(''); 
     const [individualSelections, setIndividualSelections] = useState<{ [key: string]: number }>({});
     const [panelParkingLoading, setPanelParkingLoading] = useState(false);
+    const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
+    const [editGroupID, setEditGroupID] = useState<number | null>(null);
+    const [editFields, setEditFields] = useState({ dvPayGrade: '', dvRank: '', dvFirstName: '', dvSurname: '' });
 
     useEffect(() => {
         let filtered = [...cccurrences]; // Create a mutable copy of the readonly array
@@ -126,7 +129,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     }, []);
 
     const resetFilters = () => { setStartDate(''); setEndDate(''); setSearchQuery(''); setRequestStatusFilter(''); };
-
+    // Assignment panel
     const openPanel = async (groupID: number) => {
         setGroupIDToDisplay(groupID); 
         setIsPanelOpen(true);
@@ -144,7 +147,20 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         setParkingStallsOptions([]);
         setParkingStallsOptionsEach([]);
     }
+    // Edit panel
+    const openEditPanel = (groupID: number, event: EventOccurrence) => {
+        console.log('openEditPanel called with:', { groupID, event });
+        setEditGroupID(groupID);
+        setEditFields({
+            dvPayGrade: event.dvPayGrade ?? '',
+            dvRank: event.dvRank ?? '',
+            dvFirstName: event.dvFirstName ?? '',
+            dvSurname: event.dvSurname ?? ''
+        });
+        setIsEditPanelOpen(true);
+    };
 
+    
     // const handleExportToExcel = () => {
     //     // Prepare data for Excel
     //     const data = filteredEvents.map(event => ({
@@ -440,6 +456,45 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         }
     };
 
+    // Edit button
+    const handleEditSave = async () => {
+        if (!editGroupID) return;
+
+        // Filter for all events in this group
+        const eventsToUpdate = filteredEvents.filter(ev => ev.groupID === editGroupID);
+
+        // These map to SharePoint internal field names
+        const fieldMap: { [key: string]: string } = {
+            dvPayGrade: 'DVPayGrade',
+            dvRank: 'DVRank',
+            dvFirstName: 'DVFirstName',
+            dvSurname: 'DVSurname'
+        };
+
+        for (const event of eventsToUpdate) {
+            const updates: any = {};
+            // Only set fields that have been changed (not blank)
+            Object.entries(editFields).forEach(([key, value]) => {
+                if (value && value.trim() !== '' && fieldMap[key]) {
+                    updates[fieldMap[key]] = value;
+                }
+            });
+
+            // Only update if there's something to change
+            if (Object.keys(updates).length > 0) {
+                try {
+                    await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(event.id).update(updates);
+                } catch (err) {
+                    console.error('Failed to update event', event.id, err);
+                }
+            }
+        }
+        alert('Updated!');
+        setIsEditPanelOpen(false);
+        setEditFields({ dvPayGrade: '', dvRank: '', dvFirstName: '', dvSurname: '' });
+        setEditGroupID(null);
+    };
+
     return (
         <div className="container">
             {/* Filters section */}
@@ -517,12 +572,11 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             {showOPR && <th>IPC OPR</th>}
                             {showAttendee && <th>IPC Attendee</th>}
                             <th>Description</th> */}
-                            <th style={{ backgroundColor: 'lightblue' }}>Edit</th>
                             <th style={{ backgroundColor: 'lightblue', minWidth: '225px' }}>Protocol Actions</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>ID</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Status</th>
-                            <th style={{ backgroundColor: 'lightblue' }}>Group ID</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Parking Assignment</th>
-                            <th style={{ backgroundColor: 'lightblue' }}>Parking Request Date</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>Request Date</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Bridge?</th>
                             <th style={{ backgroundColor: 'lightblue' }}>JDIR</th>
                             <th style={{ backgroundColor: 'lightblue' }}>DV Pay Grade</th>
@@ -595,16 +649,19 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     <td style={{ whiteSpace: 'normal', wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                                         {event.description}
                                     </td> */}
-                                    <td>
-                                        <button className="btn btn-primary btn-sm me-2">Edit</button>
-                                    </td>
                                     <td style={{ minWidth: '225px' }}>
-                                        <button className="btn btn-primary btn-sm me-2" onClick={() => openPanel(event.groupID)}>Assign</button>
-                                        <button className="btn btn-danger btn-sm me-2" onClick={() => handleDeny(event.groupID)}>Deny All</button>
-                                        <button className="btn btn-warning btn-sm" onClick={() => handleCancel(event.id)}>Cancel</button>
+                                        <div>
+                                            <button className="btn btn-primary btn-sm me-2" onClick={() => openPanel(event.groupID)}>Assign</button>
+                                            <button className="btn btn-secondary btn-sm me-2">Re-Assign</button>
+                                            <button className="btn btn-primary btn-sm me-2" onClick={() => openEditPanel(event.groupID, event)}>Edit</button>
+                                        </div>
+                                        <div style={{ marginTop: '5px' }}>
+                                            <button className="btn btn-danger btn-sm me-2" onClick={() => handleDeny(event.groupID)}>Deny All</button>
+                                            <button className="btn btn-warning btn-sm" onClick={() => handleCancel(event.id)}>Cancel</button>
+                                        </div>
                                     </td>
-                                    <td>{event.requestStatus}</td>
                                     <td>{event.groupID}</td>
+                                    <td>{event.requestStatus}</td>
                                     <td>{parkingMap[event.parkingStalls] || event.parkingStalls}</td>
                                     <td>{eventDateFormatted}</td>
                                     <td>{event.dvVisiting}</td>
@@ -721,6 +778,38 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             return <div>No available parking</div>;
                         }
                     })()}
+                </div>
+                </div>
+            </div>
+            )}
+            {isEditPanelOpen && (
+            <div className={styles.panel}>
+                <button onClick={() => setIsEditPanelOpen(false)} className={styles.closeButton} >x</button>
+                <div>
+                <h4>Edit All Events in Group {editGroupID}</h4>
+                <div>
+                    <div>
+                    DV Pay Grade:{" "}
+                    <input className="form-control" value={editFields.dvPayGrade ?? ''} onChange={e => setEditFields({ ...editFields, dvPayGrade: e.target.value })}/>
+                    </div>
+                    <div>
+                    DV Rank:{" "}
+                    <input className="form-control" value={editFields.dvRank ?? ''} onChange={e => setEditFields({ ...editFields, dvRank: e.target.value })}/>
+                    </div>
+                    <div>
+                    DV First Name:{" "}
+                    <input className="form-control" value={editFields.dvFirstName ?? ''} onChange={e => setEditFields({ ...editFields, dvFirstName: e.target.value })}/>
+                    </div>
+                    <div>
+                    DV Last Name:{" "}
+                    <input className="form-control" value={editFields.dvSurname ?? ''} onChange={e => setEditFields({ ...editFields, dvSurname: e.target.value })}/>
+                    </div>
+                    <button
+                    className="btn btn-success mt-2"
+                    onClick={handleEditSave}
+                    >
+                    Save Changes
+                    </button>
                 </div>
                 </div>
             </div>
