@@ -697,22 +697,38 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     <div style={{ display: "flex", gap: "8px" }}>
                                         {eventsForDay.length > 0 ? (
                                             eventsForDay.map((event) => {
-                                        // If group-level options, use those. Otherwise, per-event.
+                                        // Get ALL possible stalls (as IDs)
+                                        const allStallIds = Object.keys(parkingMap).map(Number);
+                                        // The available stalls for this event
                                         const visualOptions =
                                             parkingStallsOptions.length > 0
                                             ? parkingStallsOptions
                                             : parkingStallsOptionsEach[event.id] || [];
+                                        const availableStallIds = visualOptions.map((opt) => Number(opt.key));
+                                        
                                         return (
                                             <div key={event.id} className={styles.parkingOptionWrapper}>
-                                            {visualOptions.length > 0 ? (
-                                                visualOptions.map((option) => (
-                                                <div key={option.key} className={styles.parkingOption}>
-                                                    {option.text}
+                                            {allStallIds.map((stallId) => {
+                                            if (availableStallIds.includes(stallId)) {
+                                                // Stall is available
+                                                const option = visualOptions.find((opt) => Number(opt.key) === stallId);
+                                                return (
+                                                <div key={stallId} className={styles.parkingOption}>
+                                                    {option?.text || parkingMap[stallId]}
                                                 </div>
-                                                ))
-                                            ) : (
-                                            <span>No available parking</span>
-                                        )}
+                                                );
+                                            } else {
+                                                // Stall is not available
+                                                return (
+                                                <div
+                                                    key={stallId}
+                                                    className={styles.parkingOption + ' ' + styles.occupiedOption}
+                                                >
+                                                    {parkingMap[stallId] || `Stall ${stallId}`} <span style={{ fontSize: '0.8em' }}></span>
+                                                </div>
+                                                );
+                                            }
+                                            })}
                                         </div>
                                     );
                                     })
@@ -786,7 +802,6 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             <div className={styles.panel}>
                 <button onClick={() => setIsEditPanelOpen(false)} className={styles.closeButton} >x</button>
                 <div>
-                <h4>Edit All Events in Group {editGroupID}</h4>
                 <div>
                     <div>
                     DV Pay Grade:{" "}
