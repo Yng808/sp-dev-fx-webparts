@@ -42,6 +42,10 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
     const [editGroupID, setEditGroupID] = useState<number | null>(null);
     const [editFields, setEditFields] = useState({ dvPayGrade: '', dvRank: '', dvFirstName: '', dvSurname: '' });
+    const [isReassignPanelOpen, setIsReassignPanelOpen] = useState(false);
+    const [eventToReassign, setEventToReassign] = useState<EventOccurrence | null>(null);
+    const [reassignStart, setReassignStart] = useState('');
+    const [reassignEnd, setReassignEnd] = useState('');
 
     useEffect(() => {
         let filtered = [...cccurrences]; // Create a mutable copy of the readonly array
@@ -140,6 +144,13 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         await loadAvailableParkingForAllEvents(groupID);
         
         setPanelParkingLoading(false);
+    };
+    // Re-assignment panel
+    const openReassignPanel = (event: EventOccurrence) => {
+        setEventToReassign(event);
+        setReassignStart(event.start.format('YYYY-MM-DDTHH:mm'));
+        setReassignEnd(event.end.format('YYYY-MM-DDTHH:mm'));
+        setIsReassignPanelOpen(true);
     };
 
     const closePanel = () => {
@@ -402,6 +413,31 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         }
     };
 
+    // Re-assignment panel
+    const handleReassignSave = async () => {
+        if (!eventToReassign) return;
+
+        try {
+            // Parse datetime input as UTC or correct TZ if needed for SharePoint!
+            const start = moment(reassignStart);
+            const end = moment(reassignEnd);
+
+            await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(eventToReassign.id).update({
+            EventDate: start.toISOString(), // adjust if SharePoint expects a different format
+            EndDate: end.toISOString(),     // adjust if SharePoint expects a different format
+            RequestStatus: 'New',
+            ParkingStallsId: null, // or 0 or '' or remove, depending on SharePoint schema!
+            });
+
+            alert('Event re-assigned!');
+            setIsReassignPanelOpen(false);
+            setEventToReassign(null);
+        } catch (err) {
+            alert('Failed to re-assign event.');
+            console.error(err);
+        }
+    };
+
     // Left side of panel event parking 
     const getEventDateRange = (events: EventOccurrence[], groupID: number) => {
         // First filter the events by the provided groupID
@@ -572,7 +608,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             {showOPR && <th>IPC OPR</th>}
                             {showAttendee && <th>IPC Attendee</th>}
                             <th>Description</th> */}
-                            <th style={{ backgroundColor: 'lightblue', minWidth: '225px' }}>Protocol Actions</th>
+                            <th style={{ backgroundColor: 'lightblue', minWidth: '200px' }}>Group Actions</th>
+                            <th style={{ backgroundColor: 'lightblue', minWidth: '170px' }}>Single Actions</th>
                             <th style={{ backgroundColor: 'lightblue' }}>ID</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Status</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Parking Assignment</th>
@@ -649,14 +686,16 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     <td style={{ whiteSpace: 'normal', wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                                         {event.description}
                                     </td> */}
-                                    <td style={{ minWidth: '225px' }}>
+                                    <td>
                                         <div>
                                             <button className="btn btn-primary btn-sm me-2" onClick={() => openPanel(event.groupID)}>Assign</button>
-                                            <button className="btn btn-secondary btn-sm me-2">Re-Assign</button>
-                                            <button className="btn btn-primary btn-sm me-2" onClick={() => openEditPanel(event.groupID, event)}>Edit</button>
+                                            <button className="btn btn-secondary btn-sm me-2" onClick={() => openEditPanel(event.groupID, event)}>Edit</button> 
+                                            <button className="btn btn-danger btn-sm me-2" onClick={() => handleDeny(event.groupID)}>Deny</button>
                                         </div>
-                                        <div style={{ marginTop: '5px' }}>
-                                            <button className="btn btn-danger btn-sm me-2" onClick={() => handleDeny(event.groupID)}>Deny All</button>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <button className="btn btn-primary btn-sm me-2" onClick={() => openReassignPanel(event)}>Re-Assign</button>
                                             <button className="btn btn-warning btn-sm" onClick={() => handleCancel(event.id)}>Cancel</button>
                                         </div>
                                     </td>
@@ -826,6 +865,28 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     Save Changes
                     </button>
                 </div>
+                </div>
+            </div>
+            )}
+            {isReassignPanelOpen && eventToReassign && (
+            <div className={styles.panel}>
+                <button onClick={() => setIsReassignPanelOpen(false)} className={styles.closeButton}>x</button>
+                <div> 
+                <div>
+                    <label>
+                    Start:
+                    <input type="datetime-local" className="form-control" value={reassignStart} onChange={e => setReassignStart(e.target.value)}/>
+                    </label>
+                </div>
+                <div>
+                    <label>
+                    End:
+                    <input type="datetime-local" className="form-control" value={reassignEnd} onChange={e => setReassignEnd(e.target.value)}/>
+                    </label>
+                </div>
+                <button className="btn btn-success mt-2" onClick={async () => { await handleReassignSave(); }}>
+                    Save Changes
+                </button>
                 </div>
             </div>
             )}
