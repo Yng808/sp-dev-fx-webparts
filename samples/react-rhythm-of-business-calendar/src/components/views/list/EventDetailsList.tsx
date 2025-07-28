@@ -41,7 +41,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [panelParkingLoading, setPanelParkingLoading] = useState(false);
     const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
     const [editGroupID, setEditGroupID] = useState<number | null>(null);
-    const [editFields, setEditFields] = useState({ dvPayGrade: '', dvRank: '', dvFirstName: '', dvSurname: '' });
+    const [editFields, setEditFields] = useState({ dvPayGrade: '', dvRank: '', dvFirstName: '', dvSurname: '', jdirVisiting: '', dvVisiting: '', requestorRank: '', requestorFirstName: '', requestorLastName: '', requestorOffice: '', requestorDutyPhone: '', requestorCellPhone: '', requestorEmail: ''});
     const [isReassignPanelOpen, setIsReassignPanelOpen] = useState(false);
     const [eventToReassign, setEventToReassign] = useState<EventOccurrence | null>(null);
     const [reassignStart, setReassignStart] = useState('');
@@ -163,15 +163,11 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         console.log('openEditPanel called with:', { groupID, event });
         setEditGroupID(groupID);
         setEditFields({
-            dvPayGrade: event.dvPayGrade ?? '',
-            dvRank: event.dvRank ?? '',
-            dvFirstName: event.dvFirstName ?? '',
-            dvSurname: event.dvSurname ?? ''
-        });
+            dvPayGrade: event.dvPayGrade ?? '', dvRank: event.dvRank ?? '', dvFirstName: event.dvFirstName ?? '', dvSurname: event.dvSurname ?? '', jdirVisiting: event.jdirVisiting ?? '', dvVisiting: event.dvVisiting ?? '', requestorRank: event.requestorRank ?? '', requestorFirstName: event.requestorFirstName ?? '', requestorLastName: event.requestorLastName ?? '', requestorOffice: event.requestorOffice ?? '', requestorDutyPhone: event.requestorDutyPhone ?? '', requestorCellPhone: event.requestorCellPhone ?? '', requestorEmail: event.requestorEmail ?? '' });
         setIsEditPanelOpen(true);
     };
-
     
+
     // const handleExportToExcel = () => {
     //     // Prepare data for Excel
     //     const data = filteredEvents.map(event => ({
@@ -418,13 +414,9 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         if (!eventToReassign) return;
 
         try {
-            // Parse datetime input as UTC or correct TZ if needed for SharePoint!
-            const start = moment(reassignStart);
-            const end = moment(reassignEnd);
-
             await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(eventToReassign.id).update({
-            EventDate: start.toISOString(), // adjust if SharePoint expects a different format
-            EndDate: end.toISOString(),     // adjust if SharePoint expects a different format
+            EventDate: moment.tz(reassignStart, siteTimeZone.momentId).format('YYYY-MM-DDTHH:mm:ss'),
+            EndDate: moment.tz(reassignEnd, siteTimeZone.momentId).format('YYYY-MM-DDTHH:mm:ss'),
             RequestStatus: 'New',
             ParkingStallsId: null, // or 0 or '' or remove, depending on SharePoint schema!
             });
@@ -464,22 +456,23 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         return dateRange; // Return the array of dates
     };
 
-    // Deny entire group and Cancel buttons
-    const handleDeny = async (groupId: number) => {
+    // Cancel entire group
+    const handleCancelGroup = async (groupId: number) => {
         const eventIds = filteredEvents.filter(ev => ev.groupID === groupId).map(ev => ev.id);
         try {
             for (const id of eventIds) {
                 await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(id).update({
-                    RequestStatus: 'Denied',
+                    RequestStatus: 'Cancelled',
                 });
             }
-            alert(`All events in group ${groupId} denied successfully!`);
+            alert(`All events in group ${groupId} cancelled successfully!`);
         } catch (error) {
-            console.error('Error denying events:', error);
-            alert('There was an error denying the group events.');
+            console.error('Error cancelling group events:', error);
+            alert('There was an error cancelling the group events.');
         }
     };
 
+    // Cancel by event
     const handleCancel = async (eventId: number) => {
         try {
             await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(eventId).update({
@@ -492,7 +485,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         }
     };
 
-    // Edit button
+    // Edit entire group button
     const handleEditSave = async () => {
         if (!editGroupID) return;
 
@@ -527,7 +520,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         }
         alert('Updated!');
         setIsEditPanelOpen(false);
-        setEditFields({ dvPayGrade: '', dvRank: '', dvFirstName: '', dvSurname: '' });
+        setEditFields({ dvPayGrade: '', dvRank: '', dvFirstName: '', dvSurname: '', jdirVisiting: '', dvVisiting: '', requestorRank: '', requestorFirstName: '', requestorLastName: '', requestorOffice: '', requestorDutyPhone: '', requestorCellPhone: '', requestorEmail: ''});
         setEditGroupID(null);
     };
 
@@ -690,7 +683,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                         <div>
                                             <button className="btn btn-primary btn-sm me-2" onClick={() => openPanel(event.groupID)}>Assign</button>
                                             <button className="btn btn-secondary btn-sm me-2" onClick={() => openEditPanel(event.groupID, event)}>Edit</button> 
-                                            <button className="btn btn-danger btn-sm me-2" onClick={() => handleDeny(event.groupID)}>Deny</button>
+                                            <button className="btn btn-warning btn-sm me-2" onClick={() => handleCancelGroup(event.groupID)}>Cancel</button>
                                         </div>
                                     </td>
                                     <td>
@@ -702,12 +695,18 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     <td>{event.groupID}</td>
                                     <td>{event.requestStatus}</td>
                                     <td>{parkingMap[event.parkingStalls] || event.parkingStalls}</td>
-                                    <td>{eventDateFormatted}</td>
+                                    <td>
+                                        <div>{event.start.format('DD MMM, YYYY')}</div>
+                                        <div>{event.start.format('HHmm')}-{event.end.format('HHmm')}</div>
+                                    </td>
                                     <td>{event.dvVisiting}</td>
                                     <td>{event.jdirVisiting}</td>
                                     <td>{event.dvPayGrade}</td>
                                     <td>{`${event.dvRank} ${event.dvFirstName} ${event.dvSurname}`}</td>
-                                    <td>{`${event.requestorRank} ${event.requestorFirstName} ${event.requestorLastName} ${event.requestorCellPhone?.replace(/^(\(\d{3}\))(\d{3}-\d{4})$/, '$1 $2') || ''}`}</td>
+                                    <td>
+                                        <div>{`${event.requestorRank} ${event.requestorFirstName} ${event.requestorLastName}`}</div>
+                                        <div>{`${event.requestorOffice} ${event.requestorCellPhone?.replace(/^(\(\d{3}\))(\d{3}-\d{4})$/, '$1 $2') || ''}`}</div>
+                                    </td>
                                 </tr>
                             );
                         })}
@@ -794,7 +793,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                 value={selectedParkingStall}  
                                 onChange={(e) => setSelectedParkingStall(e.target.value)}
                             >
-                            <option value="">select parking</option>
+                            <option value="">Select Parking</option>
                             {parkingStallsOptions.map((option) => (
                             <option key={option.key} value={option.key}>
                                 {option.text}
@@ -840,31 +839,60 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             {isEditPanelOpen && (
             <div className={styles.panel}>
                 <button onClick={() => setIsEditPanelOpen(false)} className={styles.closeButton} >x</button>
-                <div>
-                <div>
-                    <div>
+                <div className={styles.formContainer}>
+                    <div style={{ fontWeight: 'bold' }}>
                     DV Pay Grade:{" "}
                     <input className="form-control" value={editFields.dvPayGrade ?? ''} onChange={e => setEditFields({ ...editFields, dvPayGrade: e.target.value })}/>
                     </div>
-                    <div>
+                    <div style={{ fontWeight: 'bold' }}>
                     DV Rank:{" "}
                     <input className="form-control" value={editFields.dvRank ?? ''} onChange={e => setEditFields({ ...editFields, dvRank: e.target.value })}/>
                     </div>
-                    <div>
+                    <div style={{ fontWeight: 'bold' }}>
                     DV First Name:{" "}
                     <input className="form-control" value={editFields.dvFirstName ?? ''} onChange={e => setEditFields({ ...editFields, dvFirstName: e.target.value })}/>
                     </div>
-                    <div>
+                    <div style={{ fontWeight: 'bold' }}>
                     DV Last Name:{" "}
                     <input className="form-control" value={editFields.dvSurname ?? ''} onChange={e => setEditFields({ ...editFields, dvSurname: e.target.value })}/>
                     </div>
-                    <button
-                    className="btn btn-success mt-2"
-                    onClick={handleEditSave}
-                    >
-                    Save Changes
-                    </button>
-                </div>
+                    <div>
+                    DV visiting JDIR/Office:{" "}
+                    <input className="form-control" value={editFields.jdirVisiting ?? ''} onChange={e => setEditFields({ ...editFields, jdirVisiting: e.target.value })} readOnly={true}/>
+                    </div>
+                    <div>
+                    Is DV visting Bridge?:{" "}
+                    <input className="form-control" value={editFields.dvVisiting ?? ''} onChange={e => setEditFields({ ...editFields, dvVisiting: e.target.value })} readOnly={true}/>
+                    </div>
+                    <div>
+                    Requestor Rank:{" "}
+                    <input className="form-control" value={editFields.requestorRank ?? ''} onChange={e => setEditFields({ ...editFields, requestorRank: e.target.value })} readOnly={true}/>
+                    </div>
+                    <div>
+                    Requestor First Name:{" "}
+                    <input className="form-control" value={editFields.requestorFirstName ?? ''} onChange={e => setEditFields({ ...editFields, requestorFirstName: e.target.value })} readOnly={true}/>
+                    </div>
+                    <div>
+                    Requestor Last Name:{" "}
+                    <input className="form-control" value={editFields.requestorLastName ?? ''} onChange={e => setEditFields({ ...editFields, requestorLastName: e.target.value })} readOnly={true}/>
+                    </div>
+                    <div>
+                    Requestor Office:{" "}
+                    <input className="form-control" value={editFields.requestorOffice ?? ''} onChange={e => setEditFields({ ...editFields, requestorOffice: e.target.value })} readOnly={true}/>
+                    </div>
+                    <div>
+                    Requestor Duty Phone:{" "}
+                    <input className="form-control" value={editFields.requestorDutyPhone ?? ''} onChange={e => setEditFields({ ...editFields, requestorDutyPhone: e.target.value })} readOnly={true}/>
+                    </div>
+                    <div>
+                    Requestor Cell Phone:{" "}
+                    <input className="form-control" value={editFields.requestorCellPhone ?? ''} onChange={e => setEditFields({ ...editFields, requestorCellPhone: e.target.value })} readOnly={true}/>
+                    </div>
+                    <div>
+                    Requestor Email:{" "}
+                    <input className="form-control" value={editFields.requestorEmail ?? ''} onChange={e => setEditFields({ ...editFields, requestorEmail: e.target.value })} readOnly={true}/>
+                    </div>
+                    <button className="btn btn-success mt-2" onClick={handleEditSave}>Save Changes</button>
                 </div>
             </div>
             )}
