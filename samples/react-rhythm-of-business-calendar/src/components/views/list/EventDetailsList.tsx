@@ -166,7 +166,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             dvPayGrade: event.dvPayGrade ?? '', dvRank: event.dvRank ?? '', dvFirstName: event.dvFirstName ?? '', dvSurname: event.dvSurname ?? '', jdirVisiting: event.jdirVisiting ?? '', dvVisiting: event.dvVisiting ?? '', requestorRank: event.requestorRank ?? '', requestorFirstName: event.requestorFirstName ?? '', requestorLastName: event.requestorLastName ?? '', requestorOffice: event.requestorOffice ?? '', requestorDutyPhone: event.requestorDutyPhone ?? '', requestorCellPhone: event.requestorCellPhone ?? '', requestorEmail: event.requestorEmail ?? '' });
         setIsEditPanelOpen(true);
     };
-
+    
 
     // const handleExportToExcel = () => {
     //     // Prepare data for Excel
@@ -821,30 +821,30 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                         </div>
                     ) : (() => {
                         const events = filteredEvents.filter(event => event.groupID === groupIDToDisplay);
-                        const atLeastOneAvailable = events.some(event => (parkingStallsOptionsEach[event.id] || []).length > 0);
-                        if (atLeastOneAvailable) {
-                            return events.map(event => (
-                            <div key={event.id} className={styles.flexContainer} style={{ marginTop: '10px' }}>
-                                <select
-                                    className="form-control dropdown"
-                                    value={individualSelections[event.id]?.toString() || ''}  // Use event.id to track parking selection
-                                    onChange={(e) => handleIndividualParkingChange(event.id, e.target.value)}  // Use event.id here
-                                >
-                                    <option value="">select parking</option>
-                                    {parkingStallsOptionsEach[event.id]?.map((option) => (
-                                        <option key={option.key} value={option.key}>
-                                            {option.text}
-                                        </option>
-                                    ))}
-                                </select> 
-                                <button className="btn btn-primary" onClick={() => updateEventInDatabase(event.id, individualSelections[event.id])} style={{ width: '300px' }}>
-                                    Assign to {event.id}
-                                </button>
-                            </div>
-                            ));
-                        } else {
-                            return <div>No available parking</div>;
-                        }
+                        return events.map(event => {
+                            const options = parkingStallsOptionsEach[event.id] || [];  
+                            const hasUnavailable = options.some(opt => opt.key === -1); // Check if "Unavailable" is already in the options 
+                            const allOptions = hasUnavailable ? options : [...options, { key: -1, text: "Unavailable" }]; // Only add it if it isn't already there
+                            return (
+                                <div key={event.id} className={styles.flexContainer} style={{ marginTop: '10px' }}>
+                                    <select
+                                        className="form-control dropdown"
+                                        value={individualSelections[event.id]?.toString() || ''}  // Use event.id to track parking selection
+                                        onChange={(e) => handleIndividualParkingChange(event.id, e.target.value)}  // Use event.id here
+                                    >
+                                        <option value="">select parking</option>
+                                        {allOptions.map((option) => (
+                                            <option key={option.key} value={option.key}>
+                                                {option.text}
+                                            </option>
+                                        ))}
+                                    </select> 
+                                    <button className="btn btn-primary" onClick={() => updateEventInDatabase(event.id, individualSelections[event.id])} style={{ width: '300px' }}>
+                                        Assign to {event.id}
+                                    </button>
+                                </div>
+                            );
+                        });
                     })()}
                     </div>
                 </div>
