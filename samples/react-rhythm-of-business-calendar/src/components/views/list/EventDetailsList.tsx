@@ -166,7 +166,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             dvPayGrade: event.dvPayGrade ?? '', dvRank: event.dvRank ?? '', dvFirstName: event.dvFirstName ?? '', dvSurname: event.dvSurname ?? '', jdirVisiting: event.jdirVisiting ?? '', dvVisiting: event.dvVisiting ?? '', requestorRank: event.requestorRank ?? '', requestorFirstName: event.requestorFirstName ?? '', requestorLastName: event.requestorLastName ?? '', requestorOffice: event.requestorOffice ?? '', requestorDutyPhone: event.requestorDutyPhone ?? '', requestorCellPhone: event.requestorCellPhone ?? '', requestorEmail: event.requestorEmail ?? '' });
         setIsEditPanelOpen(true);
     };
-    
+
 
     // const handleExportToExcel = () => {
     //     // Prepare data for Excel
@@ -235,16 +235,25 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             // STEP 7: Map them to the IDropdownOption format
             const availableParkingOptions = formatParkingOptions(uniqueAvailableParking);
 
-            // STEP 8: Update the state with the available parking spots
-            setParkingStallsOptions(availableParkingOptions);
-
-            // If group parking is empty, load individual event parking
+            // STEP 8: If no real parking, load per-event availability
             if (availableParkingOptions.length === 0) {
                 const events = filteredEvents.filter(event => event.groupID === groupID);
                 for (const event of events) {
                     await loadAvailableParking(event);
                 }
             }
+
+            // STEP 9: Always include "Unavailable" in the dropdown
+            uniqueAvailableParking.push({
+                id: -1,
+                parking: "Unavailable",
+            });
+
+            const finalOptions = formatParkingOptions(uniqueAvailableParking);
+
+            // STEP 10: Update state
+            setParkingStallsOptions(finalOptions);
+
         } catch (error) {
             console.error("Error determining available parking:", error);
         } finally {
@@ -361,7 +370,15 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             // STEP 4: Format the available parking into IDropdownOption format using the function from spEventDetailsList
             const availableParkingOptions = formatParkingOptions(availableParking);
 
-            // STEP 5: Update state with the available parking spots
+            // STEP 5: If no real parking, add "Unavailable"
+            if (availableParkingOptions.length === 0) {
+                availableParkingOptions.push({
+                    key: -1,
+                    text: "Unavailable",
+                });
+            }
+
+            // STEP 6: Update state
             setParkingStallsOptionsEach((prevState) => ({
                 ...prevState,
                 [event.id]: availableParkingOptions,
@@ -694,7 +711,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     </td>
                                     <td>{event.groupID}</td>
                                     <td>{event.requestStatus}</td>
-                                    <td>{parkingMap[event.parkingStalls] || event.parkingStalls}</td>
+                                    <td>{event.parkingStalls === -1 ? 'Unavailable' : (parkingMap[event.parkingStalls] || event.parkingStalls)}</td>
                                     <td>
                                         <div>{event.start.format('DD MMM, YYYY')}</div>
                                         <div>{event.start.format('HHmm')}-{event.end.format('HHmm')}</div>
@@ -738,11 +755,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                         // Get ALL possible stalls (as IDs)
                                         const allStallIds = Object.keys(parkingMap).map(Number);
                                         // The available stalls for this event
-                                        const visualOptions =
-                                            parkingStallsOptions.length > 0
-                                            ? parkingStallsOptions
-                                            : parkingStallsOptionsEach[event.id] || [];
-                                        const availableStallIds = visualOptions.map((opt) => Number(opt.key));
+                                        const visualOptions = parkingStallsOptionsEach[event.id] || parkingStallsOptions;
+                                        const availableStallIds = visualOptions.filter(opt => opt.key !== -1).map((opt) => Number(opt.key));
                                         
                                         return (
                                             <div key={event.id} className={styles.parkingOptionWrapper}>
@@ -785,7 +799,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     <p>Assign Parking for Group ID: {groupIDToDisplay}</p>
                     {panelParkingLoading ? (
                         <div>Loading...</div>
-                    ) : parkingStallsOptions.length > 0 ? (
+                    ) : parkingStallsOptions.filter(opt => opt.key !== -1).length > 0 ? (
                     <div className={styles.flexContainer}>
                         {/* Parking Assignment Dropdown  For all*/}
                         <select
@@ -832,7 +846,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             return <div>No available parking</div>;
                         }
                     })()}
-                </div>
+                    </div>
                 </div>
             </div>
             )}
