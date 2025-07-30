@@ -853,7 +853,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                         })}
                             <button
                             className="btn btn-success mt-3 w-100" onClick={async () => {
-                                const unselected = events.filter(event => individualSelections[event.id] === undefined);
+                                const unselected = events.filter(event => individualSelections[event.id] === undefined || isNaN(individualSelections[event.id]) || individualSelections[event.id] <= 0);
                                 if (unselected.length > 0) {
                                     alert(`Please select parking for all events before assigning.`);
                                     return;
