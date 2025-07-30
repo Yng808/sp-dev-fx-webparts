@@ -796,7 +796,16 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
                     {/* Right Side - Parking Assignment */}
                     <div className={styles.rightSide}>
-                    <p>Assignment for: PayGrade LastName, Bridge</p>
+                    {(() => {
+                    const matchedEvent = filteredEvents.find(e => e.groupID === groupIDToDisplay);
+                    return (
+                        <>
+                            <h6>Assignment for: {matchedEvent?.dvPayGrade || 'N/A'} {matchedEvent?.dvSurname || ''}</h6>
+                            <h6>Bridge: {matchedEvent?.dvVisiting || ''}</h6>
+                        </>
+                    );
+                    })()}
+
                     {panelParkingLoading ? (
                         <div>Loading...</div>
                     ) : parkingStallsOptions.filter(opt => opt.key !== -1).length > 0 ? (
@@ -826,9 +835,12 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             const hasUnavailable = options.some(opt => opt.key === -1); // Check if "Unavailable" is already in the options 
                             const allOptions = hasUnavailable ? options : [...options, { key: -1, text: "Unavailable" }]; // Only add it if it isn't already there
                             return (
-                                <div key={event.id} className="d-flex flex-column gap-2 w-100 mt-3">
+                                <div key={event.id} className="d-flex align-items-center w-100 mt-3">
+                                    <p className="mb-0" style={{ minWidth: '100px' }}>
+                                    {event.start.format('DD MMM, YYYY')}:
+                                    </p>
                                     <select
-                                        className="form-control"
+                                        className="form-control" style={{ minWidth: '145px' }}
                                         value={individualSelections[event.id]?.toString() || ''}  // Use event.id to track parking selection
                                         onChange={(e) => handleIndividualParkingChange(event.id, e.target.value)}  // Use event.id here
                                     >
