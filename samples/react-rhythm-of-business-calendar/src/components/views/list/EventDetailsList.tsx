@@ -213,45 +213,42 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             const allParking = await fetchParkingStalls(siteUrl);
             // STEP 2: Fetch events for the group
             const bookingsData = await fetchBookingsForGroup(siteUrl, groupID);
-            // STEP 3: Iterate through each event in the group and filter parking
-            for (let event of bookingsData.d.results) {
-                const eventStart = moment(event.EventDate);
-                const eventEnd = moment(event.EndDate);
 
-                // STEP 4: Fetch booked parking for this event date range
-                const bookedParkingIds = await fetchBookedParkingForEvent(siteUrl, eventStart, eventEnd);
-                // Add the booked parking IDs for this event to the overall set
-                bookedParkingIds.forEach(id => allBookedParkingIds.add(id));
+            type GroupEvent = { start: moment.Moment; end: moment.Moment };
 
-                // STEP 5: Exclude booked parking for this event and keep available ones
-                const availableParking = filterAvailableParking(allParking, allBookedParkingIds);
-                // Merge the available parking for this event with the already filtered parking
-                allAvailableParking = allAvailableParking.concat(availableParking); 
-            }
+            const groupEvents: GroupEvent[] = bookingsData.d.results.map((ev: any) => ({
+            start: moment(ev.EventDate),
+            end: moment(ev.EndDate),
+            }));
 
-            // STEP 6: Remove duplicates by parking spot id
-            const uniqueAvailableParking = Array.from(new Map(allAvailableParking.map(spot => [spot.id, spot])).values());
+            // STEP 3: Determine full range across all events
+            const groupStart = moment.min(groupEvents.map(ev => ev.start));
+            const groupEnd = moment.max(groupEvents.map(ev => ev.end));
 
-            // STEP 7: Map them to the IDropdownOption format
-            const availableParkingOptions = formatParkingOptions(uniqueAvailableParking);
+            // STEP 4: Fetch all booked parking across entire date range
+            const bookedParkingIds = await fetchBookedParkingForEvent(siteUrl, groupStart, groupEnd);
+            const allBookedParkingIds = new Set(bookedParkingIds);
 
-            // STEP 8: If no real parking, load per-event availability
-            if (availableParkingOptions.length === 0) {
+            // STEP 5: Filter out booked parking stalls
+            const availableParking = filterAvailableParking(allParking, allBookedParkingIds);
+
+            // STEP 6: If no real parking, load per-event availability
+            if (availableParking.length === 0) {
                 const events = filteredEvents.filter(event => event.groupID === groupID);
                 for (const event of events) {
                     await loadAvailableParking(event);
                 }
             }
 
-            // STEP 9: Always include "Unavailable" in the dropdown
-            uniqueAvailableParking.push({
+            // STEP 7: Always include "Unavailable" in the dropdown
+            availableParking.push({
                 id: -1,
                 parking: "Unavailable",
             });
 
-            const finalOptions = formatParkingOptions(uniqueAvailableParking);
+            const finalOptions = formatParkingOptions(availableParking);
 
-            // STEP 10: Update state
+            // STEP 8: Update state
             setParkingStallsOptions(finalOptions);
 
         } catch (error) {
