@@ -40,7 +40,6 @@
   align-items: center;
   gap: 20px;
   width: 100%;
-  min-width: 450px;
 }
 
 .leftSide {
@@ -49,7 +48,7 @@
   gap: 20px;
   flex-wrap: nowrap;
   flex: 2 1 0;
-  max-width: 900px;
+  max-width: 600px;
   width: 100%;
   max-height: 350px;
   overflow-x: auto;
@@ -96,7 +95,7 @@
 
 .parkingOption {
   padding: 10px;
-  background-color: #d9d9d9;
+  background: #ffffff;
   border: 1px solid #000000;
   border-radius: 5px;
   text-align: center;
@@ -104,7 +103,7 @@
 }
 
 .occupiedOption {
-  background: #ffffff;
+  background: #d9d9d9;
   border: 1px dashed #000000;
   color: #000000;
 }
@@ -117,6 +116,7 @@
 .formContainer > div {
   display: flex; 
   flex-direction: column; 
+  font-weight: bold;
 }
 
 .formContainer button {

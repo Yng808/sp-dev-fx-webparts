@@ -166,8 +166,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             dvPayGrade: event.dvPayGrade ?? '', dvRank: event.dvRank ?? '', dvFirstName: event.dvFirstName ?? '', dvSurname: event.dvSurname ?? '', jdirVisiting: event.jdirVisiting ?? '', dvVisiting: event.dvVisiting ?? '', requestorRank: event.requestorRank ?? '', requestorFirstName: event.requestorFirstName ?? '', requestorLastName: event.requestorLastName ?? '', requestorOffice: event.requestorOffice ?? '', requestorDutyPhone: event.requestorDutyPhone ?? '', requestorCellPhone: event.requestorCellPhone ?? '', requestorEmail: event.requestorEmail ?? '' });
         setIsEditPanelOpen(true);
     };
-    
 
+    
     // const handleExportToExcel = () => {
     //     // Prepare data for Excel
     //     const data = filteredEvents.map(event => ({
@@ -419,7 +419,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 RequestStatus: 'Approved',  // Update request status
             });
 
-            alert(`Event ${itemId} updated successfully!`);
+            // alert(`Event ${itemId} updated successfully!`);
         } catch (error) {
             console.error('Error updating the event in database:', error);
             alert('There was an error updating the event.');
@@ -795,15 +795,15 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     </div>
 
                     {/* Right Side - Parking Assignment */}
-                    <div>
-                    <p>Assign Parking for Group ID: {groupIDToDisplay}</p>
+                    <div className={styles.rightSide}>
+                    <p>Assignment for: PayGrade LastName, Bridge</p>
                     {panelParkingLoading ? (
                         <div>Loading...</div>
                     ) : parkingStallsOptions.filter(opt => opt.key !== -1).length > 0 ? (
-                    <div className={styles.flexContainer}>
+                    <div className="d-flex flex-column gap-2 w-100">
                         {/* Parking Assignment Dropdown  For all*/}
                         <select
-                                className="form-control dropdown"
+                                className="form-control w-100"
                                 value={selectedParkingStall}  
                                 onChange={(e) => setSelectedParkingStall(e.target.value)}
                             >
@@ -815,36 +815,51 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             ))}
                         </select>
                         {/* Assign Parking Button */}
-                        <button className="btn btn-primary" onClick={handleAssignToAllEvents} style={{ width: '300px' }}>
-                            Assign to all events
+                        <button className="btn btn-primary w-100" onClick={handleAssignToAllEvents}>
+                            Assign and send email
                         </button>
-                        </div>
+                    </div>
                     ) : (() => {
                         const events = filteredEvents.filter(event => event.groupID === groupIDToDisplay);
-                        return events.map(event => {
+                        return ( <> {events.map(event => {
                             const options = parkingStallsOptionsEach[event.id] || [];  
                             const hasUnavailable = options.some(opt => opt.key === -1); // Check if "Unavailable" is already in the options 
                             const allOptions = hasUnavailable ? options : [...options, { key: -1, text: "Unavailable" }]; // Only add it if it isn't already there
                             return (
-                                <div key={event.id} className={styles.flexContainer} style={{ marginTop: '10px' }}>
+                                <div key={event.id} className="d-flex flex-column gap-2 w-100 mt-3">
                                     <select
-                                        className="form-control dropdown"
+                                        className="form-control"
                                         value={individualSelections[event.id]?.toString() || ''}  // Use event.id to track parking selection
                                         onChange={(e) => handleIndividualParkingChange(event.id, e.target.value)}  // Use event.id here
                                     >
-                                        <option value="">select parking</option>
+                                        <option value="">Select Parking</option>
                                         {allOptions.map((option) => (
                                             <option key={option.key} value={option.key}>
                                                 {option.text}
                                             </option>
                                         ))}
-                                    </select> 
-                                    <button className="btn btn-primary" onClick={() => updateEventInDatabase(event.id, individualSelections[event.id])} style={{ width: '300px' }}>
-                                        Assign to {event.id}
-                                    </button>
+                                    </select>
                                 </div>
                             );
-                        });
+                        })}
+                            <button
+                            className="btn btn-success mt-3 w-100" onClick={async () => {
+                                const unselected = events.filter(event => individualSelections[event.id] === undefined);
+                                if (unselected.length > 0) {
+                                    alert(`Please select parking for all events before assigning.`);
+                                    return;
+                                } 
+                                for (const event of events) {
+                                    const selectedStall = individualSelections[event.id];
+                                    await updateEventInDatabase(event.id, selectedStall);
+                                }
+                                alert("All assignments completed.");
+                            }}
+                            >
+                            Assign and send email
+                            </button>
+                        </>
+                        );
                     })()}
                     </div>
                 </div>
@@ -854,57 +869,57 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             <div className={styles.panel}>
                 <button onClick={() => setIsEditPanelOpen(false)} className={styles.closeButton} >x</button>
                 <div className={styles.formContainer}>
-                    <div style={{ fontWeight: 'bold' }}>
+                    <div>
                     DV Pay Grade:{" "}
                     <input className="form-control" value={editFields.dvPayGrade ?? ''} onChange={e => setEditFields({ ...editFields, dvPayGrade: e.target.value })}/>
                     </div>
-                    <div style={{ fontWeight: 'bold' }}>
+                    <div>
                     DV Rank:{" "}
                     <input className="form-control" value={editFields.dvRank ?? ''} onChange={e => setEditFields({ ...editFields, dvRank: e.target.value })}/>
                     </div>
-                    <div style={{ fontWeight: 'bold' }}>
+                    <div>
                     DV First Name:{" "}
                     <input className="form-control" value={editFields.dvFirstName ?? ''} onChange={e => setEditFields({ ...editFields, dvFirstName: e.target.value })}/>
                     </div>
-                    <div style={{ fontWeight: 'bold' }}>
+                    <div>
                     DV Last Name:{" "}
                     <input className="form-control" value={editFields.dvSurname ?? ''} onChange={e => setEditFields({ ...editFields, dvSurname: e.target.value })}/>
                     </div>
                     <div>
                     DV visiting JDIR/Office:{" "}
-                    <input className="form-control" value={editFields.jdirVisiting ?? ''} onChange={e => setEditFields({ ...editFields, jdirVisiting: e.target.value })} readOnly={true}/>
+                    <input className="form-control-plaintext" value={editFields.jdirVisiting ?? ''} onChange={e => setEditFields({ ...editFields, jdirVisiting: e.target.value })} readOnly={true}/>
                     </div>
                     <div>
                     Is DV visting Bridge?:{" "}
-                    <input className="form-control" value={editFields.dvVisiting ?? ''} onChange={e => setEditFields({ ...editFields, dvVisiting: e.target.value })} readOnly={true}/>
+                    <input className="form-control-plaintext" value={editFields.dvVisiting ?? ''} onChange={e => setEditFields({ ...editFields, dvVisiting: e.target.value })} readOnly={true}/>
                     </div>
                     <div>
                     Requestor Rank:{" "}
-                    <input className="form-control" value={editFields.requestorRank ?? ''} onChange={e => setEditFields({ ...editFields, requestorRank: e.target.value })} readOnly={true}/>
+                    <input className="form-control-plaintext" value={editFields.requestorRank ?? ''} onChange={e => setEditFields({ ...editFields, requestorRank: e.target.value })} readOnly={true}/>
                     </div>
                     <div>
                     Requestor First Name:{" "}
-                    <input className="form-control" value={editFields.requestorFirstName ?? ''} onChange={e => setEditFields({ ...editFields, requestorFirstName: e.target.value })} readOnly={true}/>
+                    <input className="form-control-plaintext" value={editFields.requestorFirstName ?? ''} onChange={e => setEditFields({ ...editFields, requestorFirstName: e.target.value })} readOnly={true}/>
                     </div>
                     <div>
                     Requestor Last Name:{" "}
-                    <input className="form-control" value={editFields.requestorLastName ?? ''} onChange={e => setEditFields({ ...editFields, requestorLastName: e.target.value })} readOnly={true}/>
+                    <input className="form-control-plaintext" value={editFields.requestorLastName ?? ''} onChange={e => setEditFields({ ...editFields, requestorLastName: e.target.value })} readOnly={true}/>
                     </div>
                     <div>
                     Requestor Office:{" "}
-                    <input className="form-control" value={editFields.requestorOffice ?? ''} onChange={e => setEditFields({ ...editFields, requestorOffice: e.target.value })} readOnly={true}/>
+                    <input className="form-control-plaintext" value={editFields.requestorOffice ?? ''} onChange={e => setEditFields({ ...editFields, requestorOffice: e.target.value })} readOnly={true}/>
                     </div>
                     <div>
                     Requestor Duty Phone:{" "}
-                    <input className="form-control" value={editFields.requestorDutyPhone ?? ''} onChange={e => setEditFields({ ...editFields, requestorDutyPhone: e.target.value })} readOnly={true}/>
+                    <input className="form-control-plaintext" value={editFields.requestorDutyPhone ?? ''} onChange={e => setEditFields({ ...editFields, requestorDutyPhone: e.target.value })} readOnly={true}/>
                     </div>
                     <div>
                     Requestor Cell Phone:{" "}
-                    <input className="form-control" value={editFields.requestorCellPhone ?? ''} onChange={e => setEditFields({ ...editFields, requestorCellPhone: e.target.value })} readOnly={true}/>
+                    <input className="form-control-plaintext" value={editFields.requestorCellPhone ?? ''} onChange={e => setEditFields({ ...editFields, requestorCellPhone: e.target.value })} readOnly={true}/>
                     </div>
                     <div>
                     Requestor Email:{" "}
-                    <input className="form-control" value={editFields.requestorEmail ?? ''} onChange={e => setEditFields({ ...editFields, requestorEmail: e.target.value })} readOnly={true}/>
+                    <input className="form-control-plaintext" value={editFields.requestorEmail ?? ''} onChange={e => setEditFields({ ...editFields, requestorEmail: e.target.value })} readOnly={true}/>
                     </div>
                     <button className="btn btn-success mt-2" onClick={handleEditSave}>Save Changes</button>
                 </div>
