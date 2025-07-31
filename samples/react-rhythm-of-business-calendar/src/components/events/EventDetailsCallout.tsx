@@ -13,9 +13,10 @@ export interface IEventDetailsCallout {
 interface IProps {
     componentRef: RefObject<IEventDetailsCallout>;
     commands: IEventCommands;
+  parkingMap?: { [id: number]: string };
 }
 
-export const EventDetailsCallout: FC<IProps> = ({ componentRef, commands }) => {
+export const EventDetailsCallout: FC<IProps> = ({ componentRef, commands, parkingMap }) => {
     const [isOpen, { setTrue: show, setFalse: hide }] = useBoolean(false);
     const [event, setEvent] = useState<IEvent>();
     const [target, setTarget] = useState<HTMLElement>();
@@ -61,7 +62,7 @@ export const EventDetailsCallout: FC<IProps> = ({ componentRef, commands }) => {
             focusTrapProps={focusTrapProps}
         >
             <FocusZone isCircularNavigation>
-                <EventOverview event={event} />
+                <EventOverview event={event} parkingMap={parkingMap} />
                 <Separator />
                 <Stack horizontal wrap tokens={stackTokens}>
                     {viewCommand}

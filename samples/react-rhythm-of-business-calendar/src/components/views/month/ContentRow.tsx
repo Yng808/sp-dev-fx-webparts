@@ -11,15 +11,16 @@ import styles from './MonthView.module.scss';
 interface IProps {
     row: ContentRowInfo;
     onActivate: (cccurrence: EventOccurrence, target: HTMLElement) => void;
+     parkingMap: { [id: number]: string };
 }
 
-export const ContentRow: FC<IProps> = ({ row: { items }, onActivate }) => 
+export const ContentRow: FC<IProps> = ({ row: { items }, onActivate, parkingMap }) => 
     <Stack horizontal className={styles.content}>
         {items.map((item, idx) =>
         
             <StackItem key={idx} styles={blockStyles(item.duration)}>
                 {item instanceof EventItemInfo
-                    ? <EventItem eventInfo={item} onActivate={onActivate} />
+                    ? <EventItem eventInfo={item} onActivate={onActivate} parkingMap={parkingMap} />
                     : <ShimItem duration={item.duration} />
                 }
             </StackItem>

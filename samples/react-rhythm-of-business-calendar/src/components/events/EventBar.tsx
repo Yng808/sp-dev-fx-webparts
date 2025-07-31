@@ -55,9 +55,10 @@ interface IProps {
     endsIn: boolean;
     timeStringOverride?: string;
     size?: EventBarSize;
+    parkingMap?: { [id: number]: string };
 }
 
-export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverride, size = EventBarSize.Compact }) => {
+export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverride, size = EventBarSize.Compact, parkingMap }) => {
     const { palette: { themePrimary } } = useTheme();
     const { active: { useApprovals } } = useConfigurationService();
 
@@ -95,6 +96,8 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
             : isAllDay ? strings.AllDay : `${start?.format('HHmm')}-${end?.format('HHmm')}`
         );
 
+    const parkingLabel = event.parkingStalls === -1 ? "Unavailable" : parkingMap?.[event.parkingStalls] ?? "Unavailable";
+
     // Prepend the first character of comDecision to the title if it exists
     //const modifiedTitle = comDecision ? `(${comDecision.charAt(0)}) ${title}` : title;
 
@@ -111,7 +114,7 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
                     )} */}
                     
                     <div>
-                        {`${event.parkingStalls} - (${event.start.format('HH:mm')}-${event.end.format('HH:mm')}) - ${event.requestorRank} ${event.requestorLastName}`}
+                        {`${parkingLabel} - (${event.start.format('HH:mm')}-${event.end.format('HH:mm')}) - ${event.requestorRank} ${event.requestorLastName}`}
                     </div>
                     
                 </StackItem>

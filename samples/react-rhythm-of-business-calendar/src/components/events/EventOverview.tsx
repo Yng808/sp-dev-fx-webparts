@@ -15,9 +15,10 @@ import styles from './EventOverview.module.scss';
 interface IProps {
     event: IEvent;
     className?: string;
+    parkingMap?: { [id: number]: string };
 }
 
-export const EventOverview: FC<IProps> = ({ event, className }) => {
+export const EventOverview: FC<IProps> = ({ event, className, parkingMap }) => {
     const { active: { useApprovals } } = useConfigurationService();
     const { title, start, end, isAllDay, location, isSeriesMaster, isPendingApproval, isRejected, isRecurring, isConfidential, recurrence } = event;
 
@@ -43,7 +44,9 @@ export const EventOverview: FC<IProps> = ({ event, className }) => {
             <Stack className={css(styles.root, className)} tokens={rootStackTokens} horizontalAlign='start'>
                 <Stack horizontal verticalAlign='start' styles={titleStackStyles}>
                     <StackItem grow>
-                        <Text block className={titleClassName} data-is-focusable>{`${event.parkingStalls} - (${event.start.format('HH:mm')}-${event.end.format('HH:mm')}) - ${event.requestorRank} ${event.requestorLastName}`}</Text>
+                        <Text block className={titleClassName} data-is-focusable>
+                            {`${parkingMap?.[Number(event.parkingStalls)] ?? 'Unavailable'} - (${event.start.format('HH:mm')}-${event.end.format('HH:mm')}) - ${event.requestorRank} ${event.requestorLastName}`}
+                        </Text>
                     </StackItem>
                     {renderLiveUpdateMark()}
                 </Stack>

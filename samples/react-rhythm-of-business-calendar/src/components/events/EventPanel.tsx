@@ -11,7 +11,7 @@ import { RefinerValuePill } from '../refiners';
 import { ListItemTechnicals } from '../shared';
 import { PatternChoiceGroup, DailyEditor, WeeklyEditor, MonthlyEditor, YearlyEditor, UntilEditor } from '../recurrence';
 import { IEventCommands } from './IEventCommands';
-
+import { fetchParkingStalls } from 'components/views/list/spEventDetailsList';
 import { PersistConcurrencyFailureMessage, Validation as validationStrings, EventPanel as strings } from "ComponentStrings";
 
 import styles from './EventPanel.module.scss';
@@ -42,6 +42,7 @@ interface IOwnState {
     refinerValueOptionsByRefiner: Map<Refiner, IDropdownOption[]>;
     refiners: readonly Refiner[];
     parkingStallsOptions: IDropdownOption[];
+    parkingMap: { [id: number]: string };
     loadingSpots: boolean;
 }
 type IState = IOwnState & IDataPanelBaseState<Event>;
@@ -62,6 +63,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
             refinerValueOptionsByRefiner: new Map(),
             refiners: [],
             parkingStallsOptions: [],
+            parkingMap: this.state?.parkingMap ?? {},
             loadingSpots: false
         };
     }
@@ -75,6 +77,11 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         super.componentShouldRender();
         this._buildRefinerValueOptions();
         //this._buildRefinerValueValidationRules();
+    }
+
+    public componentDidMount(): void {
+        super.componentDidMount?.(); 
+        this.loadParkingStalls();
     }
 
     private async _buildRefinerValueOptions() {
@@ -225,6 +232,27 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         }
     }
 
+    private async loadParkingStalls(): Promise<void> {
+        const web = await sp.web.get();
+        const siteUrl = web.Url;
+
+        try {
+            const stalls = await fetchParkingStalls(siteUrl);
+            const parkingStallsOptions = stalls.map(stall => ({
+                key: stall.id,
+                text: stall.parking
+            }));
+
+            const parkingMap: { [id: number]: string } = {};
+            stalls.forEach(stall => {
+                parkingMap[stall.id] = stall.parking;
+            });
+
+            this.setState({ parkingStallsOptions, parkingMap });
+        } catch (error) {
+            console.error("Failed to fetch parking stalls", error);
+        }
+    }
     // private _renderModerationStatus() {
     //     const {
     //         [DirectoryService]: { currentUserIsSiteAdmin, currentUser },
@@ -293,7 +321,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         return (
             <FocusZone>
                 <ResponsiveGrid className={styles.content}>
-                    <GridRow>
+                    {/* <GridRow>
                         <GridCol sm={12}>
                             <LiveText
                                 label={strings.Field_Title.Label}
@@ -305,7 +333,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                 )}
                             </LiveText>
                         </GridCol>
-                    </GridRow>
+                    </GridRow> */}
                     <GridRow>
                         {!isSeriesMaster && (
                             <GridCol sm={7} lg={5}>
@@ -356,7 +384,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                         <Text data-is-focusable>
                                             {isAllDay
                                                 ? strings.AllDay
-                                                : start.format("LT")}
+                                                : start.format("HH:mm")}
                                         </Text>
                                     );
                                 }}
@@ -410,7 +438,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                             <Text data-is-focusable>
                                                 {isAllDay
                                                     ? strings.AllDay
-                                                    : end.format("LT")}
+                                                    : end.format("HH:mm")}
                                             </Text>
                                         );
                                     }}
@@ -418,7 +446,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             )}
                         </GridCol>
                     </GridRow>
-                    {/* {isRecurring && (
+                   {/* {isRecurring && (
                         <GridRow>
                             <GridCol>
                                 <LiveText
@@ -626,7 +654,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             </GridCol>
                         </GridRow>
                     } */}
-                    <GridRow>
+                    {/* <GridRow>
                         <GridCol sm={6}>
                             <LiveText label="Parking Assignment" {...liveProps} propertyName="parkingStalls">
                             {(val) => {
@@ -645,7 +673,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             }}
                             </LiveText>
                         </GridCol>
-                    </GridRow> 
+                    </GridRow>  */}
                     <GridRow>
                         <GridCol sm={6}>
                             <LiveText label="DV Pay Grade" {...liveProps} propertyName="dvPayGrade">
@@ -1016,7 +1044,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         />
                     </GridCol>
                 </GridRow> */}
-                
+
                 <GridRow>
                     {refiners.filter(Entity.NotDeletedFilter).map(refiner => {
                         const { displayName, required, allowMultiselect } = refiner;
@@ -1315,7 +1343,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
     }
 
     protected renderDisplayHeader(): JSX.Element {
-        return <EventOverview className={styles.header} event={this.entity} />;
+        return <EventOverview className={styles.header} event={this.entity} parkingMap={this.state.parkingMap} />;
     }
 
     protected renderEditHeader(): JSX.Element {

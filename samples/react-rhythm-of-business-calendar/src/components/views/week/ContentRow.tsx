@@ -11,14 +11,15 @@ import styles from './WeekView.module.scss';
 interface IProps {
     row: ContentRowInfo;
     commands: IViewCommands;
+    parkingMap: { [id: number]: string };
 }
 
-export const ContentRow: FC<IProps> = ({ row: { items }, commands }) =>
+export const ContentRow: FC<IProps> = ({ row: { items }, commands, parkingMap }) =>
     <Stack horizontal className={styles.content}>
         {items.map((item, idx) =>
             <StackItem key={idx} styles={blockStyles(item.duration)}>
                 {item instanceof EventItemInfo
-                    ? <EventItem eventInfo={item} commands={commands} />
+                    ? <EventItem eventInfo={item} commands={commands} parkingMap={parkingMap} />
                     : <ShimItem duration={item.duration} />
                 }
             </StackItem>

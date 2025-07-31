@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useRef } from 'react';
+import React, { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { EventOccurrence, ViewKeys } from 'model';
 import { EventDetailsCallout, IEventDetailsCallout } from '../../events';
 import { IViewDescriptor } from '../IViewDescriptor';
@@ -6,15 +6,16 @@ import { IViewProps } from '../IViewProps';
 import { Builder } from './Builder';
 import { Header } from './Header';
 import { Week } from './Week';
-
+import { sp } from '@pnp/sp';
 import { ViewNames as strings } from 'ComponentStrings';
 import { FocusZone } from '@fluentui/react';
 import Legend from './Legend';
+import { fetchParkingStalls } from '../list/spEventDetailsList';
 
 const MonthView: FC<IViewProps> = ({ anchorDate, eventCommands, viewCommands, cccurrences }) => {
     const weeks = Builder.build(cccurrences, anchorDate);
     const detailsCallout = useRef<IEventDetailsCallout>();
-
+    const [parkingMap, setParkingMap] = useState<{ [id: number]: string }>({});
    
 
     // Log refiner values for each event occurrence
@@ -39,6 +40,25 @@ const MonthView: FC<IViewProps> = ({ anchorDate, eventCommands, viewCommands, cc
         detailsCallout.current?.open(cccurrence, target);
     }, []);
 
+    useEffect(() => {
+    const fetchMap = async () => {
+        try {
+            const web = await sp.web.get();
+            const siteUrl = web.Url;
+            const stalls = await fetchParkingStalls(siteUrl);
+            const map: { [id: number]: string } = {};
+            stalls.forEach(stall => {
+                map[stall.id] = stall.parking;
+            });
+            setParkingMap(map);
+        } catch (error) {
+            console.error("Failed to load parking map:", error);
+        }
+    };
+
+    fetchMap();
+    }, []);
+
     return (
         <FocusZone>
             <Header />
@@ -49,11 +69,13 @@ const MonthView: FC<IViewProps> = ({ anchorDate, eventCommands, viewCommands, cc
                     anchorDate={anchorDate}
                     onActivate={onActivate}
                     viewCommands={viewCommands}
+                    parkingMap={parkingMap}
                 />
             )}
             <EventDetailsCallout
                 commands={eventCommands}
                 componentRef={detailsCallout}
+                parkingMap={parkingMap}
             />
             <Legend/>
         </FocusZone>

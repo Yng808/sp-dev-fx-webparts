@@ -6,9 +6,10 @@ import { EventItemInfo } from "./Builder";
 interface IProps {
     eventInfo: EventItemInfo;
     commands: IViewCommands;
+    parkingMap: { [id: number]: string };
 }
 
-export const EventItem: FC<IProps> = ({ eventInfo, commands: { activateEvent } }) => {
+export const EventItem: FC<IProps> = ({ eventInfo, commands: { activateEvent }, parkingMap }) => {
     const { cccurrence, startsInWeek, endsInWeek } = eventInfo;
 
     const onClick = useCallback(() => {
@@ -22,6 +23,7 @@ export const EventItem: FC<IProps> = ({ eventInfo, commands: { activateEvent } }
                 startsIn={startsInWeek}
                 endsIn={endsInWeek}
                 size={EventBarSize.Large}
+                parkingMap={parkingMap}
             />
         </div>
     );
