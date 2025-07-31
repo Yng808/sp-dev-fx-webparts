@@ -117,6 +117,35 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             loadAvailableParkingForAllEvents(groupIDToDisplay); 
         }
     }, [groupIDToDisplay]);
+    // exclude Island 1, 2, 3 AND Unavailable from being options when loading 
+    useEffect(() => {
+    if (parkingStallsOptions.length > 0 && !selectedParkingStall) {
+        const excludedIds = [35, 46, 47, -1];
+        const firstAvailable = parkingStallsOptions.find(
+        opt => !excludedIds.includes(Number(opt.key))
+        );
+        if (firstAvailable) {
+        setSelectedParkingStall(firstAvailable.key.toString());
+        }
+    }
+    }, [parkingStallsOptions]);
+    // exclude Island 1, 2, 3 AND Unavailable from being options when loading 
+    useEffect(() => {
+    const excludedIds = [35, 46, 47, -1];
+
+    Object.entries(parkingStallsOptionsEach).forEach(([eventId, options]) => {
+        const alreadySelected = individualSelections[Number(eventId)];
+        if (!alreadySelected && options.length > 0) {
+        const firstAvailable = options.find(opt => !excludedIds.includes(Number(opt.key)));
+        if (firstAvailable) {
+            setIndividualSelections(prev => ({
+            ...prev,
+            [Number(eventId)]: Number(firstAvailable.key),
+            }));
+        }
+        }
+    });
+    }, [parkingStallsOptionsEach]);
 
     useEffect(() => {
         const fetchParkingNames = async () => {
