@@ -61,9 +61,11 @@
 
 .rightSide {
   flex: 2 1 0;
+  max-width: 255px;
   min-width: 250px;
-  max-width: 250px;
-  width: 300px;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 370px;
 }
 
 .dayBlock {
