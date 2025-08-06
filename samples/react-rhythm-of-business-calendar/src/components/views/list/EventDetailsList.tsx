@@ -177,8 +177,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     // Re-assignment panel
     const openReassignPanel = (event: EventOccurrence) => {
         setEventToReassign(event);
-        setReassignStart(event.start.format('YYYY-MM-DDTHH:mm'));
-        setReassignEnd(event.end.format('YYYY-MM-DDTHH:mm'));
+        setReassignStart(event.start.format('HH:mm'));
+        setReassignEnd(event.end.format('HH:mm'));
         setIsReassignPanelOpen(true);
     };
 
@@ -231,9 +231,6 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     // Handle the apply to ALL events button
     const loadAvailableParkingForAllEvents = async (groupID: number) => {
         setLoadingSpots(true);
-        let allAvailableParking: ParkingSpot[] = [];
-        let allBookedParkingIds: Set<number> = new Set(); 
-        
         try {
             const web = await sp.web.get();
             const siteUrl = web.Url;
@@ -457,9 +454,17 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         if (!eventToReassign) return;
 
         try {
+            // Extract date (YYYY-MM-DD) from original event datetimes
+            const eventDate = eventToReassign.start.format('YYYY-MM-DD');
+            const endDate = eventToReassign.end.format('YYYY-MM-DD');
+
+            // Combine original date with new time
+            const startDateTime = `${eventDate}T${reassignStart}`;
+            const endDateTime = `${endDate}T${reassignEnd}`;
+
             await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(eventToReassign.id).update({
-            EventDate: moment.tz(reassignStart, siteTimeZone.momentId).format('YYYY-MM-DDTHH:mm:ss'),
-            EndDate: moment.tz(reassignEnd, siteTimeZone.momentId).format('YYYY-MM-DDTHH:mm:ss'),
+            EventDate: moment.tz(startDateTime, siteTimeZone.momentId).format('YYYY-MM-DDTHH:mm:ss'),
+            EndDate: moment.tz(endDateTime, siteTimeZone.momentId).format('YYYY-MM-DDTHH:mm:ss'),
             RequestStatus: 'New',
             ParkingStallsId: null, // or 0 or '' or remove, depending on SharePoint schema!
             });
@@ -537,10 +542,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
         // These map to SharePoint internal field names
         const fieldMap: { [key: string]: string } = {
-            dvPayGrade: 'DVPayGrade',
-            dvRank: 'DVRank',
-            dvFirstName: 'DVFirstName',
-            dvSurname: 'DVSurname'
+            dvPayGrade: 'DVPayGrade', dvRank: 'DVRank', dvFirstName: 'DVFirstName', dvSurname: 'DVSurname', jdirVisiting: 'JDIRVisiting', dvVisiting: 'DVVisiting', requestorRank: 'RequestorRank', requestorFirstName: 'RequestorFirstName', requestorLastName: 'RequestorLastName', requestorOffice: 'RequestorOffice', requestorDutyPhone: 'RequestorDutyPhone', requestorCellPhone: 'RequestorCellPhone', requestorEmail: 'RequestorEmail'
         };
 
         for (const event of eventsToUpdate) {
@@ -731,7 +733,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     </td>
                                     <td>
                                         <div>
-                                            <button className="btn btn-primary btn-sm me-2" onClick={() => openReassignPanel(event)}>Re-Assign</button>
+                                            <button className="btn btn-primary btn-sm me-2" onClick={() => openReassignPanel(event)}>Change Time</button>
                                             <button className="btn btn-warning btn-sm" onClick={() => handleCancel(event.id)}>Cancel</button>
                                         </div>
                                     </td>
@@ -925,39 +927,39 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     </div>
                     <div>
                     DV visiting JDIR/Office:{" "}
-                    <input className="form-control-plaintext" value={editFields.jdirVisiting ?? ''} onChange={e => setEditFields({ ...editFields, jdirVisiting: e.target.value })} readOnly={true}/>
+                    <input className="form-control" value={editFields.jdirVisiting ?? ''} onChange={e => setEditFields({ ...editFields, jdirVisiting: e.target.value })}/>
                     </div>
                     <div>
                     Is DV visting Bridge?:{" "}
-                    <input className="form-control-plaintext" value={editFields.dvVisiting ?? ''} onChange={e => setEditFields({ ...editFields, dvVisiting: e.target.value })} readOnly={true}/>
+                    <input className="form-control" value={editFields.dvVisiting ?? ''} onChange={e => setEditFields({ ...editFields, dvVisiting: e.target.value })}/>
                     </div>
                     <div>
                     Requestor Rank:{" "}
-                    <input className="form-control-plaintext" value={editFields.requestorRank ?? ''} onChange={e => setEditFields({ ...editFields, requestorRank: e.target.value })} readOnly={true}/>
+                    <input className="form-control" value={editFields.requestorRank ?? ''} onChange={e => setEditFields({ ...editFields, requestorRank: e.target.value })}/>
                     </div>
                     <div>
                     Requestor First Name:{" "}
-                    <input className="form-control-plaintext" value={editFields.requestorFirstName ?? ''} onChange={e => setEditFields({ ...editFields, requestorFirstName: e.target.value })} readOnly={true}/>
+                    <input className="form-control" value={editFields.requestorFirstName ?? ''} onChange={e => setEditFields({ ...editFields, requestorFirstName: e.target.value })}/>
                     </div>
                     <div>
                     Requestor Last Name:{" "}
-                    <input className="form-control-plaintext" value={editFields.requestorLastName ?? ''} onChange={e => setEditFields({ ...editFields, requestorLastName: e.target.value })} readOnly={true}/>
+                    <input className="form-control" value={editFields.requestorLastName ?? ''} onChange={e => setEditFields({ ...editFields, requestorLastName: e.target.value })}/>
                     </div>
                     <div>
                     Requestor Office:{" "}
-                    <input className="form-control-plaintext" value={editFields.requestorOffice ?? ''} onChange={e => setEditFields({ ...editFields, requestorOffice: e.target.value })} readOnly={true}/>
+                    <input className="form-control" value={editFields.requestorOffice ?? ''} onChange={e => setEditFields({ ...editFields, requestorOffice: e.target.value })}/>
                     </div>
                     <div>
                     Requestor Duty Phone:{" "}
-                    <input className="form-control-plaintext" value={editFields.requestorDutyPhone ?? ''} onChange={e => setEditFields({ ...editFields, requestorDutyPhone: e.target.value })} readOnly={true}/>
+                    <input className="form-control" value={editFields.requestorDutyPhone ?? ''} onChange={e => setEditFields({ ...editFields, requestorDutyPhone: e.target.value })}/>
                     </div>
                     <div>
                     Requestor Cell Phone:{" "}
-                    <input className="form-control-plaintext" value={editFields.requestorCellPhone ?? ''} onChange={e => setEditFields({ ...editFields, requestorCellPhone: e.target.value })} readOnly={true}/>
+                    <input className="form-control" value={editFields.requestorCellPhone ?? ''} onChange={e => setEditFields({ ...editFields, requestorCellPhone: e.target.value })}/>
                     </div>
                     <div>
                     Requestor Email:{" "}
-                    <input className="form-control-plaintext" value={editFields.requestorEmail ?? ''} onChange={e => setEditFields({ ...editFields, requestorEmail: e.target.value })} readOnly={true}/>
+                    <input className="form-control" value={editFields.requestorEmail ?? ''} onChange={e => setEditFields({ ...editFields, requestorEmail: e.target.value })}/>
                     </div>
                     <button className="btn btn-success mt-2" onClick={handleEditSave}>Save Changes</button>
                 </div>
@@ -970,13 +972,13 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 <div>
                     <label>
                     Start:
-                    <input type="datetime-local" className="form-control" value={reassignStart} onChange={e => setReassignStart(e.target.value)}/>
+                    <input type="time" className="form-control" value={reassignStart} onChange={e => setReassignStart(e.target.value)}/>
                     </label>
                 </div>
                 <div>
                     <label>
                     End:
-                    <input type="datetime-local" className="form-control" value={reassignEnd} onChange={e => setReassignEnd(e.target.value)}/>
+                    <input type="time" className="form-control" value={reassignEnd} onChange={e => setReassignEnd(e.target.value)}/>
                     </label>
                 </div>
                 <button className="btn btn-success mt-2" onClick={async () => { await handleReassignSave(); }}>
