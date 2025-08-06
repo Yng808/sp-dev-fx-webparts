@@ -462,11 +462,44 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             const startDateTime = `${eventDate}T${reassignStart}`;
             const endDateTime = `${endDate}T${reassignEnd}`;
 
+            const newStart = moment.tz(startDateTime, siteTimeZone.momentId);
+            const newEnd = moment.tz(endDateTime, siteTimeZone.momentId);
+            const parkingId = eventToReassign.parkingStalls;
+
+            // Only check if the event already has a parking stall assigned
+            if (parkingId && parkingId !== -1) {
+                // 1. Fetch all approved bookings overlapping new time
+                const web = await sp.web.get();
+                const siteUrl = web.Url;
+                const bookedParkingSet = await fetchBookedParkingForEvent(siteUrl, newStart, newEnd);
+
+                // 2. Check if current event's parking stall in the set
+                if (bookedParkingSet.has(parkingId)) {
+                    // 3. Get the ALL event(s) booking this spot
+                    const filter = [
+                        `ParkingStallsId eq ${parkingId}`,
+                        `ID ne ${eventToReassign.id}`,
+                        `(RequestStatus eq 'Approved')`,
+                        `(EndDate gt datetime'${newStart.toISOString()}' and EventDate lt datetime'${newEnd.toISOString()}')`
+                    ].join(' and ');
+
+                    const overlapResults = await sp.web.lists
+                        .getByTitle('Rob Calendar Events2')
+                        .items.filter(filter)
+                        .select('ID')
+                        .get();
+
+                    if (overlapResults && overlapResults.length > 0) {
+                        alert('The selected parking stall is already booked for this time. Please pick another time or parking.');
+                        return;
+                    }
+                }
+            }
+
             await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(eventToReassign.id).update({
-            EventDate: moment.tz(startDateTime, siteTimeZone.momentId).format('YYYY-MM-DDTHH:mm:ss'),
-            EndDate: moment.tz(endDateTime, siteTimeZone.momentId).format('YYYY-MM-DDTHH:mm:ss'),
-            RequestStatus: 'New',
-            ParkingStallsId: null, // or 0 or '' or remove, depending on SharePoint schema!
+                EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
+                EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
+                RequestStatus: 'Approved'
             });
 
             alert('Event re-assigned!');
