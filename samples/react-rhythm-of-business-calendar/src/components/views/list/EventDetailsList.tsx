@@ -466,45 +466,52 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             const newEnd = moment.tz(endDateTime, siteTimeZone.momentId);
             const parkingId = eventToReassign.parkingStalls;
 
-            // Only check if the event already has a parking stall assigned
-            if (parkingId && parkingId !== -1) {
-                // 1. Fetch all approved bookings overlapping new time
-                const web = await sp.web.get();
-                const siteUrl = web.Url;
-                const bookedParkingSet = await fetchBookedParkingForEvent(siteUrl, newStart, newEnd);
-
-                // 2. Check if current event's parking stall in the set
-                if (bookedParkingSet.has(parkingId)) {
-                    // 3. Get the ALL event(s) booking this spot
-                    const filter = [
-                        `ParkingStallsId eq ${parkingId}`,
-                        `ID ne ${eventToReassign.id}`,
-                        `(RequestStatus eq 'Approved')`,
-                        `(EndDate gt datetime'${newStart.toISOString()}' and EventDate lt datetime'${newEnd.toISOString()}')`
-                    ].join(' and ');
-
-                    const overlapResults = await sp.web.lists
-                        .getByTitle('Rob Calendar Events2')
-                        .items.filter(filter)
-                        .select('ID')
-                        .get();
-
-                    if (overlapResults && overlapResults.length > 0) {
-                        alert('The selected parking stall is already booked for this time. Please pick another time or parking.');
-                        return;
-                    }
-                }
+            // 1. If event is "New"
+            if (eventToReassign.requestStatus === "New" || !parkingId || parkingId === -1) {
+                await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(eventToReassign.id).update({
+                    EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
+                    EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
+                    RequestStatus: 'New'
+                });
+                alert('Event time updated!');
+                setIsReassignPanelOpen(false);
+                setEventToReassign(null);
+                return;
             }
 
+            // 2. If event is "Approved" and has a stall, check if the stall is available at the new time
+            const web = await sp.web.get();
+            const siteUrl = web.Url;
+            const bookedParkingSet = await fetchBookedParkingForEvent(siteUrl, newStart, newEnd);
+
+            if (!bookedParkingSet.has(parkingId)) {
+                // Stall is available for the new time; keep it and update time/status
+                await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(eventToReassign.id).update({
+                    EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
+                    EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
+                    RequestStatus: 'Approved'
+                });
+                alert('Event time and parking updated!');
+                setIsReassignPanelOpen(false);
+                setEventToReassign(null);
+                return;
+            }
+
+            // 3. If parking is NOT available, remove assignment, set status to New, and open the assign panel
             await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(eventToReassign.id).update({
                 EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
                 EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
-                RequestStatus: 'Approved'
+                ParkingStallsId: null,
+                RequestStatus: 'New'
             });
 
-            alert('Event re-assigned!');
+            alert('Parking for this event is not available at the new time. Please select a new parking assignment.');
             setIsReassignPanelOpen(false);
             setEventToReassign(null);
+
+            // Now open the assign panel for the relevant group
+            setGroupIDToDisplay(eventToReassign.groupID); // Show assignment options for this group
+            setIsPanelOpen(true); // Open the assign panel
         } catch (err) {
             alert('Failed to re-assign event.');
             console.error(err);
