@@ -658,7 +658,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     />
                 </div>
                 <div className="col">
-                    <button onClick={resetFilters} className="btn btn-secondary">Reset Filters</button>
+                    <button onClick={resetFilters} className="btn mt-3" style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)" }}>Reset Filters</button>
                 </div>
                 {/* <div className="col">
                     <label></label>
@@ -690,13 +690,13 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             <th style={{ backgroundColor: 'lightblue', minWidth: '170px' }}>Single Actions</th>
                             <th style={{ backgroundColor: 'lightblue' }}>ID</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Status</th>
-                            <th style={{ backgroundColor: 'lightblue' }}>Parking Assignment</th>
-                            <th style={{ backgroundColor: 'lightblue' }}>Request Date</th>
-                            <th style={{ backgroundColor: 'lightblue' }}>Bridge?</th>
-                            <th style={{ backgroundColor: 'lightblue' }}>JDIR</th>
                             <th style={{ backgroundColor: 'lightblue' }}>DV Pay Grade</th>
                             <th style={{ backgroundColor: 'lightblue' }}>DV Info</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>Parking Assignment</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>Request Date</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>JDIR</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Requestor Info</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>Bridge?</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -766,32 +766,32 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     </td> */}
                                     <td>
                                         <div>
-                                            <button className="btn btn-primary btn-sm me-2" onClick={() => openPanel(event.groupID)}>Assign</button>
-                                            <button className="btn btn-secondary btn-sm me-2" onClick={() => openEditPanel(event.groupID, event)}>Edit</button> 
-                                            <button className="btn btn-warning btn-sm me-2" onClick={() => handleCancelGroup(event.groupID)}>Cancel</button>
+                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(123, 218, 255)" }} onClick={() => openPanel(event.groupID)}>Assign</button>
+                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)" }} onClick={() => openEditPanel(event.groupID, event)}>Edit</button> 
+                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 123, 134)" }} onClick={() => handleCancelGroup(event.groupID)}>Cancel</button>
                                         </div>
                                     </td>
                                     <td>
                                         <div>
-                                            <button className="btn btn-primary btn-sm me-2" onClick={() => openReassignPanel(event)}>Change Time</button>
-                                            <button className="btn btn-warning btn-sm" onClick={() => handleCancel(event.id)}>Cancel</button>
+                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(226, 233, 127)" }} onClick={() => openReassignPanel(event)}>Change Time</button>
+                                            <button className="btn btn-sm" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 123, 134)" }} onClick={() => handleCancel(event.id)}>Cancel</button>
                                         </div>
                                     </td>
                                     <td>{event.groupID}</td>
                                     <td>{event.requestStatus}</td>
+                                    <td>{event.dvPayGrade}</td>
+                                    <td>{`${event.dvRank} ${event.dvFirstName} ${event.dvSurname}`}</td>
                                     <td>{event.parkingStalls === -1 ? 'Unavailable' : (parkingMap[event.parkingStalls] || event.parkingStalls)}</td>
                                     <td>
                                         <div>{event.start.format('DD MMM, YYYY')}</div>
                                         <div>{event.start.format('HHmm')}-{event.end.format('HHmm')}</div>
                                     </td>
-                                    <td>{event.dvVisiting}</td>
                                     <td>{event.jdirVisiting}</td>
-                                    <td>{event.dvPayGrade}</td>
-                                    <td>{`${event.dvRank} ${event.dvFirstName} ${event.dvSurname}`}</td>
                                     <td>
                                         <div>{`${event.requestorRank} ${event.requestorFirstName} ${event.requestorLastName}`}</div>
                                         <div>{`${event.requestorOffice} ${event.requestorCellPhone?.replace(/^(\(\d{3}\))(\d{3}-\d{4})$/, '$1 $2') || ''}`}</div>
                                     </td>
+                                    <td>{event.dvVisiting}</td>
                                 </tr>
                             );
                         })}
