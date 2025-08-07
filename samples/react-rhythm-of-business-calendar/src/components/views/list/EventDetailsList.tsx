@@ -687,16 +687,16 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             {showOPR && <th>IPC OPR</th>}
                             {showAttendee && <th>IPC Attendee</th>}
                             <th>Description</th> */}
-                            <th style={{ backgroundColor: 'lightblue', minWidth: '200px' }}>Group Actions</th>
-                            <th style={{ backgroundColor: 'lightblue', minWidth: '170px' }}>Single Actions</th>
+                            <th style={{ backgroundColor: 'lightblue', minWidth: '370px' }}>Group Actions</th>
+                            <th style={{ backgroundColor: 'lightblue', minWidth: '190px' }}>Single Actions</th>
                             <th style={{ backgroundColor: 'lightblue' }}>ID</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Status</th>
                             <th style={{ backgroundColor: 'lightblue' }}>DV Pay Grade</th>
                             <th style={{ backgroundColor: 'lightblue' }}>DV Info</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Parking Assignment</th>
-                            <th style={{ backgroundColor: 'lightblue' }}>Request Date</th>
+                            <th style={{ backgroundColor: 'lightblue', minWidth: '90px' }}>Request Date</th>
                             <th style={{ backgroundColor: 'lightblue' }}>JDIR</th>
-                            <th style={{ backgroundColor: 'lightblue' }}>Requestor Info</th>
+                            <th style={{ backgroundColor: 'lightblue', minWidth: '150px' }}>Requestor Info</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Bridge?</th>
                         </tr>
                     </thead>
@@ -767,8 +767,10 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     </td> */}
                                     <td>
                                         <div>
+                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 242, 123)", border: "1px solid #000" }}>Email</button>
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(123, 218, 255)", border: "1px solid #000" }} onClick={() => openPanel(event.groupID)}>Assign</button>
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)", border: "1px solid #000" }} onClick={() => openEditPanel(event.groupID, event)}>Edit</button> 
+                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(226, 233, 127)", border: "1px solid #000" }}>Change Date</button>
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 123, 134)", border: "1px solid #000" }} onClick={() => handleCancelGroup(event.groupID)}>Cancel</button>
                                         </div>
                                     </td>
