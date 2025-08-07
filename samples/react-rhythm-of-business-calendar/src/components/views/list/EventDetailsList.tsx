@@ -46,6 +46,11 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [eventToReassign, setEventToReassign] = useState<EventOccurrence | null>(null);
     const [reassignStart, setReassignStart] = useState('');
     const [reassignEnd, setReassignEnd] = useState('');
+    const [isChangeDatesPanelOpen, setIsChangeDatesPanelOpen] = useState(false);
+    const [groupToChangeDates, setGroupToChangeDates] = useState<number | null>(null);
+    const [changeStartDate, setChangeStartDate] = useState('');
+    const [changeEndDate, setChangeEndDate] = useState('');
+
 
     useEffect(() => {
         let filtered = [...cccurrences]; // Create a mutable copy of the readonly array
@@ -610,6 +615,138 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         setEditGroupID(null);
     };
 
+    // Change Dates button
+    const handleChangeDatesSave = async () => {
+        if (!groupToChangeDates || !changeStartDate || !changeEndDate) return;
+
+        // 1. Find all events in this group, sorted by date
+        let groupEvents = filteredEvents
+            .filter(ev => ev.groupID === groupToChangeDates)
+            .sort((a, b) => moment(a.start).diff(b.start));
+
+        // 2. Build the new list of dates (sorted)
+        let newDates: string[] = [];
+        let curr = moment(changeStartDate);
+        const end = moment(changeEndDate);
+        while (curr.isSameOrBefore(end, "day")) {
+            newDates.push(curr.format("YYYY-MM-DD"));
+            curr.add(1, "day");
+        }
+
+        // 3. Determine the minimum count for re-use
+        const minCount = Math.min(groupEvents.length, newDates.length);
+
+        // 4. Update the overlapping events
+        for (let i = 0; i < minCount; i++) {
+            const origEvent = groupEvents[i];
+            const newDate = newDates[i];
+
+            const origStartTime = origEvent.start.format('HH:mm:ss');
+            const origEndTime = origEvent.end.format('HH:mm:ss');
+            const newStart = moment.tz(`${newDate}T${origStartTime}`, siteTimeZone.momentId);
+            const newEnd = moment.tz(`${newDate}T${origEndTime}`, siteTimeZone.momentId);
+
+            const parkingId = origEvent.parkingStalls;
+
+            // If event is "New" or doesn't have parking, just update
+            if (origEvent.requestStatus === "New" || !parkingId || parkingId === -1) {
+                await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(origEvent.id).update({
+                    EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
+                    EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
+                    RequestStatus: 'New'
+                });
+                continue;
+            }
+
+            // If event has parking, check if it's still available
+            const web = await sp.web.get();
+            const siteUrl = web.Url;
+            const bookedParkingSet = await fetchBookedParkingForEvent(siteUrl, newStart, newEnd);
+
+            if (!bookedParkingSet.has(parkingId)) {
+                await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(origEvent.id).update({
+                    EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
+                    EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
+                    RequestStatus: 'Approved'
+                });
+            } else {
+                await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(origEvent.id).update({
+                    EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
+                    EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
+                    ParkingStallsId: null,
+                    RequestStatus: 'New'
+                });
+                setIsChangeDatesPanelOpen(false);
+                setGroupIDToDisplay(origEvent.groupID);
+                setIsPanelOpen(true);
+                alert(`Parking for one or more events is not available at the new date. Please reassign parking.`);
+                return;
+            }
+        }
+
+        // 5. Add new events if new range is longer than current events
+        if (newDates.length > groupEvents.length) {
+            const templateEvent = groupEvents[0];
+            for (let i = groupEvents.length; i < newDates.length; i++) {
+                const newDate = newDates[i];
+                const origStartTime = templateEvent.start.format('HH:mm:ss');
+                const origEndTime = templateEvent.end.format('HH:mm:ss');
+                const newStart = moment.tz(`${newDate}T${origStartTime}`, siteTimeZone.momentId);
+                const newEnd = moment.tz(`${newDate}T${origEndTime}`, siteTimeZone.momentId);
+
+                await sp.web.lists.getByTitle('Rob Calendar Events2').items.add({
+                    Title: templateEvent.title || 'Event',
+                    GroupID: templateEvent.groupID,
+                    DVPayGrade: templateEvent.dvPayGrade,
+                    DVRank: templateEvent.dvRank,
+                    DVFirstName: templateEvent.dvFirstName,
+                    DVSurname: templateEvent.dvSurname,
+                    JDIRVisiting: templateEvent.jdirVisiting,
+                    DVVisiting: templateEvent.dvVisiting,
+                    RequestorRank: templateEvent.requestorRank,
+                    RequestorFirstName: templateEvent.requestorFirstName,
+                    RequestorLastName: templateEvent.requestorLastName,
+                    RequestorOffice: templateEvent.requestorOffice,
+                    RequestorDutyPhone: templateEvent.requestorDutyPhone,
+                    RequestorCellPhone: templateEvent.requestorCellPhone,
+                    RequestorEmail: templateEvent.requestorEmail,
+                    ParkingStallsId: null,
+                    RequestStatus: 'New',
+                    EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
+                    EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss')
+                });
+            }
+        }
+
+        // 6. Cancel or delete extra events if new range is shorter
+        if (groupEvents.length > newDates.length) {
+            for (let i = newDates.length; i < groupEvents.length; i++) {
+                const ev = groupEvents[i];
+                await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(ev.id).update({
+                    RequestStatus: 'Cancelled'
+                });
+            }
+        }
+
+        alert('Group events successfully updated!');
+        setIsChangeDatesPanelOpen(false);
+        setGroupToChangeDates(null);
+    };
+
+
+
+    const openChangeDatesPanel = (groupID: number) => {
+        setGroupToChangeDates(groupID);
+        const groupEvents = filteredEvents.filter(e => e.groupID === groupID);
+        // sort by date!
+        groupEvents.sort((a, b) => moment(a.start).diff(moment(b.start)));
+        const start = groupEvents.length ? groupEvents[0].start.format('YYYY-MM-DD') : '';
+        const end = groupEvents.length ? groupEvents[groupEvents.length - 1].end.format('YYYY-MM-DD') : '';
+        setChangeStartDate(start);
+        setChangeEndDate(end);
+        setIsChangeDatesPanelOpen(true);
+    }
+
     return (
         <div className="container">
             {/* Filters section */}
@@ -770,7 +907,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 242, 123)", border: "1px solid #000" }}>Email</button>
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(123, 218, 255)", border: "1px solid #000" }} onClick={() => openPanel(event.groupID)}>Assign</button>
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)", border: "1px solid #000" }} onClick={() => openEditPanel(event.groupID, event)}>Edit</button> 
-                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(226, 233, 127)", border: "1px solid #000" }}>Change Dates</button>
+                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(226, 233, 127)", border: "1px solid #000" }} onClick={() => openChangeDatesPanel(event.groupID)}>Change Dates</button>
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 123, 134)", border: "1px solid #000" }} onClick={() => handleCancelGroup(event.groupID)}>Cancel</button>
                                         </div>
                                     </td>
@@ -977,7 +1114,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     <input className="form-control" value={editFields.jdirVisiting ?? ''} onChange={e => setEditFields({ ...editFields, jdirVisiting: e.target.value })}/>
                     </div>
                     <div>
-                    Is DV visting Bridge?:{" "}
+                    Is DV visting Bridge:{" "}
                     <input className="form-control" value={editFields.dvVisiting ?? ''} onChange={e => setEditFields({ ...editFields, dvVisiting: e.target.value })}/>
                     </div>
                 </div>
@@ -1038,6 +1175,41 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     </label>
                 </div>
                 <button className="btn btn-success mt-2" onClick={async () => { await handleReassignSave(); }}>
+                    Save Changes
+                </button>
+                </div>
+            </div>
+            )}
+            {isChangeDatesPanelOpen && (
+            <div className={styles.panel}>
+                <button onClick={() => setIsChangeDatesPanelOpen(false)} className={styles.closeButton}>x</button>
+                <div>
+                <div>
+                    <label>
+                    New Start Date:
+                    <input
+                        type="date"
+                        className="form-control"
+                        value={changeStartDate}
+                        onChange={e => setChangeStartDate(e.target.value)}
+                    />
+                    </label>
+                </div>
+                <div>
+                    <label>
+                    New End Date:
+                    <input
+                        type="date"
+                        className="form-control"
+                        value={changeEndDate}
+                        onChange={e => setChangeEndDate(e.target.value)}
+                    />
+                    </label>
+                </div>
+                <button
+                    className="btn btn-success mt-2"
+                    onClick={async () => await handleChangeDatesSave()}
+                >
                     Save Changes
                 </button>
                 </div>
