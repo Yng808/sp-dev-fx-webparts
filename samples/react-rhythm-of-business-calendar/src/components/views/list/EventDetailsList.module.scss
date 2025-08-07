@@ -111,18 +111,25 @@
 }
 // edit panel
 .formContainer {
-  display: grid;
-  gap: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.formContainer > div {
-  display: flex; 
-  flex-direction: column; 
+.formContainer .row {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  margin: 10px;
+}
+
+.formContainer .row > div {
+  flex: 0 0 180px;
+  display: flex;
+  flex-direction: column;
   font-weight: bold;
 }
 
 .formContainer button {
-  grid-column: 4;
-  height: min-content;
   align-self: end;
 }

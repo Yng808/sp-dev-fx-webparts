@@ -334,6 +334,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             }
 
             alert('Parking has been assigned to all events in the group.');
+            setIsPanelOpen(false);
         } catch (error) {
             console.error('Error updating events:', error);
             alert('There was an error assigning parking to the events.');
@@ -658,7 +659,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     />
                 </div>
                 <div className="col">
-                    <button onClick={resetFilters} className="btn mt-3" style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)" }}>Reset Filters</button>
+                    <button onClick={resetFilters} className="btn mt-3" style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)", border: "1px solid #000" }}>Reset Filters</button>
                 </div>
                 {/* <div className="col">
                     <label></label>
@@ -766,15 +767,15 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     </td> */}
                                     <td>
                                         <div>
-                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(123, 218, 255)" }} onClick={() => openPanel(event.groupID)}>Assign</button>
-                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)" }} onClick={() => openEditPanel(event.groupID, event)}>Edit</button> 
-                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 123, 134)" }} onClick={() => handleCancelGroup(event.groupID)}>Cancel</button>
+                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(123, 218, 255)", border: "1px solid #000" }} onClick={() => openPanel(event.groupID)}>Assign</button>
+                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)", border: "1px solid #000" }} onClick={() => openEditPanel(event.groupID, event)}>Edit</button> 
+                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 123, 134)", border: "1px solid #000" }} onClick={() => handleCancelGroup(event.groupID)}>Cancel</button>
                                         </div>
                                     </td>
                                     <td>
                                         <div>
-                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(226, 233, 127)" }} onClick={() => openReassignPanel(event)}>Change Time</button>
-                                            <button className="btn btn-sm" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 123, 134)" }} onClick={() => handleCancel(event.id)}>Cancel</button>
+                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(226, 233, 127)", border: "1px solid #000" }} onClick={() => openReassignPanel(event)}>Change Time</button>
+                                            <button className="btn btn-sm" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 123, 134)", border: "1px solid #000" }} onClick={() => handleCancel(event.id)}>Cancel</button>
                                         </div>
                                     </td>
                                     <td>{event.groupID}</td>
@@ -869,7 +870,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     return (
                         <>
                             <h6>Assignment for: {matchedEvent?.dvPayGrade || 'N/A'} {matchedEvent?.dvSurname || ''}</h6>
-                            <h6>Bridge: {matchedEvent?.dvVisiting || ''}</h6>
+                            <h6>GroupID: {matchedEvent?.groupID || ''} & Bridge: {matchedEvent?.dvVisiting || ''}</h6>
                         </>
                     );
                     })()}
@@ -949,6 +950,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             <div className={styles.panel}>
                 <button onClick={() => setIsEditPanelOpen(false)} className={styles.closeButton} >x</button>
                 <div className={styles.formContainer}>
+                <div style={{ background: "rgb(148, 200, 221)" }}>
+                <div className={styles.row}>
                     <div>
                     DV Pay Grade:{" "}
                     <input className="form-control" value={editFields.dvPayGrade ?? ''} onChange={e => setEditFields({ ...editFields, dvPayGrade: e.target.value })}/>
@@ -965,6 +968,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     DV Last Name:{" "}
                     <input className="form-control" value={editFields.dvSurname ?? ''} onChange={e => setEditFields({ ...editFields, dvSurname: e.target.value })}/>
                     </div>
+                </div>
+                <div className={styles.row}>
                     <div>
                     DV visiting JDIR/Office:{" "}
                     <input className="form-control" value={editFields.jdirVisiting ?? ''} onChange={e => setEditFields({ ...editFields, jdirVisiting: e.target.value })}/>
@@ -973,6 +978,10 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     Is DV visting Bridge?:{" "}
                     <input className="form-control" value={editFields.dvVisiting ?? ''} onChange={e => setEditFields({ ...editFields, dvVisiting: e.target.value })}/>
                     </div>
+                </div>
+                </div>
+                <div style={{ background: "rgb(165, 221, 148)" }}>
+                <div className={styles.row}>
                     <div>
                     Requestor Rank:{" "}
                     <input className="form-control" value={editFields.requestorRank ?? ''} onChange={e => setEditFields({ ...editFields, requestorRank: e.target.value })}/>
@@ -989,6 +998,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     Requestor Office:{" "}
                     <input className="form-control" value={editFields.requestorOffice ?? ''} onChange={e => setEditFields({ ...editFields, requestorOffice: e.target.value })}/>
                     </div>
+                </div>
+                <div className={styles.row}>
                     <div>
                     Requestor Duty Phone:{" "}
                     <input className="form-control" value={editFields.requestorDutyPhone ?? ''} onChange={e => setEditFields({ ...editFields, requestorDutyPhone: e.target.value })}/>
@@ -1001,7 +1012,9 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     Requestor Email:{" "}
                     <input className="form-control" value={editFields.requestorEmail ?? ''} onChange={e => setEditFields({ ...editFields, requestorEmail: e.target.value })}/>
                     </div>
-                    <button className="btn btn-success mt-2" onClick={handleEditSave}>Save Changes</button>
+                </div>
+                </div>
+                    <button className="btn btn-success" onClick={handleEditSave}>Save Changes</button>
                 </div>
             </div>
             )}
@@ -1009,6 +1022,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             <div className={styles.panel}>
                 <button onClick={() => setIsReassignPanelOpen(false)} className={styles.closeButton}>x</button>
                 <div> 
+                <h6>{eventToReassign.start.format('DD MMM, YYYY')}</h6>
                 <div>
                     <label>
                     Start:
