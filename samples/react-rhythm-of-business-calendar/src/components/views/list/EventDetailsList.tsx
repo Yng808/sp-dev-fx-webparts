@@ -687,7 +687,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             {showOPR && <th>IPC OPR</th>}
                             {showAttendee && <th>IPC Attendee</th>}
                             <th>Description</th> */}
-                            <th style={{ backgroundColor: 'lightblue', minWidth: '370px' }}>Group Actions</th>
+                            <th style={{ backgroundColor: 'lightblue', minWidth: '375px' }}>Group Actions</th>
                             <th style={{ backgroundColor: 'lightblue', minWidth: '190px' }}>Single Actions</th>
                             <th style={{ backgroundColor: 'lightblue' }}>ID</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Status</th>
@@ -697,7 +697,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             <th style={{ backgroundColor: 'lightblue', minWidth: '90px' }}>Request Date</th>
                             <th style={{ backgroundColor: 'lightblue' }}>JDIR</th>
                             <th style={{ backgroundColor: 'lightblue', minWidth: '150px' }}>Requestor Info</th>
-                            <th style={{ backgroundColor: 'lightblue' }}>Bridge?</th>
+                            <th style={{ backgroundColor: 'lightblue' }}>Bridge</th>
                         </tr>
                     </thead>
                     <tbody>
