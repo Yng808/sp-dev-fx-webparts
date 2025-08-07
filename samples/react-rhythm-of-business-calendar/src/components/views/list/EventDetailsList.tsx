@@ -770,7 +770,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 242, 123)", border: "1px solid #000" }}>Email</button>
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(123, 218, 255)", border: "1px solid #000" }} onClick={() => openPanel(event.groupID)}>Assign</button>
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)", border: "1px solid #000" }} onClick={() => openEditPanel(event.groupID, event)}>Edit</button> 
-                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(226, 233, 127)", border: "1px solid #000" }}>Change Date</button>
+                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(226, 233, 127)", border: "1px solid #000" }}>Change Dates</button>
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 123, 134)", border: "1px solid #000" }} onClick={() => handleCancelGroup(event.groupID)}>Cancel</button>
                                         </div>
                                     </td>
