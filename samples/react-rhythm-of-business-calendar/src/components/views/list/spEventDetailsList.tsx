@@ -6,6 +6,12 @@ export interface ParkingSpot {
     parking: string;
 }
 
+export interface OccupiedStall {
+    parkingId: number;
+    payGrade: string;
+    surname: string;
+}
+
 // #1 loadAvailableParkingForAllEvents ------------------------------------------------------------------------------------
 
 // Fetch all parking stalls
@@ -114,4 +120,38 @@ export const fetchFromSharePoint = async (siteUrl: string, listName: string, que
         console.error('Error fetching data from SharePoint:', error);
         throw error;  // Rethrow so calling functions can handle the error as needed
     }
+};
+
+// #3 get Occupied Parking Details
+
+// Fetch PayGrade and LastName of occupied
+export const fetchOccupiedParkingDetails = async (
+    siteUrl: string,
+    eventStart: moment.Moment,
+    eventEnd: moment.Moment
+): Promise<OccupiedStall[]> => {
+    const response = await fetch(
+        `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items` +
+        `?$select=ParkingStallsId,DVPayGrade,DVSurname,EventDate,EndDate` +
+        `&$filter=RequestStatus eq 'Approved' and ` +
+        `(EndDate gt datetime'${eventStart.toISOString()}' and EventDate lt datetime'${eventEnd.toISOString()}')`,
+        {
+            method: "GET",
+            headers: {
+                Accept: "application/json;odata=verbose",
+            },
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch occupied parking details: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    return data.d.results.map((item: any) => ({
+        parkingId: item.ParkingStallsId,
+        payGrade: item.DVPayGrade,
+        surname: item.DVSurname
+    }));
 };

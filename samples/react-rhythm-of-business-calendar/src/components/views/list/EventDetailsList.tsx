@@ -9,7 +9,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from './EventDetailsList.module.scss';
 import { sp } from '@pnp/sp';
 import { IDropdownOption } from '@fluentui/react';
-import { fetchParkingStalls, fetchBookingsForGroup, fetchBookedParkingForEvent, filterAvailableParking, formatParkingOptions, fetchFromSharePoint } from './spEventDetailsList';
+import { fetchParkingStalls, fetchBookingsForGroup, fetchBookedParkingForEvent, filterAvailableParking, formatParkingOptions, fetchFromSharePoint, fetchOccupiedParkingDetails } from './spEventDetailsList';
 
 interface EventDetailsListProps {
   cccurrences: readonly EventOccurrence[];
@@ -19,6 +19,13 @@ interface ParkingSpot {
   id: number;
   parking: string;
 }
+
+interface OccupiedStall {
+    parkingId: number;
+    payGrade: string;
+    surname: string;
+}
+
 
 const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [filteredEvents, setFilteredEvents] = useState<EventOccurrence[]>([...cccurrences]);
@@ -50,6 +57,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [groupToChangeDates, setGroupToChangeDates] = useState<number | null>(null);
     const [changeStartDate, setChangeStartDate] = useState('');
     const [changeEndDate, setChangeEndDate] = useState('');
+    const [occupiedMapByDay, setOccupiedMapByDay] = useState<{[date: string]: { [stallId: number]: { payGrade: string; surname: string }[] }}>({});
+    const [panelParkingOccupiedLoading, setPanelParkingOccupiedLoading] = useState(true);
 
 
     useEffect(() => {
@@ -151,7 +160,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         }
     });
     }, [parkingStallsOptionsEach]);
-
+    // fetch parking stalls for left side
     useEffect(() => {
         const fetchParkingNames = async () => {
             const web = await sp.web.get();
@@ -165,6 +174,47 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         };
         fetchParkingNames();
     }, []);
+    // fetch occupied paygrade and dvlastname
+    useEffect(() => {
+        if (!isPanelOpen || !groupIDToDisplay) return;
+
+        const loadOccupied = async () => {
+            setPanelParkingOccupiedLoading(true);
+            const web = await sp.web.get();
+            const siteUrl = web.Url;
+
+            const dateRange = getEventDateRange(filteredEvents, groupIDToDisplay);
+            const newMap: typeof occupiedMapByDay = {};
+
+            for (const day of dateRange) {
+                const start = moment(day).startOf('day');
+                const end = moment(day).endOf('day');
+
+                const occupiedDetails = await fetchOccupiedParkingDetails(siteUrl, start, end);
+                const dayKey = moment(day).format('YYYY-MM-DD');
+
+                occupiedDetails.forEach(o => {
+                    if (!newMap[dayKey]) newMap[dayKey] = {};
+                    if (!newMap[dayKey][o.parkingId]) newMap[dayKey][o.parkingId] = [];
+
+                    const alreadyExists = newMap[dayKey][o.parkingId].some(
+                        existing => existing.payGrade === o.payGrade && existing.surname === o.surname
+                    );
+
+                    if (!alreadyExists) {
+                        newMap[dayKey][o.parkingId].push({
+                            payGrade: o.payGrade,
+                            surname: o.surname
+                        });
+                    }
+                });
+            }
+            setOccupiedMapByDay(newMap);
+            setPanelParkingOccupiedLoading(false);
+        };
+
+        loadOccupied();
+    }, [isPanelOpen, groupIDToDisplay, filteredEvents]);
 
     const resetFilters = () => { setStartDate(''); setEndDate(''); setSearchQuery(''); setRequestStatusFilter(''); };
     // Assignment panel
@@ -944,11 +994,12 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 <div className={styles.flexContainer}> 
                     {/* Left Side - Parking Display */}
                     <div className={styles.leftSide}>
-                    {panelParkingLoading ? (
+                    {(panelParkingLoading || panelParkingOccupiedLoading) ? (
                         <div></div>
                     ) : (
                         getEventDateRange(filteredEvents, groupIDToDisplay).map((day) => {
                             const dayOfWeek = moment(day);
+                            const dayKey = dayOfWeek.format('YYYY-MM-DD');
 
                             const eventsForDay = filteredEvents.filter((event) =>
                                 event.groupID === groupIDToDisplay && moment(event.start).isSame(dayOfWeek, 'day')
@@ -978,15 +1029,30 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                                 </div>
                                                 );
                                             } else {
-                                                // Stall is not available
-                                                return (
-                                                <div
-                                                    key={stallId}
-                                                    className={styles.parkingOption + ' ' + styles.occupiedOption}
-                                                >
-                                                    {parkingMap[stallId] || `Stall ${stallId}`} <span style={{ fontSize: '0.8em' }}></span>
-                                                </div>
-                                                );
+                                                const occupantsForDay = occupiedMapByDay[dayKey]?.[stallId] || [];
+                                                if (occupantsForDay.length > 0) {
+                                                    // Stall is actually occupied for this date
+                                                    return (
+                                                        <div
+                                                            key={stallId}
+                                                            className={styles.parkingOption + ' ' + styles.occupiedOption}
+                                                        >
+                                                            {parkingMap[stallId] || `Stall ${stallId}`}{" "}
+                                                            <br />
+                                                            <span style={{ fontSize: '0.8em' }}>
+                                                                {occupantsForDay.map(o => `${o.payGrade} ${o.surname}`).join(', ')}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                } else {
+                                                    // Stall available
+                                                    const option = visualOptions.find((opt) => Number(opt.key) === stallId);
+                                                    return (
+                                                        <div key={stallId} className={styles.parkingOption}>
+                                                            {option?.text || parkingMap[stallId]}
+                                                        </div>
+                                                    );
+                                                }
                                             }
                                             })}
                                         </div>
@@ -1014,7 +1080,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     );
                     })()}
 
-                    {panelParkingLoading ? (
+                    {(panelParkingLoading || panelParkingOccupiedLoading) ? (
                         <div>Loading...</div>
                     ) : parkingStallsOptions.filter(opt => opt.key !== -1).length > 0 ? (
                     <div className="d-flex flex-column gap-2 w-100">
