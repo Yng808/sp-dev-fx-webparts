@@ -31,7 +31,11 @@ export class Builder {
         // Sort occurrences by start time
         //const sortedOccurrences = [...cccurrences].sort(EventOccurrence.StartAscComparer);
         // Sort occurences by title 
-        const sortedOccurrences = [...cccurrences].sort((a, b) =>  a.title.localeCompare(b.title));
+        const sortedOccurrences = [...cccurrences].sort((a, b) => { 
+            const aStall = typeof a.parkingStalls === 'number' ? a.parkingStalls : Number.POSITIVE_INFINITY;
+            const bStall = typeof b.parkingStalls === 'number' ? b.parkingStalls : Number.POSITIVE_INFINITY;
+            return aStall - bStall;
+        });
 
         // Include occurrences in the DayInfo
         sortedOccurrences.forEach((occurrence) => dayInfo.include(occurrence));

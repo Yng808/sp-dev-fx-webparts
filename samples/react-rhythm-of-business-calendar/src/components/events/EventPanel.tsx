@@ -125,7 +125,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
 
             // STEP 1: Fetch all parking stalls
             const parkingResponse = await fetch(
-            `${siteUrl}/_api/web/lists/getbytitle('DVParkingStalls')/items?$select=ID,ParkingAssigment`,
+            `${siteUrl}/_api/web/lists/getbytitle('DVParkingStalls')/items?$select=ID,ParkingAssignment`,
             {
                 method: "GET",
                 headers: {
@@ -142,7 +142,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
             const allParking = allParkingData.d.results.map((item: any) => ({
             id: item.ID,
             //title: item.Title,
-            parking :item.ParkingAssigment
+            parking :item.ParkingAssignment
             }));
 
             // STEP 2: Fetch booked parking assignments in the time window

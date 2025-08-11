@@ -11,7 +11,7 @@ export interface ParkingSpot {
 // Fetch all parking stalls
 export const fetchParkingStalls = async (siteUrl: string): Promise<ParkingSpot[]> => {
     const parkingResponse = await fetch(
-        `${siteUrl}/_api/web/lists/getbytitle('DVParkingStalls')/items?$select=ID,ParkingAssigment`,
+        `${siteUrl}/_api/web/lists/getbytitle('DVParkingStalls')/items?$select=ID,ParkingAssignment`,
         {
             method: "GET",
             headers: {
@@ -27,7 +27,7 @@ export const fetchParkingStalls = async (siteUrl: string): Promise<ParkingSpot[]
     const allParkingData = await parkingResponse.json();
     return allParkingData.d.results.map((item: any) => ({
         id: item.ID,
-        parking: item.ParkingAssigment,
+        parking: item.ParkingAssignment,
     }));
 };
 

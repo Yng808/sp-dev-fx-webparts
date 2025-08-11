@@ -104,7 +104,11 @@ export class Builder {
         });
 
         //const sortedEventOccurrences = [...filteredEventOccurrences].sort(EventOccurrence.StartAscComparer);
-        const sortedEventOccurrences = [...filteredEventOccurrences].sort((a, b) =>  a.title.localeCompare(b.title));
+        const sortedEventOccurrences = [...filteredEventOccurrences].sort((a, b) => {
+            const aStall = typeof a.parkingStalls === 'number' ? a.parkingStalls : Number.POSITIVE_INFINITY;
+            const bStall = typeof b.parkingStalls === 'number' ? b.parkingStalls : Number.POSITIVE_INFINITY;
+            return aStall - bStall;
+        });
 
         for (const cccurrence of sortedEventOccurrences) {
             if (cccurrence.isAllDay) {

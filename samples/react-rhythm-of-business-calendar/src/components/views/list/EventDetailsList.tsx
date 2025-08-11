@@ -324,7 +324,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     ? Number(individualSelections[event.groupID])  
                     : Number(selectedParkingStall);  
 
-                if (selectedStall) {
+                if (selectedStall !== undefined && selectedStall !== null && !isNaN(selectedStall)) {
                     await updateEventsInDatabase({
                         ...event,
                         parkingStalls: selectedStall, 
@@ -904,7 +904,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     </td> */}
                                     <td>
                                         <div>
-                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 242, 123)", border: "1px solid #000" }}>Email</button>
+                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 203, 123)", border: "1px solid #000" }}>Email</button>
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(123, 218, 255)", border: "1px solid #000" }} onClick={() => openPanel(event.groupID)}>Assign</button>
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)", border: "1px solid #000" }} onClick={() => openEditPanel(event.groupID, event)}>Edit</button> 
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(226, 233, 127)", border: "1px solid #000" }} onClick={() => openChangeDatesPanel(event.groupID)}>Change Dates</button>
@@ -1032,7 +1032,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             ))}
                         </select>
                         {/* Assign Parking Button */}
-                        <button className="btn btn-primary w-100" onClick={handleAssignToAllEvents}>
+                        <button className="btn btn-success w-100" onClick={handleAssignToAllEvents}>
                             Assign and send email
                         </button>
                     </div>
@@ -1064,7 +1064,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                         })}
                             <button
                             className="btn btn-success mt-3 w-100" onClick={async () => {
-                                const unselected = events.filter(event => individualSelections[event.id] === undefined || isNaN(individualSelections[event.id]) || individualSelections[event.id] <= 0);
+                                const unselected = events.filter(event => individualSelections[event.id] === undefined || isNaN(individualSelections[event.id]) || individualSelections[event.id] === 0);
                                 if (unselected.length > 0) {
                                     alert(`Please select parking for all events before assigning.`);
                                     return;

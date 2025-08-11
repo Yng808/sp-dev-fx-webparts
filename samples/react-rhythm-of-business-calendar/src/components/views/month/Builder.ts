@@ -192,8 +192,12 @@ export class Builder {
     }
 
     private static _fillWeeksWithEvents(weeks: WeekInfo[], cccurrences: readonly EventOccurrence[]) {
-        const sortedOccurrences = [...cccurrences].sort((a, b) =>  a.title.localeCompare(b.title));
-        //console.log('sortedEventOccurrences', sortedEventOccurrences);
+        const sortedOccurrences = [...cccurrences].sort((a, b) => {
+            const aStall = typeof a.parkingStalls === 'number' ? a.parkingStalls : Number.POSITIVE_INFINITY;
+            const bStall = typeof b.parkingStalls === 'number' ? b.parkingStalls : Number.POSITIVE_INFINITY;
+            return aStall - bStall;
+        });
+
         for (const week of weeks) {
             // console.log('inside for loop of fill weeks with events');
             //console.log('week:',week);
