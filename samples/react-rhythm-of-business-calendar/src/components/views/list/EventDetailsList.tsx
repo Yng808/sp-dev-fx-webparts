@@ -1160,58 +1160,78 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             {isReassignPanelOpen && eventToReassign && (
             <div className={styles.panel}>
                 <button onClick={() => setIsReassignPanelOpen(false)} className={styles.closeButton}>x</button>
-                <div> 
-                <h6>{eventToReassign.start.format('DD MMM, YYYY')}</h6>
+                <div className={styles.flexContainer}>
+                {/* Left side */}
                 <div>
-                    <label>
-                    Start:
+                <div>
+                    <h6>
+                    New Start Time:
                     <input type="time" className="form-control" value={reassignStart} onChange={e => setReassignStart(e.target.value)}/>
-                    </label>
+                    </h6>
                 </div>
                 <div>
-                    <label>
-                    End:
+                    <h6>
+                    New End Time:
                     <input type="time" className="form-control" value={reassignEnd} onChange={e => setReassignEnd(e.target.value)}/>
-                    </label>
+                    </h6>
                 </div>
-                <button className="btn btn-success mt-2" onClick={async () => { await handleReassignSave(); }}>
+                <button className="btn btn-success mt-2 w-100" onClick={handleReassignSave}>
                     Save Changes
                 </button>
+                </div>
+
+                {/* Right side */}
+                <div>
+                    <h6>GroupID: {eventToReassign.groupID || ''} & Bridge: {eventToReassign.dvVisiting || ''}</h6>
+                    <h6>Assignment for: {eventToReassign.dvPayGrade || 'N/A'} {eventToReassign.dvSurname || ''}</h6>
+                    <h6>Date: {eventToReassign.start.format('DD MMM, YYYY')}</h6>
+                </div>
                 </div>
             </div>
             )}
             {isChangeDatesPanelOpen && (
             <div className={styles.panel}>
                 <button onClick={() => setIsChangeDatesPanelOpen(false)} className={styles.closeButton}>x</button>
+                <div className={styles.flexContainer}>
+                {/* Left side */}
                 <div>
                 <div>
-                    <label>
+                    <h6>
                     New Start Date:
-                    <input
-                        type="date"
-                        className="form-control"
-                        value={changeStartDate}
-                        onChange={e => setChangeStartDate(e.target.value)}
-                    />
-                    </label>
+                    <input type="date" className="form-control" value={changeStartDate} onChange={e => setChangeStartDate(e.target.value)}/>
+                    </h6>
                 </div>
                 <div>
-                    <label>
+                    <h6>
                     New End Date:
-                    <input
-                        type="date"
-                        className="form-control"
-                        value={changeEndDate}
-                        onChange={e => setChangeEndDate(e.target.value)}
-                    />
-                    </label>
+                    <input type="date" className="form-control" value={changeEndDate} onChange={e => setChangeEndDate(e.target.value)}/>
+                    </h6>
                 </div>
-                <button
-                    className="btn btn-success mt-2"
-                    onClick={async () => await handleChangeDatesSave()}
-                >
-                    Save Changes
-                </button>
+                    <button className="btn btn-success mt-2 w-100" onClick={handleChangeDatesSave}>
+                        Save Changes
+                    </button>
+                </div>
+
+                {/* Right side */}
+                <div>
+                    {(() => {
+                    const groupEvents = filteredEvents.filter(e => e.groupID === groupToChangeDates);
+                    if (!groupEvents.length) {
+                        return <h6>No events found for this group.</h6>;
+                    }
+                    // Sort by start date
+                    groupEvents.sort((a, b) => a.start.diff(b.start));
+                    const first = groupEvents[0];
+                    const last = groupEvents[groupEvents.length - 1];
+                    return (
+                        <>
+                        <h6>GroupID: {first.groupID || ''} & Bridge: {first.dvVisiting || ''}</h6>
+                        <h6>Assignment  for: {first.dvPayGrade || 'N/A'} {first.dvSurname || ''}</h6>
+                        <h6>Dates:{' '}{first.start.format('DD MMM, YYYY')} - {last.end.format('DD MMM, YYYY')}</h6>
+                        </>
+                    );
+                    })()}
+                </div>
                 </div>
             </div>
             )}
