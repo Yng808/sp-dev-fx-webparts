@@ -14,14 +14,7 @@ interface Props {
   setGroupIDToDisplay: (id: number) => void;
 }
 
-export const ReassignPanel: React.FC<Props> = ({
-  isReassignPanelOpen,
-  setIsReassignPanelOpen,
-  eventToReassign,
-  siteTimeZone,
-  setIsPanelOpen,
-  setGroupIDToDisplay
-}) => {
+export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReassignPanelOpen, eventToReassign, siteTimeZone, setIsPanelOpen, setGroupIDToDisplay }) => {
   const [reassignStart, setReassignStart] = useState('');
   const [reassignEnd, setReassignEnd] = useState('');
 
@@ -105,10 +98,12 @@ export const ReassignPanel: React.FC<Props> = ({
             New End Time:
             <input type="time" className="form-control" value={reassignEnd} onChange={e => setReassignEnd(e.target.value)} />
           </h6>
+          
           <button className="btn btn-success mt-2 w-100" onClick={handleReassignSave}>
             Save Changes
           </button>
         </div>
+
         <div>
           <h6>GroupID: {eventToReassign.groupID}</h6>
           <h6>Assignment for: {eventToReassign.dvPayGrade} {eventToReassign.dvSurname}</h6>

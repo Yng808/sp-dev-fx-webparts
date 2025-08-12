@@ -9,6 +9,7 @@ import { AssignPanel } from './AssignPanel';
 import { EditPanel } from './EditPanel';
 import { ReassignPanel } from './ReassignPanel';
 import { ChangeDatesPanel } from './ChangeDatesPanel';
+
 interface EventDetailsListProps {
   cccurrences: readonly EventOccurrence[];
 }
