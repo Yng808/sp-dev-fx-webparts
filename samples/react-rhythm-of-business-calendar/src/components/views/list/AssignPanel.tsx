@@ -27,10 +27,12 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
     const [panelParkingOccupiedLoading, setPanelParkingOccupiedLoading] = useState(true);
 
     useEffect(() => {
-        if (groupIDToDisplay !== 0) {
+        if (isPanelOpen && groupIDToDisplay !== 0) {
+            setParkingStallsOptions([]);
+            setParkingStallsOptionsEach({});
         loadAvailableParkingForAllEvents(groupIDToDisplay);
         }
-    }, [groupIDToDisplay]);
+    }, [isPanelOpen, groupIDToDisplay]);
 
     useEffect(() => {
         if (parkingStallsOptions.length > 0 && !selectedParkingStall) {

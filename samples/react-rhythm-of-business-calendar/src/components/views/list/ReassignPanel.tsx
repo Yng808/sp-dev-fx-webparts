@@ -52,7 +52,7 @@ export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReass
       // Case 2: Approved & check parking availability
       const web = await sp.web.get();
       const siteUrl = web.Url;
-      const bookedParkingSet = await fetchBookedParkingForEvent(siteUrl, newStart, newEnd);
+      const bookedParkingSet = await fetchBookedParkingForEvent(siteUrl, newStart, newEnd, eventToReassign.id);
 
       if (!bookedParkingSet.has(parkingId)) {
         await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(eventToReassign.id).update({
@@ -98,7 +98,7 @@ export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReass
             New End Time:
             <input type="time" className="form-control" value={reassignEnd} onChange={e => setReassignEnd(e.target.value)} />
           </h6>
-          
+
           <button className="btn btn-success mt-2 w-100" onClick={handleReassignSave}>
             Save Changes
           </button>

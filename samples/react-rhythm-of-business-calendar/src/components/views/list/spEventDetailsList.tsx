@@ -1,5 +1,7 @@
 import moment from "moment";
 import { IDropdownOption } from '@fluentui/react';
+import { EventOccurrence } from 'model';
+import { Event } from 'model';
 
 export interface ParkingSpot {
     id: number;
@@ -59,10 +61,10 @@ export const fetchBookingsForGroup = async (siteUrl: string, groupID: number) =>
 };
 
 // Fetch booked parking for a given event date range
-export const fetchBookedParkingForEvent = async (siteUrl: string, eventStart: moment.Moment, eventEnd: moment.Moment) => {
+export const fetchBookedParkingForEvent = async (siteUrl: string, eventStart: moment.Moment, eventEnd: moment.Moment, ignoreEventId?: number) => {
     const bookedParkingResponse = await fetch(
         `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items` +
-        `?$select=ParkingStallsId,EventDate,EndDate` +
+        `?$select=ID,ParkingStallsId,EventDate,EndDate` +
         `&$filter=RequestStatus eq 'Approved' and ` +
         `(EndDate gt datetime'${eventStart.toISOString()}' and EventDate lt datetime'${eventEnd.toISOString()}')`,
         {
@@ -79,7 +81,7 @@ export const fetchBookedParkingForEvent = async (siteUrl: string, eventStart: mo
 
     const bookedData = await bookedParkingResponse.json();
     return new Set<number>(
-        bookedData.d.results.map((item: any) => item.ParkingStallsId).filter((id: number | null) => id != null) as number[]
+        bookedData.d.results.filter((item: any) => item.ID !== ignoreEventId).map((item: any) => item.ParkingStallsId).filter((id: number | null) => id != null) as number[]
     );
 };
 
@@ -122,7 +124,7 @@ export const fetchFromSharePoint = async (siteUrl: string, listName: string, que
     }
 };
 
-// #3 get Occupied Parking Details
+// #3 get Occupied Parking Details ----------------------------------------------------------------------------------------
 
 // Fetch PayGrade and LastName of occupied
 export const fetchOccupiedParkingDetails = async (
@@ -154,4 +156,38 @@ export const fetchOccupiedParkingDetails = async (
         payGrade: item.DVPayGrade,
         surname: item.DVSurname
     }));
+};
+
+// #4 Edit Button ---------------------------------------------------------------------------------------------------------
+
+export const mapSharePointItemToEventOccurrence = (item: any): EventOccurrence => {
+    const event = new Event(undefined, undefined, undefined, undefined, item.ID);
+
+    const mapping: Record<string, keyof Event> = {
+        ParkingStallsId: "parkingStalls", RequestStatus: "requestStatus", DVPayGrade: "dvPayGrade", DVRank: "dvRank", DVFirstName: "dvFirstName", DVSurname: "dvSurname", JDIRVisiting: "jdirVisiting", DVVisiting: "dvVisiting", RequestorRank: "requestorRank", RequestorFirstName: "requestorFirstName", RequestorLastName: "requestorLastName", RequestorOffice: "requestorOffice", RequestorDutyPhone: "requestorDutyPhone", RequestorCellPhone: "requestorCellPhone", RequestorEmail: "requestorEmail", GroupID: "groupID"
+    };
+
+    for (const [spKey, eventProp] of Object.entries(mapping)) {
+        (event as any)[eventProp] = item[spKey] ?? '';
+    }
+
+    const start = moment(item.EventDate);
+    const end = moment(item.EndDate);
+
+    return new EventOccurrence(event, start, end);
+};
+
+export const fetchEventOccurrenceById = async (siteUrl: string, eventId: number): Promise<EventOccurrence> => {
+    const res = await fetch(
+        `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items(${eventId})`,
+        {
+            method: "GET",
+            headers: { Accept: "application/json;odata=verbose" }
+        }
+    );
+
+    if (!res.ok) throw new Error(`Failed to fetch event: ${res.statusText}`);
+
+    const json = await res.json();
+    return mapSharePointItemToEventOccurrence(json.d);
 };

@@ -4,7 +4,7 @@ import { useTimeZoneService } from 'services';
 import moment from 'moment';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { sp } from '@pnp/sp';
-import { fetchParkingStalls } from './spEventDetailsList';
+import { fetchParkingStalls, fetchEventOccurrenceById } from './spEventDetailsList';
 import { AssignPanel } from './AssignPanel';
 import { EditPanel } from './EditPanel';
 import { ReassignPanel } from './ReassignPanel';
@@ -138,11 +138,12 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
     const resetFilters = () => { setStartDate(''); setEndDate(''); setSearchQuery(''); setRequestStatusFilter(''); };
 
-    // Edit Panel
-    const openEditPanel = (groupID: number, event: EventOccurrence) => {
-    setEditGroupID(groupID);
-    setEventToEdit(event);
-    setIsEditPanelOpen(true);
+    const openEditPanel = async (groupID: number, eventId: number) => {
+        const siteUrl = (await sp.web.get()).Url;
+        const latestEvent = await fetchEventOccurrenceById(siteUrl, eventId);
+        setEditGroupID(groupID);
+        setEventToEdit(latestEvent);
+        setIsEditPanelOpen(true);
     };
 
     // Change Dates Panel
@@ -292,7 +293,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                         <div>
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 203, 123)", border: "1px solid #000" }}>Email</button>
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(123, 218, 255)", border: "1px solid #000" }} onClick={() => { setGroupIDToDisplay(event.groupID); setIsPanelOpen(true); }}>Assign</button>
-                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)", border: "1px solid #000" }} onClick={() => openEditPanel(event.groupID, event)}>Edit</button> 
+                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)", border: "1px solid #000" }} onClick={() => openEditPanel(event.groupID, event.id)}>Edit</button> 
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(226, 233, 127)", border: "1px solid #000" }} onClick={() => openChangeDatesPanel(event.groupID)}>Change Dates</button>
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 123, 134)", border: "1px solid #000" }} onClick={() => handleCancelGroup(event.groupID)}>Cancel</button>
                                         </div>
