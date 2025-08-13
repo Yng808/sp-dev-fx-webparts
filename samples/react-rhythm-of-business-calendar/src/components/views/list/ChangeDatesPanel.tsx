@@ -4,6 +4,7 @@ import styles from './EventDetailsList.module.scss';
 import { EventOccurrence } from 'model';
 import { sp } from '@pnp/sp';
 import { fetchBookedParkingForEvent } from './spEventDetailsList';
+import { showAlert } from './AlertHost';
 
 interface ChangeDatesPanelProps {
     isChangeDatesPanelOpen: boolean;
@@ -92,7 +93,7 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
                 setIsChangeDatesPanelOpen(false);
                 setGroupIDToDisplay(origEvent.groupID);
                 setIsPanelOpen(true);
-                alert(`Parking for one or more events is not available at the new date. Please reassign parking.`);
+                showAlert(`Parking for one or more events is not available at the new date. Please reassign parking.`, 'warning');
                 return;
             }
         }
@@ -147,7 +148,7 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
                     setIsChangeDatesPanelOpen(false);
                     setGroupIDToDisplay(templateEvent.groupID);
                     setIsPanelOpen(true);
-                    alert(`Parking not available for new date(s). Please assign stall(s).`);
+                    showAlert(`Parking not available for new date(s). Please assign stall(s).`, 'warning');
                 }
             }
         }
@@ -162,7 +163,7 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
         }
         // Show success message only if no conflicts occurred
         if (!anyConflicts) {
-        alert('Group events successfully updated!');
+        showAlert('Group events successfully updated!', 'success');
         setIsChangeDatesPanelOpen(false);
         setGroupToChangeDates(null);
         }

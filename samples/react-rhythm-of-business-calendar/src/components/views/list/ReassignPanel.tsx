@@ -4,6 +4,7 @@ import styles from './EventDetailsList.module.scss';
 import { sp } from '@pnp/sp';
 import { fetchBookedParkingForEvent } from './spEventDetailsList';
 import { EventOccurrence } from 'model';
+import { showAlert } from './AlertHost';
 
 interface Props {
   isReassignPanelOpen: boolean;
@@ -44,7 +45,7 @@ export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReass
           EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
           RequestStatus: 'New'
         });
-        alert('Event time updated!');
+        showAlert('Event time updated!', 'success');
         setIsReassignPanelOpen(false);
         return;
       }
@@ -60,7 +61,7 @@ export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReass
           EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
           RequestStatus: 'Approved'
         });
-        alert('Event time and parking updated!');
+        showAlert('Event time and parking updated!', 'success');
         setIsReassignPanelOpen(false);
         return;
       }
@@ -73,13 +74,13 @@ export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReass
         RequestStatus: 'New'
       });
 
-      alert('Parking not available at the new time. Please reassign parking.');
+      showAlert('Parking not available at the new time. Please reassign parking.', 'warning');
       setIsReassignPanelOpen(false);
       setGroupIDToDisplay(eventToReassign.groupID);
       setIsPanelOpen(true);
     } catch (err) {
       console.error(err);
-      alert('Failed to re-assign event.');
+      showAlert('Failed to re-assign event.', 'danger');
     }
   };
 

@@ -6,6 +6,7 @@ import styles from './EventDetailsList.module.scss';
 import { sp } from '@pnp/sp';
 import { IDropdownOption } from '@fluentui/react';
 import { fetchParkingStalls, fetchBookingsForGroup, fetchBookedParkingForEvent, filterAvailableParking, formatParkingOptions, fetchFromSharePoint, fetchOccupiedParkingDetails} from './spEventDetailsList';
+import { showAlert } from './AlertHost';
 
 interface AssignPanelProps {
     isPanelOpen: boolean;
@@ -172,7 +173,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
         try {
         const eventsToUpdate = filteredEvents.filter(event => event.groupID === Number(groupIDToDisplay));
         if (eventsToUpdate.length === 0) {
-            alert(`No events found for Group ID ${groupIDToDisplay}.`);
+            showAlert(`No events found for Group ID ${groupIDToDisplay}.`, 'warning');
             setLoadingSpots(false);
             return;
         }
@@ -188,16 +189,16 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                 groupID: event.groupID,
             });
             } else {
-            alert(`Please select a parking stall for group ${event.groupID}`);
+            showAlert(`Please select a parking stall for group ${event.groupID}`, 'warning');
             setLoadingSpots(false);
             return;
             }
         }
-        alert('Parking has been assigned to all events in the group.');
+        showAlert('Parking has been assigned to all events in the group.', 'success');
         setIsPanelOpen(false);
         } catch (error) {
         console.error('Error updating events:', error);
-        alert('There was an error assigning parking to the events.');
+        showAlert('There was an error assigning parking to the events.', 'danger');
         } finally {
         setLoadingSpots(false);
         }
@@ -207,7 +208,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
         try {
         const itemIds = await getEventIdsByGroupId(event.groupID);
         if (itemIds.length === 0) {
-            alert('No items found with the given groupID or items may have been deleted.');
+            showAlert('No items found with the given groupID or items may have been deleted.', 'warning');
             return;
         }
         for (const itemId of itemIds) {
@@ -217,13 +218,13 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                 RequestStatus: event.requestStatus,
             });
             } else {
-            alert('Please select a valid parking stall.');
+            showAlert('Please select a valid parking stall.', 'warning');
             break;
             }
         }
         } catch (error) {
         console.error('Error updating events in database:', error);
-        alert('There was an error updating the events.');
+        showAlert('There was an error updating the events.', 'danger');
         }
     };
 
@@ -261,12 +262,12 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
         try {
         const event = filteredEvents.find(event => event.id === eventId);
         if (!event) {
-            alert('No valid event found to update.');
+            showAlert('No valid event found to update.', 'warning');
             return;
         }
         const itemId = event.id;
         if (!itemId) {
-            alert('No valid event ID found to update.');
+            showAlert('No valid event ID found to update.', 'warning');
             return;
         }
         await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(itemId).update({
@@ -275,7 +276,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
         });
         } catch (error) {
         console.error('Error updating the event in database:', error);
-        alert('There was an error updating the event.');
+        showAlert('There was an error updating the event.', 'danger');
         }
     };
 
@@ -428,14 +429,14 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                         className="btn btn-success mt-3 w-100" onClick={async () => {
                             const unselected = events.filter(event => individualSelections[event.id] === undefined || isNaN(individualSelections[event.id]) || individualSelections[event.id] === 0);
                             if (unselected.length > 0) {
-                            alert(`Please select parking for all events before assigning.`);
+                            showAlert(`Please select parking for all events before assigning.`, 'warning');
                             return;
                             }
                             for (const event of events) {
                             const selectedStall = individualSelections[event.id];
                             await updateEventInDatabase(event.id, selectedStall);
                             }
-                            alert("All assignments completed.");
+                            showAlert("All assignments completed.", 'success');
                         }}
                         >
                         Assign and send email

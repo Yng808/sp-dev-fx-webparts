@@ -9,6 +9,7 @@ import { AssignPanel } from './AssignPanel';
 import { EditPanel } from './EditPanel';
 import { ReassignPanel } from './ReassignPanel';
 import { ChangeDatesPanel } from './ChangeDatesPanel';
+import { showAlert, AlertHost } from './AlertHost';
 
 interface EventDetailsListProps {
   cccurrences: readonly EventOccurrence[];
@@ -176,10 +177,10 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     RequestStatus: 'Cancelled',
                 });
             }
-            alert(`All events in group ${groupId} cancelled successfully!`);
+            showAlert(`All events in group ${groupId} cancelled successfully!`, 'success');
         } catch (error) {
             console.error('Error cancelling group events:', error);
-            alert('There was an error cancelling the group events.');
+            showAlert('There was an error cancelling the group events.', 'warning');
         }
     };
 
@@ -189,9 +190,10 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(eventId).update({
                 RequestStatus: 'Cancelled',
             });
-            alert(`Event ${eventId} cancelled successfully!`);
+            showAlert(`Event ${eventId} cancelled successfully!`, 'success');
+
         } catch (error) {
-            alert('Failed to update status to Cancelled.');
+            showAlert('Failed to update status to Cancelled.', 'warning');
             console.error(error);
         }
     };
@@ -359,6 +361,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 setIsPanelOpen={setIsPanelOpen}
                 setGroupIDToDisplay={setGroupIDToDisplay}
             /> 
+            <AlertHost />
         </div>
     );
 };

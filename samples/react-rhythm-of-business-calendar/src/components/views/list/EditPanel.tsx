@@ -2,6 +2,7 @@ import React, { FC, useState, useEffect } from 'react';
 import styles from './EventDetailsList.module.scss';
 import { EventOccurrence } from 'model';
 import { sp } from '@pnp/sp';
+import { showAlert } from './AlertHost';
 
 interface EditPanelProps {
     isEditPanelOpen: boolean;
@@ -49,7 +50,7 @@ export const EditPanel: FC<EditPanelProps> = ({ isEditPanelOpen, setIsEditPanelO
         }
         }
 
-        alert('Updated!');
+        showAlert('Successfully Updated Fields!', 'success');
         setIsEditPanelOpen(false);
         setEditFields({ dvPayGrade: '', dvRank: '', dvFirstName: '', dvSurname: '', jdirVisiting: '', dvVisiting: '', requestorRank: '', requestorFirstName: '', requestorLastName: '', requestorOffice: '', requestorDutyPhone: '', requestorCellPhone: '', requestorEmail: ''});
         setEditGroupID(null);
