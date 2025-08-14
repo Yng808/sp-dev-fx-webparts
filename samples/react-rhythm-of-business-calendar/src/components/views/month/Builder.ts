@@ -4,6 +4,14 @@ import { MomentRange } from "common";
 import { EventOccurrence } from 'model';
 import { useTimeZoneService } from "services";
 
+function isApprovedWithAssignedStall(ev: EventOccurrence) {
+  return (
+    ev.requestStatus === 'Approved' &&
+    typeof ev.parkingStalls === 'number' &&
+    ev.parkingStalls > 0
+  );
+}
+
 export class ItemInfo {
     constructor(
         public readonly duration: number,
@@ -192,7 +200,9 @@ export class Builder {
     }
 
     private static _fillWeeksWithEvents(weeks: WeekInfo[], cccurrences: readonly EventOccurrence[]) {
-        const sortedOccurrences = [...cccurrences].sort((a, b) => {
+        // 1) keep only approved events with an actual stall assigned
+        const visible = cccurrences.filter(isApprovedWithAssignedStall);
+        const sortedOccurrences = [...visible].sort((a, b) => {
             const aStall = typeof a.parkingStalls === 'number' ? a.parkingStalls : Number.POSITIVE_INFINITY;
             const bStall = typeof b.parkingStalls === 'number' ? b.parkingStalls : Number.POSITIVE_INFINITY;
             return aStall - bStall;

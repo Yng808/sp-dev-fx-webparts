@@ -1,6 +1,14 @@
 import { Moment } from "moment-timezone";
 import { EventOccurrence } from "model";
 
+function isApprovedWithAssignedStall(ev: EventOccurrence) {
+  return (
+    ev.requestStatus === 'Approved' &&
+    typeof ev.parkingStalls === 'number' &&
+    ev.parkingStalls > 0
+  );
+}
+
 export class DayInfo {
     public readonly occurrences: EventOccurrence[] = [];
 
@@ -29,9 +37,9 @@ export class Builder {
         const dayInfo = new DayInfo(anchorDate);
 
         // Sort occurrences by start time
-        //const sortedOccurrences = [...cccurrences].sort(EventOccurrence.StartAscComparer);
+        const approvedWithStall = cccurrences.filter(isApprovedWithAssignedStall);
         // Sort occurences by title 
-        const sortedOccurrences = [...cccurrences].sort((a, b) => { 
+        const sortedOccurrences = [...approvedWithStall].sort((a, b) => { 
             const aStall = typeof a.parkingStalls === 'number' ? a.parkingStalls : Number.POSITIVE_INFINITY;
             const bStall = typeof b.parkingStalls === 'number' ? b.parkingStalls : Number.POSITIVE_INFINITY;
             return aStall - bStall;

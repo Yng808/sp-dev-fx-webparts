@@ -3,6 +3,14 @@ import { Moment } from "moment-timezone";
 import { MomentRange } from "common";
 import { EventOccurrence } from 'model';
 
+function isApprovedWithAssignedStall(ev: EventOccurrence) {
+  return (
+    ev.requestStatus === 'Approved' &&
+    typeof ev.parkingStalls === 'number' &&
+    ev.parkingStalls > 0
+  );
+}
+
 export class ItemInfo {
     constructor(
         public readonly duration: number,
@@ -90,9 +98,9 @@ export class Builder {
         const contentRows: ContentRowInfo[] = [];
 
         const { start, end } = Builder.dateRange(anchorDate);
-    
+        const approvedWithStall = cccurrences.filter(isApprovedWithAssignedStall);
         // Adjust the weekly range to account for the event's timezone
-        const filteredEventOccurrences = cccurrences.filter(cccurrence => {
+        const filteredEventOccurrences = approvedWithStall.filter(cccurrence => {
             const occurrenceTimeZone = cccurrence.start.tz(); // Get the timezone of the event
             const weekStart = start.clone().tz(occurrenceTimeZone, true); // Start of the week in the event's timezone
             const weekEnd = end.clone().tz(occurrenceTimeZone, true);     // End of the week in the event's timezone
