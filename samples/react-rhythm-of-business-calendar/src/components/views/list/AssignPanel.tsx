@@ -7,7 +7,7 @@ import { sp } from '@pnp/sp';
 import { IDropdownOption } from '@fluentui/react';
 import { fetchParkingStalls, fetchBookingsForGroup, fetchBookedParkingForEvent, filterAvailableParking, formatParkingOptions, fetchFromSharePoint, fetchOccupiedParkingDetails, composeEmailInBrowser} from './spEventDetailsList';
 import { showAlert } from './AlertHost';
-import { assignGroupEmail } from './EmailTemplate';
+import { assignGroupEmail, noParkingAvailableEmail } from './EmailTemplate';
 
 interface AssignPanelProps {
     isPanelOpen: boolean;
@@ -417,10 +417,17 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                             parkingStalls: Number(selectedParkingStall)
                         })) as unknown as EventOccurrence[];
 
+                        const allUnavailable = updatedEvents.every(ev => ev.parkingStalls === -1);
+
+                        if (allUnavailable) {
+                        const email = noParkingAvailableEmail(updatedEvents);
+                        composeEmailInBrowser(email.to, email.subject, email.body);
+                        } else {
                         const updatedParkingMap = { ...parkingMap, [-1]: 'Unavailable' };
 
                         const email = assignGroupEmail(updatedEvents, updatedParkingMap);
                         composeEmailInBrowser(email.to, email.subject, email.body);
+                        }
 
                         showAlert("Parking has been assigned to all events in the group.", 'success');
                         setIsPanelOpen(false);
@@ -477,10 +484,17 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                                 parkingStalls: individualSelections[ev.id]
                             })) as unknown as EventOccurrence[];
 
+                            const allUnavailable = updatedEvents.every(ev => ev.parkingStalls === -1);
+
+                            if (allUnavailable) {
+                            const email = noParkingAvailableEmail(updatedEvents);
+                            composeEmailInBrowser(email.to, email.subject, email.body);
+                            } else {
                             const updatedParkingMap = { ...parkingMap, [-1]: 'Unavailable' };
 
                             const email = assignGroupEmail(updatedEvents, updatedParkingMap);
                             composeEmailInBrowser(email.to, email.subject, email.body);
+                            }
 
                             showAlert("All assignments completed.", 'success');
                             setIsPanelOpen(false);

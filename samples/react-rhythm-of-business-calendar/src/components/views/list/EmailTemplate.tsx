@@ -1,4 +1,5 @@
 import { EventOccurrence } from 'model';
+import moment from 'moment';
 
 interface EmailContent {
   to: string;
@@ -48,6 +49,32 @@ export function assignParkingEmail(event: EventOccurrence, parkingName?: string)
         Your base parking request for ${formattedDate} from ${formattedTimeRange} has been approved.
 
         Assigned Parking Stall: ${parkingName || 'N/A'}
+
+        Mahalo!
+        
+        USINDOPACOM Protocol
+        Email: indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil
+        COMM: (808)-477-7747`
+    };
+}
+
+// Multi or Single: No Parking Available
+export function noParkingAvailableEmail(events: EventOccurrence[]) {
+    if (!events || events.length === 0) {
+        return { to: '', subject: '', body: '' };
+    }
+
+    const fullName = `${events[0].requestorRank} ${events[0].requestorLastName}`;
+
+    const startDate = moment.min(events.map(ev => moment(ev.start))).format('DD MMM, YYYY');
+    const endDate = moment.max(events.map(ev => moment(ev.end))).format('DD MMM, YYYY');
+
+    return {
+        to: events[0].requestorEmail,
+        subject: `Base Parking Request: No Parking Available`,
+        body: `Aloha ${fullName},
+        
+        Unfortunately, there is no parking available for the following date(s): ${startDate} - ${endDate}
 
         Mahalo!
         
@@ -123,7 +150,7 @@ export function timeChangedEmail(event: EventOccurrence, newStart: moment.Moment
 
         This email is to inform you that your base parking request scheduled for ${formattedDate} has been updated to the new time: ${formattedTimeRange}.
 
-        Assign Parking: ${parkingName}
+        Assigned Parking: ${parkingName}
 
         Mahalo!
         
