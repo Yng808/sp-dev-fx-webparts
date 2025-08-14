@@ -39,9 +39,9 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
         const startDateMoment = moment(changeStartDate, 'YYYY-MM-DD');
         const endDateMoment = moment(changeEndDate, 'YYYY-MM-DD');
  
-        if (!endDateMoment.isAfter(startDateMoment)) {
-            showAlert('End date must be after start date.', 'warning');
-            return;
+        if (endDateMoment.isBefore(startDateMoment)) {
+        showAlert('End date cannot be before start date.', 'warning');
+        return;
         }
 
         const web = await sp.web.get();
