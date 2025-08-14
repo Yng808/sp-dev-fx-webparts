@@ -383,6 +383,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                 {(panelParkingLoading || panelParkingOccupiedLoading) ? (
                     <div>Loading...</div>
                 ) : parkingStallsOptions.filter(opt => opt.key !== -1).length > 0 ? (
+                    // Single stall assigned to all events
                     <div className="d-flex flex-column gap-2 w-100">
                     <select
                         className="form-control w-100"
@@ -396,11 +397,39 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                         </option>
                         ))}
                     </select>
-                    <button className="btn btn-success w-100" onClick={handleAssignToAllEvents}>
+                    <button className="btn btn-success w-100" onClick={async () => {
+                        const events = filteredEvents.filter(ev => ev.groupID === groupIDToDisplay);
+                        if (!selectedParkingStall) {
+                            showAlert(`Please select a parking stall.`, 'warning');
+                            return;
+                        }
+
+                        await Promise.all(events.map(ev =>
+                            updateEventInDatabase(ev.id, Number(selectedParkingStall))
+                        ));
+
+                        const updatedEvents = events.map(ev => ({
+                            ...ev,
+                            requestorEmail: ev.requestorEmail,
+                            requestorRank: ev.requestorRank, 
+                            requestorLastName: ev.requestorLastName,
+                            parkingStalls: Number(selectedParkingStall)
+                        })) as unknown as EventOccurrence[];
+
+                        const updatedParkingMap = { ...parkingMap, [-1]: 'Unavailable' };
+
+                        const email = assignGroupEmail(updatedEvents, updatedParkingMap);
+                        composeEmailInBrowser(email.to, email.subject, email.body);
+
+                        showAlert("Parking has been assigned to all events in the group.", 'success');
+                        setIsPanelOpen(false);
+                        }}
+                        >
                         Assign and send email
                     </button>
                     </div>
                 ) : (() => {
+                    // Per-event stall selection
                     const events = filteredEvents.filter(event => event.groupID === groupIDToDisplay);
                     return (
                     <>
@@ -430,25 +459,29 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                         })}
                         <button
                         className="btn btn-success mt-3 w-100" onClick={async () => {
-                            const unselected = events.filter(event => individualSelections[event.id] === undefined || isNaN(individualSelections[event.id]) || individualSelections[event.id] === 0);
+                            const unselected = events.filter(ev => individualSelections[ev.id] === undefined || isNaN(individualSelections[ev.id]) || individualSelections[ev.id] === 0);
                             if (unselected.length > 0) {
                             showAlert(`Please select parking for all events before assigning.`, 'warning');
                             return;
                             }
-                            await Promise.all(events.map(event =>
-                                updateEventInDatabase(event.id, individualSelections[event.id])
+                            await Promise.all(events.map(ev =>
+                                updateEventInDatabase(ev.id, individualSelections[ev.id])
                             ));
-                            const updatedParkingMap = { ...parkingMap };
-                            for (const event of events) {
-                            const stallId = individualSelections[event.id];
-                            updatedParkingMap[stallId] = parkingMap[stallId] || 'Unavailable';
-                            }
+                            const updatedEvents = events.map(ev => ({
+                                ...ev,
+                                requestorEmail: ev.requestorEmail, 
+                                requestorRank: ev.requestorRank,   
+                                requestorLastName: ev.requestorLastName,
+                                parkingStalls: individualSelections[ev.id]
+                            })) as unknown as EventOccurrence[];
 
-                            // Send one email for the whole group
-                            const email = assignGroupEmail(events, updatedParkingMap);
+                            const updatedParkingMap = { ...parkingMap, [-1]: 'Unavailable' };
+
+                            const email = assignGroupEmail(updatedEvents, updatedParkingMap);
                             composeEmailInBrowser(email.to, email.subject, email.body);
 
                             showAlert("All assignments completed.", 'success');
+                            setIsPanelOpen(false);
                         }}
                         >
                         Assign and send email
