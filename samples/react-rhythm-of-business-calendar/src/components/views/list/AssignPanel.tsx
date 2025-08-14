@@ -16,9 +16,10 @@ interface AssignPanelProps {
     setGroupIDToDisplay: React.Dispatch<React.SetStateAction<number>>;
     filteredEvents: EventOccurrence[];
     setLoadingSpots: React.Dispatch<React.SetStateAction<boolean>>;
+    onOpenPreview: () => void;
 }
 
-export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen, groupIDToDisplay, setGroupIDToDisplay, filteredEvents, setLoadingSpots }) => {
+export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen, groupIDToDisplay, setGroupIDToDisplay, filteredEvents, setLoadingSpots, onOpenPreview }) => {
     const [parkingStallsOptions, setParkingStallsOptions] = useState<IDropdownOption[]>([]);
     const [parkingStallsOptionsEach, setParkingStallsOptionsEach] = useState<{ [key: number]: IDropdownOption[] }>({});
     const [parkingMap, setParkingMap] = useState<{ [id: number]: string }>({});
@@ -423,6 +424,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
 
                         showAlert("Parking has been assigned to all events in the group.", 'success');
                         setIsPanelOpen(false);
+                        onOpenPreview();
                         }}
                         >
                         Assign and send email
@@ -482,6 +484,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
 
                             showAlert("All assignments completed.", 'success');
                             setIsPanelOpen(false);
+                            onOpenPreview();
                         }}
                         >
                         Assign and send email

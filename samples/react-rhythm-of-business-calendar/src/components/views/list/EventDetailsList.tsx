@@ -11,6 +11,7 @@ import { ReassignPanel } from './ReassignPanel';
 import { ChangeDatesPanel } from './ChangeDatesPanel';
 import { showAlert, AlertHost } from './AlertHost';
 import { cancelEventEmail, cancelGroupEmail } from './EmailTemplate';
+import { CurrentParkingPanel } from './PreviewPanel';
 
 interface EventDetailsListProps {
   cccurrences: readonly EventOccurrence[];
@@ -59,6 +60,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [eventToReassign, setEventToReassign] = useState<EventOccurrence | null>(null);
     const [reassignStart, setReassignStart] = useState('');
     const [reassignEnd, setReassignEnd] = useState('');
+    // Preview Panel
+    const [isCurrentPanelOpen, setIsCurrentPanelOpen] = useState(false);
 
 
     useEffect(() => {
@@ -344,6 +347,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 setGroupIDToDisplay={setGroupIDToDisplay}
                 filteredEvents={filteredEvents}
                 setLoadingSpots={setLoadingSpots}
+                onOpenPreview={() => setIsCurrentPanelOpen(true)} 
             />
             <EditPanel
                 isEditPanelOpen={isEditPanelOpen}
@@ -371,6 +375,12 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 setIsPanelOpen={setIsPanelOpen}
                 setGroupIDToDisplay={setGroupIDToDisplay}
                 parkingMap={parkingMap}
+            /> 
+            <CurrentParkingPanel
+                isPanelOpen={isCurrentPanelOpen}
+                setIsPanelOpen={setIsCurrentPanelOpen}
+                groupIDToDisplay={groupIDToDisplay}
+                filteredEvents={filteredEvents}
             /> 
             <AlertHost />
         </div>
