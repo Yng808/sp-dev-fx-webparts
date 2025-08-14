@@ -36,6 +36,14 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
     const handleChangeDatesSave = async () => {
         if (!groupToChangeDates || !changeStartDate || !changeEndDate) return;
 
+        const startDateMoment = moment(changeStartDate, 'YYYY-MM-DD');
+        const endDateMoment = moment(changeEndDate, 'YYYY-MM-DD');
+ 
+        if (!endDateMoment.isAfter(startDateMoment)) {
+            showAlert('End date must be after start date.', 'warning');
+            return;
+        }
+
         const web = await sp.web.get();
         const siteUrl = web.Url;
 

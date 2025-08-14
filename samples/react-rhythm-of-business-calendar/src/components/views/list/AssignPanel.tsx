@@ -341,7 +341,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                                             <div key={stallId} className={styles.parkingOption + ' ' + styles.occupiedOption}>
                                             {parkingMap[stallId] || `Stall ${stallId}`}{" "}
                                             <br />
-                                            <span style={{ fontSize: '0.8em' }}>
+                                            <span style={{ fontSize: '0.8em', maxWidth: '80px', display: 'inline-block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                 {occupantsForDay.map(o => `${o.payGrade} ${o.surname}`).join(', ')}
                                             </span>
                                             </div>

@@ -31,13 +31,19 @@ export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReass
   const handleReassignSave = async () => {
     if (!eventToReassign) return;
 
-    try {
       const eventDate = eventToReassign.start.format('YYYY-MM-DD');
       const endDate = eventToReassign.end.format('YYYY-MM-DD');
       const startDateTime = `${eventDate}T${reassignStart}`;
       const endDateTime = `${endDate}T${reassignEnd}`;
       const newStart = moment.tz(startDateTime, siteTimeZone.momentId);
       const newEnd = moment.tz(endDateTime, siteTimeZone.momentId);
+
+      if (!newEnd.isAfter(newStart)) {
+        showAlert('End time must be after start time.', 'warning');
+        return;
+      }
+
+    try {
       const parkingId = eventToReassign.parkingStalls;
 
       // Case 1: Event is "New"

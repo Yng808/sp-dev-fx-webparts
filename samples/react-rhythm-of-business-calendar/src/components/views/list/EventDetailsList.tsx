@@ -276,9 +276,9 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             <th style={{ backgroundColor: 'lightblue' }}>DV Pay Grade</th>
                             <th style={{ backgroundColor: 'lightblue' }}>DV Info</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Parking Assignment</th>
-                            <th style={{ backgroundColor: 'lightblue', minWidth: '90px' }}>Request Date</th>
+                            <th style={{ backgroundColor: 'lightblue', minWidth: '100px' }}>Request Date</th>
                             <th style={{ backgroundColor: 'lightblue' }}>JDIR</th>
-                            <th style={{ backgroundColor: 'lightblue', minWidth: '150px' }}>Requestor Info</th>
+                            <th style={{ backgroundColor: 'lightblue', minWidth: '120px' }}>Requestor Info</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Bridge</th>
                         </tr>
                     </thead>
@@ -322,7 +322,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     <td>{event.groupID}</td>
                                     <td>{event.requestStatus}</td>
                                     <td>{event.dvPayGrade}</td>
-                                    <td>{`${event.dvRank} ${event.dvFirstName} ${event.dvSurname}`}</td>
+                                    <td style={{maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{`${event.dvRank} ${event.dvFirstName} ${event.dvSurname}`}</td>
                                     <td>{event.parkingStalls === -1 ? 'Unavailable' : (parkingMap[event.parkingStalls] || event.parkingStalls)}</td>
                                     <td>
                                         <div>{event.start.format('DD MMM, YYYY')}</div>
@@ -330,8 +330,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     </td>
                                     <td>{event.jdirVisiting}</td>
                                     <td>
-                                        <div>{`${event.requestorRank} ${event.requestorFirstName} ${event.requestorLastName}`}</div>
-                                        <div>{`${event.requestorOffice} ${event.requestorCellPhone?.replace(/^(\(\d{3}\))(\d{3}-\d{4})$/, '$1 $2') || ''}`}</div>
+                                        <div style={{maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{`${event.requestorRank} ${event.requestorFirstName} ${event.requestorLastName}`}</div>
+                                        <div style={{maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{`${event.requestorOffice} ${event.requestorCellPhone?.replace(/^(\(\d{3}\))(\d{3}-\d{4})$/, '$1 $2') || ''}`}</div>
                                     </td>
                                     <td>{event.dvVisiting}</td>
                                 </tr>
