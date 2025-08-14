@@ -13,7 +13,7 @@ export function assignGroupEmail(events: EventOccurrence[], parkingMap: { [id: n
         const date = ev.start.format('DD MMM, YYYY');
         const timeRange = `${ev.start.format('HHmm')}-${ev.end.format('HHmm')}`;
         const stallName = parkingMap[ev.parkingStalls ?? -1] || 'Unknown Stall';
-        return `${date} ${timeRange} – ${stallName}`;
+        return `${date} ${timeRange}-${stallName}`;
     });
 
     const first = sorted[0];

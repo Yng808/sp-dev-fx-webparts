@@ -5,8 +5,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from './EventDetailsList.module.scss';
 import { sp } from '@pnp/sp';
 import { IDropdownOption } from '@fluentui/react';
-import { fetchParkingStalls, fetchBookingsForGroup, fetchBookedParkingForEvent, filterAvailableParking, formatParkingOptions, fetchFromSharePoint, fetchOccupiedParkingDetails} from './spEventDetailsList';
+import { fetchParkingStalls, fetchBookingsForGroup, fetchBookedParkingForEvent, filterAvailableParking, formatParkingOptions, fetchFromSharePoint, fetchOccupiedParkingDetails, composeEmailInBrowser} from './spEventDetailsList';
 import { showAlert } from './AlertHost';
+import { assignGroupEmail } from './EmailTemplate';
 
 interface AssignPanelProps {
     isPanelOpen: boolean;
@@ -194,6 +195,8 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
             return;
             }
         }
+        const email = assignGroupEmail(eventsToUpdate, parkingMap);
+        composeEmailInBrowser(email.to, email.subject, email.body);
         showAlert('Parking has been assigned to all events in the group.', 'success');
         setIsPanelOpen(false);
         } catch (error) {
@@ -432,10 +435,19 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                             showAlert(`Please select parking for all events before assigning.`, 'warning');
                             return;
                             }
+                            await Promise.all(events.map(event =>
+                                updateEventInDatabase(event.id, individualSelections[event.id])
+                            ));
+                            const updatedParkingMap = { ...parkingMap };
                             for (const event of events) {
-                            const selectedStall = individualSelections[event.id];
-                            await updateEventInDatabase(event.id, selectedStall);
+                            const stallId = individualSelections[event.id];
+                            updatedParkingMap[stallId] = parkingMap[stallId] || 'Unavailable';
                             }
+
+                            // Send one email for the whole group
+                            const email = assignGroupEmail(events, updatedParkingMap);
+                            composeEmailInBrowser(email.to, email.subject, email.body);
+
                             showAlert("All assignments completed.", 'success');
                         }}
                         >
