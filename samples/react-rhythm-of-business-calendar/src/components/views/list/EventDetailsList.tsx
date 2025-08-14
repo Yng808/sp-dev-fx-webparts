@@ -4,12 +4,13 @@ import { useTimeZoneService } from 'services';
 import moment from 'moment';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { sp } from '@pnp/sp';
-import { fetchParkingStalls, fetchEventOccurrenceById } from './spEventDetailsList';
+import { fetchParkingStalls, fetchEventOccurrenceById, composeEmailInBrowser } from './spEventDetailsList';
 import { AssignPanel } from './AssignPanel';
 import { EditPanel } from './EditPanel';
 import { ReassignPanel } from './ReassignPanel';
 import { ChangeDatesPanel } from './ChangeDatesPanel';
 import { showAlert, AlertHost } from './AlertHost';
+import { cancelEventEmail, cancelGroupEmail } from './EmailTemplate';
 
 interface EventDetailsListProps {
   cccurrences: readonly EventOccurrence[];
@@ -170,7 +171,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
     // Cancel entire group
     const handleCancelGroup = async (groupId: number) => {
-        const eventIds = filteredEvents.filter(ev => ev.groupID === groupId).map(ev => ev.id);
+        const groupEvents = filteredEvents.filter(ev => ev.groupID === groupId);
+        const eventIds = groupEvents.map(ev => ev.id);
         try {
             for (const id of eventIds) {
                 await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(id).update({
@@ -178,6 +180,11 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 });
             }
             showAlert(`All events in group ${groupId} cancelled successfully!`, 'success');
+
+            if (groupEvents.length > 0) {
+                const email = cancelGroupEmail(groupEvents);
+                composeEmailInBrowser(email.to, email.subject, email.body);
+            }
         } catch (error) {
             console.error('Error cancelling group events:', error);
             showAlert('There was an error cancelling the group events.', 'warning');
@@ -185,13 +192,16 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     };
 
     // Cancel by event
-    const handleCancel = async (eventId: number) => {
+    const handleCancel = async (event: EventOccurrence) => {
         try {
-            await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(eventId).update({
+            await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(event.id).update({
                 RequestStatus: 'Cancelled',
             });
-            showAlert(`Event ${eventId} cancelled successfully!`, 'success');
+            showAlert(`Event ${event.id} cancelled successfully!`, 'success');
 
+            const { to, subject, body } = cancelEventEmail(event);
+            composeEmailInBrowser(to, subject, body);
+        
         } catch (error) {
             showAlert('Failed to update status to Cancelled.', 'warning');
             console.error(error);
@@ -303,7 +313,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     <td>
                                         <div>
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(226, 233, 127)", border: "1px solid #000" }} onClick={() => openReassignPanel(event)}>Change Time</button>
-                                            <button className="btn btn-sm" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 123, 134)", border: "1px solid #000" }} onClick={() => handleCancel(event.id)}>Cancel</button>
+                                            <button className="btn btn-sm" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 123, 134)", border: "1px solid #000" }} onClick={() => handleCancel(event)}>Cancel</button>
                                         </div>
                                     </td>
                                     <td>{event.groupID}</td>
@@ -360,6 +370,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 siteTimeZone={siteTimeZone}
                 setIsPanelOpen={setIsPanelOpen}
                 setGroupIDToDisplay={setGroupIDToDisplay}
+                parkingMap={parkingMap}
             /> 
             <AlertHost />
         </div>

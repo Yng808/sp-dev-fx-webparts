@@ -3,8 +3,9 @@ import moment from 'moment-timezone';
 import styles from './EventDetailsList.module.scss';
 import { EventOccurrence } from 'model';
 import { sp } from '@pnp/sp';
-import { fetchBookedParkingForEvent } from './spEventDetailsList';
+import { composeEmailInBrowser, fetchBookedParkingForEvent } from './spEventDetailsList';
 import { showAlert } from './AlertHost';
+import { datesChangedEmail } from './EmailTemplate';
 
 interface ChangeDatesPanelProps {
     isChangeDatesPanelOpen: boolean;
@@ -163,9 +164,14 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
         }
         // Show success message only if no conflicts occurred
         if (!anyConflicts) {
-        showAlert('Group events successfully updated!', 'success');
-        setIsChangeDatesPanelOpen(false);
-        setGroupToChangeDates(null);
+            showAlert('Group events successfully updated!', 'success');
+            
+            const first = groupEvents[0];
+            const email = datesChangedEmail(first, moment(changeStartDate), moment(changeEndDate));
+            composeEmailInBrowser(email.to, email.subject, email.body);
+
+            setIsChangeDatesPanelOpen(false);
+            setGroupToChangeDates(null);
         }
     };
 

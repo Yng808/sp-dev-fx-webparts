@@ -22,7 +22,6 @@ export const AlertHost: React.FC = () => {
   useEffect(() => {
     const unsubscribe = subscribe(payload => {
       setAlert(payload);
-      setTimeout(() => setAlert(null), 3000);
     });
     return unsubscribe;
   }, []);
@@ -31,11 +30,12 @@ export const AlertHost: React.FC = () => {
 
   return (
     <div
-      className={`alert alert-${alert.type} position-fixed top-0 end-0 m-3`}
-      style={{ zIndex: 9999 }}
+      className={`alert alert-${alert.type} position-fixed start-50 translate-middle-x m-3 d-flex justify-content-between align-items-center`}
+      style={{ zIndex: 9999, minWidth: '300px', top: '80px', border: '2px solid #000', color: '#000' }}
       role="alert"
     >
-      {alert.message}
+      <h6>{alert.message}</h6>
+      <button type="button" className="btn-close ms-3" aria-label="Close" onClick={() => setAlert(null)}/>
     </div>
   );
 };

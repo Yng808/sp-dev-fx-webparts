@@ -191,3 +191,13 @@ export const fetchEventOccurrenceById = async (siteUrl: string, eventId: number)
     const json = await res.json();
     return mapSharePointItemToEventOccurrence(json.d);
 };
+
+
+// #5 Emails --------------------------------------------------------------------------------------------------------------
+
+export function composeEmailInBrowser(to: string, subject: string, body: string) {
+  const url = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(
+    to
+  )}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.open(url, '_blank');
+}

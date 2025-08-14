@@ -50,7 +50,7 @@ export const EditPanel: FC<EditPanelProps> = ({ isEditPanelOpen, setIsEditPanelO
         }
         }
 
-        showAlert('Successfully Updated Fields!', 'success');
+        showAlert('Successfully updated fields!', 'success');
         setIsEditPanelOpen(false);
         setEditFields({ dvPayGrade: '', dvRank: '', dvFirstName: '', dvSurname: '', jdirVisiting: '', dvVisiting: '', requestorRank: '', requestorFirstName: '', requestorLastName: '', requestorOffice: '', requestorDutyPhone: '', requestorCellPhone: '', requestorEmail: ''});
         setEditGroupID(null);

@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import moment from 'moment-timezone';
 import styles from './EventDetailsList.module.scss';
 import { sp } from '@pnp/sp';
-import { fetchBookedParkingForEvent } from './spEventDetailsList';
+import { fetchBookedParkingForEvent, composeEmailInBrowser } from './spEventDetailsList';
 import { EventOccurrence } from 'model';
 import { showAlert } from './AlertHost';
+import { timeChangedEmail } from './EmailTemplate';
 
 interface Props {
   isReassignPanelOpen: boolean;
@@ -13,9 +14,10 @@ interface Props {
   siteTimeZone: any;
   setIsPanelOpen: (open: boolean) => void;
   setGroupIDToDisplay: (id: number) => void;
+  parkingMap: { [id: number]: string };
 }
 
-export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReassignPanelOpen, eventToReassign, siteTimeZone, setIsPanelOpen, setGroupIDToDisplay }) => {
+export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReassignPanelOpen, eventToReassign, siteTimeZone, setIsPanelOpen, setGroupIDToDisplay, parkingMap }) => {
   const [reassignStart, setReassignStart] = useState('');
   const [reassignEnd, setReassignEnd] = useState('');
 
@@ -63,6 +65,10 @@ export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReass
         });
         showAlert('Event time and parking updated!', 'success');
         setIsReassignPanelOpen(false);
+
+        const parkingName = parkingMap[parkingId];
+        const email = timeChangedEmail(eventToReassign, newStart, newEnd, parkingName);
+        composeEmailInBrowser(email.to, email.subject, email.body);
         return;
       }
 
