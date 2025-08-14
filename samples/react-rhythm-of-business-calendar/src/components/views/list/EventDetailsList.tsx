@@ -10,7 +10,7 @@ import { EditPanel } from './EditPanel';
 import { ReassignPanel } from './ReassignPanel';
 import { ChangeDatesPanel } from './ChangeDatesPanel';
 import { showAlert, AlertHost } from './AlertHost';
-import { cancelEventEmail, cancelGroupEmail } from './EmailTemplate';
+import { assignGroupEmail, cancelEventEmail, cancelGroupEmail } from './EmailTemplate';
 import { CurrentParkingPanel } from './PreviewPanel';
 
 interface EventDetailsListProps {
@@ -143,6 +143,20 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
     const resetFilters = () => { setStartDate(''); setEndDate(''); setSearchQuery(''); setRequestStatusFilter(''); };
 
+    // Email Current Info
+    const handleSendGroupEmail = (groupID: number) => {
+        const groupEvents = filteredEvents.filter(ev => ev.groupID === groupID);
+    
+        if (groupEvents.length === 0) {
+            showAlert(`No events found for group ${groupID}.`, 'warning');
+            return;
+        }
+        const mapWithUnavailable = { ...parkingMap, [-1]: 'Unavailable' };
+        const { to, subject, body } = assignGroupEmail(groupEvents, mapWithUnavailable);
+        composeEmailInBrowser(to, subject, body);
+    };
+    
+    // Edit Panel
     const openEditPanel = async (groupID: number, eventId: number) => {
         const siteUrl = (await sp.web.get()).Url;
         const latestEvent = await fetchEventOccurrenceById(siteUrl, eventId);
@@ -306,7 +320,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                 <tr key={index}>
                                     <td>
                                         <div>
-                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 203, 123)", border: "1px solid #000" }}>Email</button>
+                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 203, 123)", border: "1px solid #000" }} onClick={() => handleSendGroupEmail(event.groupID)}>Email</button>
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(123, 218, 255)", border: "1px solid #000" }} onClick={() => { setGroupIDToDisplay(event.groupID); setIsPanelOpen(true); }}>Assign</button>
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)", border: "1px solid #000" }} onClick={() => openEditPanel(event.groupID, event.id)}>Edit</button> 
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(226, 233, 127)", border: "1px solid #000" }} onClick={() => openChangeDatesPanel(event.groupID)}>Change Dates</button>
