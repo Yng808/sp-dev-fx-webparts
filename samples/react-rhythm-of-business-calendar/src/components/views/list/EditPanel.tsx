@@ -22,7 +22,6 @@ export const EditPanel: FC<EditPanelProps> = ({ isEditPanelOpen, setIsEditPanelO
     }
     }, [eventToEdit]);
 
-    // Save handler
     const handleEditSave = async () => {
         if (!editGroupID) return;
 
@@ -40,16 +39,15 @@ export const EditPanel: FC<EditPanelProps> = ({ isEditPanelOpen, setIsEditPanelO
 
         if (Object.keys(updates).length > 0) {
             try {
-            await sp.web.lists
-                .getByTitle('Rob Calendar Events2')
-                .items.getById(event.id)
-                .update(updates);
+                await sp.web.lists
+                    .getByTitle('Rob Calendar Events2')
+                    .items.getById(event.id)
+                    .update(updates);
             } catch (err) {
-            console.error('Failed to update event', event.id, err);
+                console.error('Failed to update event', event.id, err);
             }
         }
         }
-
         showAlert('Successfully updated fields!', 'success');
         setIsEditPanelOpen(false);
         setEditFields({ dvPayGrade: '', dvRank: '', dvFirstName: '', dvSurname: '', jdirVisiting: '', dvVisiting: '', requestorRank: '', requestorFirstName: '', requestorLastName: '', requestorOffice: '', requestorDutyPhone: '', requestorCellPhone: '', requestorEmail: ''});
@@ -60,77 +58,38 @@ export const EditPanel: FC<EditPanelProps> = ({ isEditPanelOpen, setIsEditPanelO
 
     return (
         <div className={styles.panel}>
-        <button onClick={() => setIsEditPanelOpen(false)} className={styles.closeButton}>x</button>
-        <div className={styles.formContainer}>
-
-            {/* Section 1: DV Info */}
-            <div style={{ background: "rgb(148, 200, 221)" }}>
-            <div className={styles.row}>
-                <div>
-                DV Pay Grade:
-                <input className="form-control" value={editFields.dvPayGrade} onChange={e => setEditFields({ ...editFields, dvPayGrade: e.target.value })} />
+            <button onClick={() => setIsEditPanelOpen(false)} className={styles.closeButton}>x</button>
+            <div className={styles.formContainer}>
+                {/* Section 1: DV Info */}
+                <div style={{ background: "rgb(148, 200, 221)" }}>
+                    <div className={styles.row}>
+                        <div>DV Pay Grade:  <input className="form-control" value={editFields.dvPayGrade} onChange={e => setEditFields({ ...editFields, dvPayGrade: e.target.value })}/></div>
+                        <div>DV Rank:       <input className="form-control" value={editFields.dvRank} onChange={e => setEditFields({ ...editFields, dvRank: e.target.value })}/></div>
+                        <div>DV First Name: <input className="form-control" value={editFields.dvFirstName} onChange={e => setEditFields({ ...editFields, dvFirstName: e.target.value })}/></div>
+                        <div>DV Last Name:  <input className="form-control" value={editFields.dvSurname} onChange={e => setEditFields({ ...editFields, dvSurname: e.target.value })} /></div>
+                    </div>
+                    <div className={styles.row}>
+                        <div>DV visiting JDIR/Office:   <input className="form-control" value={editFields.jdirVisiting} onChange={e => setEditFields({ ...editFields, jdirVisiting: e.target.value })}/></div>
+                        <div>Is DV visiting Bridge:     <input className="form-control" value={editFields.dvVisiting} onChange={e => setEditFields({ ...editFields, dvVisiting: e.target.value })}/></div>
+                    </div>
                 </div>
-                <div>
-                DV Rank:
-                <input className="form-control" value={editFields.dvRank} onChange={e => setEditFields({ ...editFields, dvRank: e.target.value })} />
+                {/* Section 2: Requestor Info */}
+                <div style={{ background: "rgb(165, 221, 148)" }}>
+                    <div className={styles.row}>
+                        <div>Requestor Rank:        <input className="form-control" value={editFields.requestorRank} onChange={e => setEditFields({ ...editFields, requestorRank: e.target.value })}/></div>
+                        <div>Requestor First Name:  <input className="form-control" value={editFields.requestorFirstName} onChange={e => setEditFields({ ...editFields, requestorFirstName: e.target.value })}/></div>
+                        <div>Requestor Last Name:   <input className="form-control" value={editFields.requestorLastName} onChange={e => setEditFields({ ...editFields, requestorLastName: e.target.value })}/></div>
+                        <div>Requestor Office:      <input className="form-control" value={editFields.requestorOffice} onChange={e => setEditFields({ ...editFields, requestorOffice: e.target.value })}/></div>
+                    </div>
+                    <div className={styles.row}>
+                        <div>Requestor Duty Phone:  <input className="form-control" value={editFields.requestorDutyPhone} onChange={e => setEditFields({ ...editFields, requestorDutyPhone: e.target.value })}/></div>
+                        <div>Requestor Cell Phone:  <input className="form-control" value={editFields.requestorCellPhone} onChange={e => setEditFields({ ...editFields, requestorCellPhone: e.target.value })}/></div>
+                        <div>Requestor Email:       <input className="form-control" value={editFields.requestorEmail} onChange={e => setEditFields({ ...editFields, requestorEmail: e.target.value })}/>
+                    </div>
+                    </div>
                 </div>
-                <div>
-                DV First Name:
-                <input className="form-control" value={editFields.dvFirstName} onChange={e => setEditFields({ ...editFields, dvFirstName: e.target.value })} />
-                </div>
-                <div>
-                DV Last Name:
-                <input className="form-control" value={editFields.dvSurname} onChange={e => setEditFields({ ...editFields, dvSurname: e.target.value })} />
-                </div>
+                <button className="btn btn-success" onClick={handleEditSave}>Save Changes</button>
             </div>
-            <div className={styles.row}>
-                <div>
-                DV visiting JDIR/Office:
-                <input className="form-control" value={editFields.jdirVisiting} onChange={e => setEditFields({ ...editFields, jdirVisiting: e.target.value })} />
-                </div>
-                <div>
-                Is DV visiting Bridge:
-                <input className="form-control" value={editFields.dvVisiting} onChange={e => setEditFields({ ...editFields, dvVisiting: e.target.value })} />
-                </div>
-            </div>
-            </div>
-            {/* Section 2: Requestor Info */}
-            <div style={{ background: "rgb(165, 221, 148)" }}>
-            <div className={styles.row}>
-                <div>
-                Requestor Rank:
-                <input className="form-control" value={editFields.requestorRank} onChange={e => setEditFields({ ...editFields, requestorRank: e.target.value })} />
-                </div>
-                <div>
-                Requestor First Name:
-                <input className="form-control" value={editFields.requestorFirstName} onChange={e => setEditFields({ ...editFields, requestorFirstName: e.target.value })} />
-                </div>
-                <div>
-                Requestor Last Name:
-                <input className="form-control" value={editFields.requestorLastName} onChange={e => setEditFields({ ...editFields, requestorLastName: e.target.value })} />
-                </div>
-                <div>
-                Requestor Office:
-                <input className="form-control" value={editFields.requestorOffice} onChange={e => setEditFields({ ...editFields, requestorOffice: e.target.value })} />
-                </div>
-            </div>
-            <div className={styles.row}>
-                <div>
-                Requestor Duty Phone:
-                <input className="form-control" value={editFields.requestorDutyPhone} onChange={e => setEditFields({ ...editFields, requestorDutyPhone: e.target.value })} />
-                </div>
-                <div>
-                Requestor Cell Phone:
-                <input className="form-control" value={editFields.requestorCellPhone} onChange={e => setEditFields({ ...editFields, requestorCellPhone: e.target.value })} />
-                </div>
-                <div>
-                Requestor Email:
-                <input className="form-control" value={editFields.requestorEmail} onChange={e => setEditFields({ ...editFields, requestorEmail: e.target.value })} />
-                </div>
-            </div>
-            </div>
-            <button className="btn btn-success" onClick={handleEditSave}>Save Changes</button>
-        </div>
         </div>
     );
 };
