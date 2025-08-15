@@ -7,7 +7,7 @@ interface EmailContent {
   body: string;
 }
 
-// Multi: Parking Assignment
+// Multi OR Single: Parking Assignment
 export function assignGroupEmail(events: EventOccurrence[], parkingMap: { [id: number]: string }): EmailContent {
     const sorted = [...events].sort((a, b) => a.start.diff(b.start));
     const lines = sorted.map(ev => {
@@ -36,7 +36,7 @@ export function assignGroupEmail(events: EventOccurrence[], parkingMap: { [id: n
     };
 }
 
-// Multi or Single: No Parking Available
+// Multi OR Single: No Parking Available
 export function noParkingAvailableEmail(events: EventOccurrence[]) {
     if (!events || events.length === 0) {
         return { to: '', subject: '', body: '' };
