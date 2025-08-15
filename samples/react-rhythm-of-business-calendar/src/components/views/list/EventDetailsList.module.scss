@@ -135,3 +135,10 @@
 .formContainer button {
   align-self: end;
 }
+
+.alertButton {
+  z-index: 9999;
+  min-width: 300px;
+  border: 2px solid #000;
+  color: #000;
+}
