@@ -14,12 +14,12 @@ import { assignGroupEmail, cancelEventEmail, cancelGroupEmail } from './EmailTem
 import { CurrentParkingPanel } from './PreviewPanel';
 
 interface EventDetailsListProps {
-  cccurrences: readonly EventOccurrence[];
+    cccurrences: readonly EventOccurrence[];
 }
 
 interface ParkingSpot {
-  id: number;
-  parking: string;
+    id: number;
+    parking: string;
 }
 
 interface OccupiedStall {
@@ -187,6 +187,9 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
     // Cancel entire group
     const handleCancelGroup = async (groupId: number) => {
+        const confirmed = window.confirm(`Are you sure you want to cancel ALL events in group ${groupId}?`);
+        if (!confirmed) return;
+
         const groupEvents = filteredEvents.filter(ev => ev.groupID === groupId);
         const eventIds = groupEvents.map(ev => ev.id);
         try {
@@ -209,6 +212,9 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
     // Cancel by event
     const handleCancel = async (event: EventOccurrence) => {
+        const confirmed = window.confirm(`Are you sure you want to cancel event ${event.id}?`);
+        if (!confirmed) return;
+
         try {
             await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(event.id).update({
                 RequestStatus: 'Cancelled',

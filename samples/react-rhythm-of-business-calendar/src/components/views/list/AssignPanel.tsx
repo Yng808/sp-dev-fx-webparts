@@ -87,7 +87,10 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
             const web = await sp.web.get();
             const siteUrl = web.Url;
             const allParking = await fetchParkingStalls(siteUrl);
-            const bookedParkingIds = await fetchBookedParkingForEvent(siteUrl, event.start, event.end);
+            const refreshed = await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(event.id).get();
+            const start = moment(refreshed.EventDate);
+            const end = moment(refreshed.EndDate);
+            const bookedParkingIds = await fetchBookedParkingForEvent(siteUrl, start, end);
             const availableParking = filterAvailableParking(allParking, bookedParkingIds);
             const availableParkingOptions = formatParkingOptions(availableParking);
         if (availableParkingOptions.length === 0) {
@@ -151,158 +154,151 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
         <>
         {isPanelOpen && (
             <div className={styles.panel}>
-            <button onClick={closePanel} className={styles.closeButton}>x</button>
-            <div className={styles.flexContainer}>
-                {/* Left Side */}
-                <div className={styles.leftSide}>
-                {(panelParkingLoading || panelParkingOccupiedLoading) ? (
-                    <div></div>
-                ) : (
-                    getEventDateRange(filteredEvents, groupIDToDisplay).map((day) => {
-                    const dayOfWeek = moment(day);
-                    const dayKey = dayOfWeek.format('YYYY-MM-DD');
-                    const eventsForDay = filteredEvents.filter((event) =>
-                        event.groupID === groupIDToDisplay && moment(event.start).isSame(dayOfWeek, 'day')
-                    );
-                    return (
-                        <div key={dayOfWeek.format('YYYY-MM-DD')} className={styles.dayBlock}>
-                        <p>{dayOfWeek.format('DD MMM, YYYY')}</p>
-                        <div style={{ display: "flex", gap: "8px" }}>
-                            {eventsForDay.length > 0 ? (
-                            eventsForDay.map((event) => {
-                                const allStallIds = Object.keys(parkingMap).map(Number);
-                                const visualOptions = parkingStallsOptionsEach[event.id] || [];
-                                const availableStallIds = visualOptions.filter(opt => opt.key !== -1).map((opt) => Number(opt.key));
+                <button onClick={closePanel} className={styles.closeButton}>x</button>
+                <div className={styles.flexContainer}>
+                    {/* Left Side */}
+                    <div className={styles.leftSide}>
+                        {(panelParkingLoading || panelParkingOccupiedLoading) ? (
+                            <div></div>
+                        ) : (
+                            getEventDateRange(filteredEvents, groupIDToDisplay).map((day) => {
+                                const dayOfWeek = moment(day);
+                                const dayKey = dayOfWeek.format('YYYY-MM-DD');
+                                const eventsForDay = filteredEvents.filter((event) =>
+                                    event.groupID === groupIDToDisplay && moment(event.start).isSame(dayOfWeek, 'day')
+                                );
                                 return (
-                                <div key={event.id} className={styles.parkingOptionWrapper}>
-                                    {allStallIds.map((stallId) => {
-                                    if (availableStallIds.includes(stallId)) {
-                                        const option = visualOptions.find((opt) => Number(opt.key) === stallId);
-                                        return (
-                                        <div key={stallId} className={styles.parkingOption}>
-                                            {option?.text || parkingMap[stallId]}
+                                    <div key={dayOfWeek.format('YYYY-MM-DD')} className={styles.dayBlock}>
+                                        <p>{dayOfWeek.format('DD MMM, YYYY')}</p>
+                                        <div style={{ display: "flex", gap: "8px" }}>
+                                            {eventsForDay.length > 0 ? (
+                                            eventsForDay.map((event) => {
+                                                const allStallIds = Object.keys(parkingMap).map(Number);
+                                                const visualOptions = parkingStallsOptionsEach[event.id] || [];
+                                                const availableStallIds = visualOptions.filter(opt => opt.key !== -1).map((opt) => Number(opt.key));
+                                                return (
+                                                <div key={event.id} className={styles.parkingOptionWrapper}>
+                                                    {allStallIds.map((stallId) => {
+                                                    if (availableStallIds.includes(stallId)) {
+                                                        const option = visualOptions.find((opt) => Number(opt.key) === stallId);
+                                                        return (
+                                                            <div key={stallId} className={styles.parkingOption}>
+                                                                {option?.text || parkingMap[stallId]}
+                                                            </div>
+                                                        );
+                                                    } else {
+                                                        const occupantsForDay = occupiedMapByDay[dayKey]?.[stallId] || [];
+                                                        if (occupantsForDay.length > 0) {
+                                                        return (
+                                                            <div key={stallId} className={styles.parkingOption + ' ' + styles.occupiedOption}>
+                                                                {parkingMap[stallId] || `Stall ${stallId}`}{" "}
+                                                                <br />
+                                                                <span style={{ fontSize: '0.8em', maxWidth: '80px', display: 'inline-block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                                    {occupantsForDay.map(o => `${o.payGrade} ${o.surname}`).join(', ')}
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                        } else {
+                                                        const option = visualOptions.find((opt) => Number(opt.key) === stallId);
+                                                        return (
+                                                            <div key={stallId} className={styles.parkingOption}>
+                                                                {option?.text || parkingMap[stallId]}
+                                                            </div>
+                                                        );
+                                                        }
+                                                    }
+                                                    })}
+                                                </div>
+                                                );
+                                            })
+                                            ) : (
+                                            <p>No events for this day</p>
+                                            )}
                                         </div>
-                                        );
-                                    } else {
-                                        const occupantsForDay = occupiedMapByDay[dayKey]?.[stallId] || [];
-                                        if (occupantsForDay.length > 0) {
-                                        return (
-                                            <div key={stallId} className={styles.parkingOption + ' ' + styles.occupiedOption}>
-                                            {parkingMap[stallId] || `Stall ${stallId}`}{" "}
-                                            <br />
-                                            <span style={{ fontSize: '0.8em', maxWidth: '80px', display: 'inline-block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                {occupantsForDay.map(o => `${o.payGrade} ${o.surname}`).join(', ')}
-                                            </span>
-                                            </div>
-                                        );
-                                        } else {
-                                        const option = visualOptions.find((opt) => Number(opt.key) === stallId);
-                                        return (
-                                            <div key={stallId} className={styles.parkingOption}>
-                                            {option?.text || parkingMap[stallId]}
-                                            </div>
-                                        );
-                                        }
-                                    }
-                                    })}
-                                </div>
+                                    </div>
                                 );
                             })
-                            ) : (
-                            <p>No events for this day</p>
-                            )}
-                        </div>
-                        </div>
-                    );
-                    })
-                )}
-                </div>
+                        )}
+                    </div>
 
-                {/* Right Side */}
-                <div className={styles.rightSide}>
-                {(() => {
-                    const matchedEvent = filteredEvents.find(e => e.groupID === groupIDToDisplay);
-                    return (
-                    <>
-                        <h6>Assignment for: {matchedEvent?.dvPayGrade || 'N/A'} {matchedEvent?.dvSurname || ''}</h6>
-                        <h6>GroupID: {matchedEvent?.groupID || ''} & Bridge: {matchedEvent?.dvVisiting || ''}</h6>
-                    </>
-                    );
-                })()}
-
-                {(panelParkingLoading || panelParkingOccupiedLoading) ? (
-                    <div>Loading...</div>
-                ) : (
-                    <>
-                    {filteredEvents
-                        .filter(event => event.groupID === groupIDToDisplay)
-                        .map(event => {
-                        const options = parkingStallsOptionsEach[event.id] || [];
-                        const hasUnavailable = options.some(opt => opt.key === -1);
-                        const allOptions = hasUnavailable ? options : [...options, { key: -1, text: "Unavailable" }];
-
+                    {/* Right Side */}
+                    <div className={styles.rightSide}>
+                    {(() => {
+                        const matchedEvent = filteredEvents.find(e => e.groupID === groupIDToDisplay);
                         return (
-                            <div key={event.id} className="d-flex align-items-center w-100 mt-3">
-                            <p className="mb-0" style={{ minWidth: '100px' }}>
-                                {event.start.format('DD MMM, YYYY')}:
-                            </p>
-                            <select
-                                className="form-control" style={{ minWidth: '145px' }}
-                                value={individualSelections[event.id]?.toString() || ''}
-                                onChange={(e) => handleIndividualParkingChange(event.id, e.target.value)}
-                            >
-                                <option value="">Select Parking</option>
-                                {allOptions.map(option => (
-                                <option key={option.key} value={option.key}>
-                                    {option.text}
-                                </option>
-                                ))}
-                            </select>
-                            </div>
+                        <>
+                            <h6>Assignment for: {matchedEvent?.dvPayGrade || 'N/A'} {matchedEvent?.dvSurname || ''}</h6>
+                            <h6>GroupID: {matchedEvent?.groupID || ''} & Bridge: {matchedEvent?.dvVisiting || ''}</h6>
+                        </>
                         );
-                        })}
-                        <button
-                        className="btn btn-success mt-3 w-100" onClick={async () => {
-                            const events = filteredEvents.filter(ev => ev.groupID === groupIDToDisplay);
-                            const unselected = events.filter(ev => individualSelections[ev.id] === undefined || isNaN(individualSelections[ev.id]) || individualSelections[ev.id] === 0);
-                            if (unselected.length > 0) {
-                            showAlert(`Please select parking for all events before assigning.`, 'warning');
-                            return;
-                            }
-                            await Promise.all(events.map(ev =>
-                                updateEventInDatabase(ev.id, individualSelections[ev.id])
-                            ));
-                            const updatedEvents = events.map(ev => ({
-                                ...ev,
-                                requestorEmail: ev.requestorEmail, 
-                                requestorRank: ev.requestorRank,   
-                                requestorLastName: ev.requestorLastName,
-                                parkingStalls: individualSelections[ev.id]
-                            })) as unknown as EventOccurrence[];
+                    })()}
 
-                            const allUnavailable = updatedEvents.every(ev => ev.parkingStalls === -1);
+                    {(panelParkingLoading || panelParkingOccupiedLoading) ? (
+                        <div>Loading...</div>
+                    ) : (
+                        <>
+                        {filteredEvents
+                            .filter(event => event.groupID === groupIDToDisplay)
+                            .map(event => {
+                                const options = parkingStallsOptionsEach[event.id] || [];
+                                const hasUnavailable = options.some(opt => opt.key === -1);
+                                const allOptions = hasUnavailable ? options : [...options, { key: -1, text: "Unavailable" }];
 
-                            if (allUnavailable) {
-                            const email = noParkingAvailableEmail(updatedEvents);
-                            composeEmailInBrowser(email.to, email.subject, email.body);
-                            } else {
-                            const updatedParkingMap = { ...parkingMap, [-1]: 'Unavailable' };
+                                return (
+                                    <div key={event.id} className="d-flex align-items-center w-100 mt-3">
+                                        <p className="mb-0" style={{ minWidth: '100px' }}>
+                                            {event.start.format('DD MMM, YYYY')}:
+                                        </p>
+                                        <select className="form-control" style={{ minWidth: '145px' }} value={individualSelections[event.id]?.toString() || ''} onChange={(e) => handleIndividualParkingChange(event.id, e.target.value)}>
+                                            <option value="">Select Parking</option>
+                                            {allOptions.map(option => (
+                                            <option key={option.key} value={option.key}>
+                                                {option.text}
+                                            </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                );
+                            })}
+                            <button className="btn btn-success mt-3 w-100" onClick={async () => {
+                                const events = filteredEvents.filter(ev => ev.groupID === groupIDToDisplay);
+                                const unselected = events.filter(ev => individualSelections[ev.id] === undefined || isNaN(individualSelections[ev.id]) || individualSelections[ev.id] === 0);
+                                if (unselected.length > 0) {
+                                showAlert(`Please select parking for all events before assigning.`, 'warning');
+                                return;
+                                }
+                                await Promise.all(events.map(ev =>
+                                    updateEventInDatabase(ev.id, individualSelections[ev.id])
+                                ));
+                                const updatedEvents = events.map(ev => ({
+                                    ...ev,
+                                    requestorEmail: ev.requestorEmail, 
+                                    requestorRank: ev.requestorRank,   
+                                    requestorLastName: ev.requestorLastName,
+                                    parkingStalls: individualSelections[ev.id]
+                                })) as unknown as EventOccurrence[];
 
-                            const email = assignGroupEmail(updatedEvents, updatedParkingMap);
-                            composeEmailInBrowser(email.to, email.subject, email.body);
-                            }
+                                const allUnavailable = updatedEvents.every(ev => ev.parkingStalls === -1);
 
-                            showAlert("All assignments completed.", 'success');
-                            setIsPanelOpen(false);
-                            onOpenPreview();
-                        }}
-                        >
-                        Assign and send email
-                        </button>
-                    </>
-                )}
+                                if (allUnavailable) {
+                                const email = noParkingAvailableEmail(updatedEvents);
+                                composeEmailInBrowser(email.to, email.subject, email.body);
+                                } else {
+                                const updatedParkingMap = { ...parkingMap, [-1]: 'Unavailable' };
+
+                                const email = assignGroupEmail(updatedEvents, updatedParkingMap);
+                                composeEmailInBrowser(email.to, email.subject, email.body);
+                                }
+
+                                showAlert("All assignments completed.", 'success');
+                                setIsPanelOpen(false);
+                                onOpenPreview();
+                            }}
+                            >Assign and send email</button>
+                        </>
+                        )}
+                    </div>
                 </div>
-            </div>
             </div>
         )}
         </>
