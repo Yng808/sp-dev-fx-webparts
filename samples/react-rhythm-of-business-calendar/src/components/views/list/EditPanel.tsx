@@ -17,9 +17,9 @@ export const EditPanel: FC<EditPanelProps> = ({ isEditPanelOpen, setIsEditPanelO
     const [editFields, setEditFields] = useState({ dvPayGrade: '', dvRank: '', dvFirstName: '', dvSurname: '', jdirVisiting: '', dvVisiting: '', requestorRank: '', requestorFirstName: '', requestorLastName: '', requestorOffice: '', requestorDutyPhone: '', requestorCellPhone: '', requestorEmail: '' });
 
     useEffect(() => {
-    if (eventToEdit) {
-        setEditFields({ dvPayGrade: eventToEdit.dvPayGrade ?? '', dvRank: eventToEdit.dvRank ?? '', dvFirstName: eventToEdit.dvFirstName ?? '', dvSurname: eventToEdit.dvSurname ?? '', jdirVisiting: eventToEdit.jdirVisiting ?? '', dvVisiting: eventToEdit.dvVisiting ?? '', requestorRank: eventToEdit.requestorRank ?? '', requestorFirstName: eventToEdit.requestorFirstName ?? '', requestorLastName: eventToEdit.requestorLastName ?? '', requestorOffice: eventToEdit.requestorOffice ?? '', requestorDutyPhone: eventToEdit.requestorDutyPhone ?? '', requestorCellPhone: eventToEdit.requestorCellPhone ?? '', requestorEmail: eventToEdit.requestorEmail ?? '' });
-    }
+        if (eventToEdit) {
+            setEditFields({ dvPayGrade: eventToEdit.dvPayGrade ?? '', dvRank: eventToEdit.dvRank ?? '', dvFirstName: eventToEdit.dvFirstName ?? '', dvSurname: eventToEdit.dvSurname ?? '', jdirVisiting: eventToEdit.jdirVisiting ?? '', dvVisiting: eventToEdit.dvVisiting ?? '', requestorRank: eventToEdit.requestorRank ?? '', requestorFirstName: eventToEdit.requestorFirstName ?? '', requestorLastName: eventToEdit.requestorLastName ?? '', requestorOffice: eventToEdit.requestorOffice ?? '', requestorDutyPhone: eventToEdit.requestorDutyPhone ?? '', requestorCellPhone: eventToEdit.requestorCellPhone ?? '', requestorEmail: eventToEdit.requestorEmail ?? '' });
+        }
     }, [eventToEdit]);
 
     const handleEditSave = async () => {
