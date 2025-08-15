@@ -40,8 +40,8 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
         const endDateMoment = moment(changeEndDate, 'YYYY-MM-DD');
  
         if (endDateMoment.isBefore(startDateMoment)) {
-        showAlert('End date cannot be before start date.', 'warning');
-        return;
+            showAlert('End date cannot be before start date.', 'warning');
+            return;
         }
 
         const web = await sp.web.get();
@@ -131,23 +131,7 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
                 }
 
                 await sp.web.lists.getByTitle('Rob Calendar Events2').items.add({
-                    Title: templateEvent.title || 'Event',
-                    GroupID: templateEvent.groupID,
-                    DVPayGrade: templateEvent.dvPayGrade,
-                    DVRank: templateEvent.dvRank,
-                    DVFirstName: templateEvent.dvFirstName,
-                    DVSurname: templateEvent.dvSurname,
-                    JDIRVisiting: templateEvent.jdirVisiting,
-                    DVVisiting: templateEvent.dvVisiting,
-                    RequestorRank: templateEvent.requestorRank,
-                    RequestorFirstName: templateEvent.requestorFirstName,
-                    RequestorLastName: templateEvent.requestorLastName,
-                    RequestorOffice: templateEvent.requestorOffice,
-                    RequestorDutyPhone: templateEvent.requestorDutyPhone,
-                    RequestorCellPhone: templateEvent.requestorCellPhone,
-                    RequestorEmail: templateEvent.requestorEmail,
-                    ParkingStallsId: newParkingStallId,
-                    RequestStatus: newRequestStatus,
+                    Title: templateEvent.title || 'Event', GroupID: templateEvent.groupID, DVPayGrade: templateEvent.dvPayGrade, DVRank: templateEvent.dvRank, DVFirstName: templateEvent.dvFirstName, DVSurname: templateEvent.dvSurname, JDIRVisiting: templateEvent.jdirVisiting, DVVisiting: templateEvent.dvVisiting, RequestorRank: templateEvent.requestorRank, RequestorFirstName: templateEvent.requestorFirstName, RequestorLastName: templateEvent.requestorLastName, RequestorOffice: templateEvent.requestorOffice, RequestorDutyPhone: templateEvent.requestorDutyPhone, RequestorCellPhone: templateEvent.requestorCellPhone, RequestorEmail: templateEvent.requestorEmail, ParkingStallsId: newParkingStallId, RequestStatus: newRequestStatus,
                     EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
                     EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss')
                 });
@@ -173,11 +157,9 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
         // Show success message only if no conflicts occurred
         if (!anyConflicts) {
             showAlert('Group events successfully updated!', 'success');
-            
             const first = groupEvents[0];
             const email = datesChangedEmail(first, moment(changeStartDate), moment(changeEndDate));
             composeEmailInBrowser(email.to, email.subject, email.body);
-
             setIsChangeDatesPanelOpen(false);
             setGroupToChangeDates(null);
         }
@@ -191,17 +173,9 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
             <div className={styles.flexContainer}>
                 {/* Left side */}
                 <div>
-                    <h6>
-                        New Start Date:
-                        <input type="date" className="form-control" value={changeStartDate} onChange={e => setChangeStartDate(e.target.value)}/>
-                    </h6>
-                    <h6>
-                        New End Date:
-                        <input type="date" className="form-control" value={changeEndDate} onChange={e => setChangeEndDate(e.target.value)}/>
-                    </h6>
-                    <button className="btn btn-success mt-2 w-100" onClick={handleChangeDatesSave}>
-                        Save Changes
-                    </button>
+                    <h6>New Start Date: <input type="date" className="form-control" value={changeStartDate} onChange={e => setChangeStartDate(e.target.value)}/></h6>
+                    <h6>New End Date:   <input type="date" className="form-control" value={changeEndDate} onChange={e => setChangeEndDate(e.target.value)}/></h6>
+                    <button className="btn btn-success mt-2 w-100" onClick={handleChangeDatesSave}>Save Changes</button>
                 </div>
 
                 {/* Right side */}
