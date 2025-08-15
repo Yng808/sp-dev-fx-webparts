@@ -7,6 +7,24 @@ interface EmailContent {
   body: string;
 }
 
+function formatDateRange(dates: (EventOccurrence | moment.Moment)[]): string {
+    if (!dates.length) return '';
+    let moments: moment.Moment[];
+
+    if (moment.isMoment(dates[0])) {
+        moments = dates as moment.Moment[];
+    } else {
+        moments = (dates as EventOccurrence[]).flatMap(ev => [ev.start, ev.end]);
+    }
+    const startDate = moment.min(moments).format('DD MMM, YYYY');
+    const endDate = moment.max(moments).format('DD MMM, YYYY');
+    return startDate === endDate ? startDate : `${startDate} - ${endDate}`;
+}
+
+function buildSubject(dvPayGrade: string, dvSurname: string, dateRange: string, status: string): string {
+    return `Base Parking Request for ${dvPayGrade} ${dvSurname} on ${dateRange}: ${status}`;
+}
+
 // Multi OR Single: Parking Assignment
 export function assignGroupEmail(events: EventOccurrence[], parkingMap: { [id: number]: string }): EmailContent {
     const sorted = [...events].sort((a, b) => a.start.diff(b.start));
@@ -18,11 +36,10 @@ export function assignGroupEmail(events: EventOccurrence[], parkingMap: { [id: n
     });
 
     const first = sorted[0];
-    const fullName = `${first.requestorRank} ${first.requestorLastName}`;
     return {
         to: first.requestorEmail,
-        subject: `Base Parking Request: Parking Assigned`,
-        body: `Aloha ${fullName},
+        subject: buildSubject(first.dvPayGrade, first.dvSurname, formatDateRange(sorted), 'Parking Assigned'),
+        body: `Aloha ${first.requestorRank} ${first.requestorLastName},
 
         Your base parking request has been approved for the following:
 
@@ -37,22 +54,15 @@ export function assignGroupEmail(events: EventOccurrence[], parkingMap: { [id: n
 }
 
 // Multi OR Single: No Parking Available
-export function noParkingAvailableEmail(events: EventOccurrence[]) {
-    if (!events || events.length === 0) {
-        return { to: '', subject: '', body: '' };
-    }
-
-    const fullName = `${events[0].requestorRank} ${events[0].requestorLastName}`;
-
-    const startDate = moment.min(events.map(ev => moment(ev.start))).format('DD MMM, YYYY');
-    const endDate = moment.max(events.map(ev => moment(ev.end))).format('DD MMM, YYYY');
-
+export function noParkingAvailableEmail(events: EventOccurrence[]): EmailContent {
+    if (!events.length) return { to: '', subject: '', body: '' };
+    const first = events[0];
     return {
-        to: events[0].requestorEmail,
-        subject: `Base Parking Request: No Parking Available`,
-        body: `Aloha ${fullName},
+        to: first.requestorEmail,
+        subject: buildSubject(first.dvPayGrade, first.dvSurname, formatDateRange(events), 'No Parking Available'),
+        body: `Aloha ${first.requestorRank} ${first.requestorLastName},
         
-        Unfortunately, there is no parking available for the following date(s): ${startDate} - ${endDate}
+        Unfortunately, there is no parking available for the following date(s): ${formatDateRange(events)}
 
         Mahalo!
         
@@ -66,7 +76,7 @@ export function noParkingAvailableEmail(events: EventOccurrence[]) {
 export function datesChangedEmail(event: EventOccurrence, newStart: moment.Moment, newEnd: moment.Moment): EmailContent {
     return {
         to: event.requestorEmail,
-        subject: `Base Parking Request: Date Changed`,
+        subject: buildSubject(event.dvPayGrade, event.dvSurname, formatDateRange([newStart, newEnd]), 'Date Changed'),
         body: `Aloha ${event.requestorRank} ${event.requestorLastName},
 
         This email is to inform you that your base parking request dates have been updated.
@@ -96,13 +106,10 @@ export function cancelGroupEmail(events: EventOccurrence[]): EmailContent {
     });
 
     const first = sorted[0];
-    const to = first.requestorEmail;
-    const fullName = `${first.requestorRank} ${first.requestorLastName}`;
-
     return {
-        to,
-        subject: `Base Parking Request: Cancelled`,
-        body: `Aloha ${fullName},
+        to: first.requestorEmail,
+        subject: buildSubject(first.dvPayGrade, first.dvSurname, formatDateRange(sorted), 'Cancelled'),
+        body: `Aloha ${first.requestorRank} ${first.requestorLastName},
 
         This email is to inform you that the base parking request for the following dates has been cancelled:
 
@@ -118,17 +125,14 @@ export function cancelGroupEmail(events: EventOccurrence[]): EmailContent {
 
 // Single: Time Changed
 export function timeChangedEmail(event: EventOccurrence, newStart: moment.Moment, newEnd: moment.Moment, parkingName?: string): EmailContent {
-    const formattedDate = newStart.format('DD MMM, YYYY');
-    const formattedTimeRange = `${newStart.format('HHmm')}-${newEnd.format('HHmm')}`;
-
     return {
         to: event.requestorEmail,
-        subject: `Base Parking Request: Time Changed`,
+        subject: buildSubject(event.dvPayGrade, event.dvSurname, formatDateRange([newStart, newEnd]), 'Time Changed'),
         body: `Aloha ${event.requestorRank} ${event.requestorLastName},
 
-        This email is to inform you that your base parking request scheduled for ${formattedDate} has been updated to the new time: ${formattedTimeRange}.
+        This email is to inform you that your base parking request scheduled for ${newStart.format('DD MMM, YYYY')} has been updated to the new time: ${newStart.format('HHmm')}-${newEnd.format('HHmm')}.
 
-        Assigned Parking: ${parkingName}
+        Assigned Parking: ${parkingName || 'N/A'}
 
         Mahalo!
         
@@ -140,15 +144,12 @@ export function timeChangedEmail(event: EventOccurrence, newStart: moment.Moment
 
 // Single: Cancel
 export function cancelEventEmail(event: EventOccurrence): EmailContent {
-    const formattedDate = event.start.format('DD MMM, YYYY');
-    const formattedTimeRange = `${event.start.format('HHmm')}-${event.end.format('HHmm')}`;
-
     return {
         to: event.requestorEmail,
-        subject: `Base Parking Request: Cancelled`,
+        subject: buildSubject(event.dvPayGrade, event.dvSurname, formatDateRange([event.start, event.end]), 'Cancelled'),
         body: `Aloha ${event.requestorRank} ${event.requestorLastName},
 
-        This email is to inform you that the base parking request for ${formattedDate} ${formattedTimeRange} has been cancelled.
+        This email is to inform you that the base parking request for ${event.start.format('DD MMM, YYYY')} ${event.start.format('HHmm')}-${event.end.format('HHmm')} has been cancelled.
 
         Mahalo!
 
