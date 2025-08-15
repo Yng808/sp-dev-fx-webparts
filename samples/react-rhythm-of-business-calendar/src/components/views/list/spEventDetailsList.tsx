@@ -14,7 +14,9 @@ export interface OccupiedStall {
     surname: string;
 }
 
-// Fetch all parking stalls
+// #1 Parking data -----------------------------------------------------------------------------------------------------
+
+// Gets all parking stalls from SharePoint
 export const fetchParkingStalls = async (siteUrl: string): Promise<ParkingSpot[]> => {
     const parkingResponse = await fetch(
         `${siteUrl}/_api/web/lists/getbytitle('DVParkingStalls')/items?$select=ID,ParkingAssignment`,
@@ -37,7 +39,7 @@ export const fetchParkingStalls = async (siteUrl: string): Promise<ParkingSpot[]
     }));
 };
 
-// Fetch booked parking for a given event date range
+// Gets already booked stalls for a date range
 export const fetchBookedParkingForEvent = async (siteUrl: string, eventStart: moment.Moment, eventEnd: moment.Moment, ignoreEventId?: number) => {
     const bookedParkingResponse = await fetch(
         `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items` +
@@ -62,12 +64,12 @@ export const fetchBookedParkingForEvent = async (siteUrl: string, eventStart: mo
     );
 };
 
-// Filter available parking by excluding booked spots
+// Removes booked stalls from the full list
 export const filterAvailableParking = (allParking: ParkingSpot[], bookedParkingIds: Set<number>): ParkingSpot[] => {
     return allParking.filter((parkingSpot: ParkingSpot) => !bookedParkingIds.has(parkingSpot.id));
 };
 
-// Format the available parking into IDropdownOption format
+// Converts available stalls to IDropdownOption[] for UI dropdowns
 export const formatParkingOptions = (availableParking: ParkingSpot[]): IDropdownOption[] => {
     return availableParking.map((parkingSpot: ParkingSpot) => ({
         key: parkingSpot.id,  // Set the id as the key
@@ -75,7 +77,7 @@ export const formatParkingOptions = (availableParking: ParkingSpot[]): IDropdown
     }));
 };
 
-// Fetch PayGrade and LastName of occupied
+// Returns details (payGrade, surname) for occupied stalls in a date range
 export const fetchOccupiedParkingDetails = async (
     siteUrl: string,
     eventStart: moment.Moment,
@@ -107,7 +109,9 @@ export const fetchOccupiedParkingDetails = async (
     }));
 };
 
-// Map SharePoint item to EventOccurrence model
+// #2 Event data ------------------------------------------------------------------------------------------------------
+
+// Converts SharePoint item to EventOccurrence model
 export const mapSharePointItemToEventOccurrence = (item: any): EventOccurrence => {
     const event = new Event(undefined, undefined, undefined, undefined, item.ID);
 
@@ -125,6 +129,7 @@ export const mapSharePointItemToEventOccurrence = (item: any): EventOccurrence =
     return new EventOccurrence(event, start, end);
 };
 
+// Fetches a single event by ID
 export const fetchEventOccurrenceById = async (siteUrl: string, eventId: number): Promise<EventOccurrence> => {
     const res = await fetch(
         `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items(${eventId})`,
@@ -140,6 +145,9 @@ export const fetchEventOccurrenceById = async (siteUrl: string, eventId: number)
     return mapSharePointItemToEventOccurrence(json.d);
 };
 
+// #3 Emails ----------------------------------------------------------------------------------------------------------
+
+// Opens a prefilled Outlook Web compose window
 export function composeEmailInBrowser(to: string, subject: string, body: string) {
   const url = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(
     to
