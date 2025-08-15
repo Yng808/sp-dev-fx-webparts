@@ -28,7 +28,6 @@ interface OccupiedStall {
     surname: string;
 }
 
-
 const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     // Filter
     const [filteredEvents, setFilteredEvents] = useState<EventOccurrence[]>([...cccurrences]);
@@ -155,7 +154,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         const { to, subject, body } = assignGroupEmail(groupEvents, mapWithUnavailable);
         composeEmailInBrowser(to, subject, body);
     };
-    
+
     // Edit Panel
     const openEditPanel = async (groupID: number, eventId: number) => {
         const siteUrl = (await sp.web.get()).Url;

@@ -36,14 +36,12 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
 
     useEffect(() => {
         const fetchParkingNames = async () => {
-        const web = await sp.web.get();
-        const siteUrl = web.Url;
-        const stalls = await fetchParkingStalls(siteUrl);
-        const map: { [id: number]: string } = {};
-        stalls.forEach(stall => {
-            map[stall.id] = stall.parking;
-        });
-        setParkingMap(map);
+            const web = await sp.web.get();
+            const siteUrl = web.Url;
+            const stalls = await fetchParkingStalls(siteUrl);
+            const map: { [id: number]: string } = {};
+            stalls.forEach(stall => { map[stall.id] = stall.parking; });
+            setParkingMap(map);
         };
         fetchParkingNames();
     }, []);
@@ -72,8 +70,8 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
             }
             });
         }
-        setOccupiedMapByDay(newMap);
-        setPanelParkingOccupiedLoading(false);
+            setOccupiedMapByDay(newMap);
+            setPanelParkingOccupiedLoading(false);
         };
         loadOccupied();
     }, [isPanelOpen, groupIDToDisplay, filteredEvents]);
@@ -86,12 +84,12 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
     const loadAvailableParking = async (event: EventOccurrence) => {
         setLoadingSpots(true);
         try {
-        const web = await sp.web.get();
-        const siteUrl = web.Url;
-        const allParking = await fetchParkingStalls(siteUrl);
-        const bookedParkingIds = await fetchBookedParkingForEvent(siteUrl, event.start, event.end);
-        const availableParking = filterAvailableParking(allParking, bookedParkingIds);
-        const availableParkingOptions = formatParkingOptions(availableParking);
+            const web = await sp.web.get();
+            const siteUrl = web.Url;
+            const allParking = await fetchParkingStalls(siteUrl);
+            const bookedParkingIds = await fetchBookedParkingForEvent(siteUrl, event.start, event.end);
+            const availableParking = filterAvailableParking(allParking, bookedParkingIds);
+            const availableParkingOptions = formatParkingOptions(availableParking);
         if (availableParkingOptions.length === 0) {
             availableParkingOptions.push({ key: -1, text: "Unavailable" });
         }
@@ -100,9 +98,9 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
             [event.id]: availableParkingOptions,
         }));
         } catch (error) {
-        console.error("Error determining available parking:", error);
+            console.error("Error determining available parking:", error);
         } finally {
-        setLoadingSpots(false);
+            setLoadingSpots(false);
         }
     };
 
@@ -130,8 +128,8 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
             RequestStatus: 'Approved',
         });
         } catch (error) {
-        console.error('Error updating the event in database:', error);
-        showAlert('There was an error updating the event.', 'danger');
+            console.error('Error updating the event in database:', error);
+            showAlert('There was an error updating the event.', 'danger');
         }
     };
 
@@ -143,8 +141,8 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
         let currentDate = startDate.clone();
         const dateRange = [];
         while (currentDate.isBefore(endDate) || currentDate.isSame(endDate, 'day')) {
-        dateRange.push(currentDate.clone());
-        currentDate.add(1, 'days');
+            dateRange.push(currentDate.clone());
+            currentDate.add(1, 'days');
         }
         return dateRange;
     };
