@@ -12,12 +12,7 @@ interface CurrentParkingPanelProps {
     filteredEvents: EventOccurrence[];
 }
 
-export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({
-    isPanelOpen,
-    setIsPanelOpen,
-    groupIDToDisplay,
-    filteredEvents
-}) => {
+export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({ isPanelOpen, setIsPanelOpen, groupIDToDisplay, filteredEvents }) => {
     const [parkingMap, setParkingMap] = useState<{ [id: number]: string }>({});
     const [occupiedMapByDay, setOccupiedMapByDay] = useState<{ [date: string]: { [stallId: number]: { payGrade: string; surname: string }[] } }>({});
     const [panelParkingOccupiedLoading, setPanelParkingOccupiedLoading] = useState(true);
@@ -91,16 +86,19 @@ export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({
                                 (event) => event.groupID === groupIDToDisplay && moment(event.start).isSame(dayOfWeek, 'day')
                             );
                             return (
+                                // Render a block for each day of the schedule
                                 <div key={dayKey} className={styles.dayBlock}>
                                     <p>{dayOfWeek.format('DD MMM, YYYY')}</p>
                                     <div style={{ display: 'flex', gap: '8px' }}>
                                         {eventsForDay.length > 0 ? (
                                             eventsForDay.map((event) => {
                                                 return (
+                                                    // Wrapper for the event’s parking options
                                                     <div key={event.id} className={styles.parkingOptionWrapper}>
                                                         {Object.keys(parkingMap).map(stallIdStr => {
                                                             const stallId = Number(stallIdStr);
                                                             const occupantsForDay = occupiedMapByDay[dayKey]?.[stallId] || [];
+                                                            // If the stall is occupied, render it with occupant info
                                                             if (occupantsForDay.length > 0) {
                                                                 return (
                                                                     <div key={stallId} className={`${styles.parkingOption} ${styles.occupiedOption}`}>
@@ -111,6 +109,7 @@ export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({
                                                                     </div>
                                                                 );
                                                             }
+                                                            // If the stall is not occupied, render it as available
                                                             return (
                                                                 <div key={stallId} className={styles.parkingOption}>
                                                                     {parkingMap[stallId] || `Stall ${stallId}`}
