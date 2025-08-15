@@ -36,28 +36,6 @@ export function assignGroupEmail(events: EventOccurrence[], parkingMap: { [id: n
     };
 }
 
-// Single: Parking Assignment
-export function assignParkingEmail(event: EventOccurrence, parkingName?: string): EmailContent {
-    const formattedDate = event.start.format('DD MMM, YYYY');
-    const formattedTimeRange = `${event.start.format('HHmm')}-${event.end.format('HHmm')}`;
-
-    return {
-        to: event.requestorEmail,
-        subject: `Base Parking Request: Parking Assigned`,
-        body: `Aloha ${event.requestorRank} ${event.requestorLastName},
-
-        Your base parking request for ${formattedDate} from ${formattedTimeRange} has been approved.
-
-        Assigned Parking Stall: ${parkingName || 'N/A'}
-
-        Mahalo!
-        
-        USINDOPACOM Protocol
-        Email: indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil
-        COMM: (808)-477-7747`
-    };
-}
-
 // Multi or Single: No Parking Available
 export function noParkingAvailableEmail(events: EventOccurrence[]) {
     if (!events || events.length === 0) {

@@ -39,27 +39,6 @@ export const fetchParkingStalls = async (siteUrl: string): Promise<ParkingSpot[]
     }));
 };
 
-// Fetch bookings for a specific group
-export const fetchBookingsForGroup = async (siteUrl: string, groupID: number) => {
-    const bookingsResponse = await fetch(
-        `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items` +
-        `?$select=ParkingStallsId,EventDate,EndDate,RequestStatus,GroupID` +
-        `&$filter=GroupID eq ${groupID}`,
-        {
-            method: "GET",
-            headers: {
-                Accept: "application/json;odata=verbose",
-            },
-        }
-    );
-
-    if (!bookingsResponse.ok) {
-        throw new Error(`Failed to fetch bookings: ${bookingsResponse.statusText}`);
-    }
-
-    return bookingsResponse.json();
-};
-
 // Fetch booked parking for a given event date range
 export const fetchBookedParkingForEvent = async (siteUrl: string, eventStart: moment.Moment, eventEnd: moment.Moment, ignoreEventId?: number) => {
     const bookedParkingResponse = await fetch(
@@ -96,32 +75,6 @@ export const formatParkingOptions = (availableParking: ParkingSpot[]): IDropdown
         key: parkingSpot.id,  // Set the id as the key
         text: parkingSpot.parking // Set the parking name as the text
     }));
-};
-
-// #2 getEventIdsByGroupId ------------------------------------------------------------------------------------------------
-
-// Fetch all events that match the specified GroupID
-export const fetchFromSharePoint = async (siteUrl: string, listName: string, query: string): Promise<any> => {
-    try {
-        const response = await fetch(
-            `${siteUrl}/_api/web/lists/getbytitle('${listName}')/items?${query}`,
-            {
-                method: 'GET',
-                headers: {
-                    Accept: 'application/json;odata=verbose',
-                },
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch data from ${listName}: ${response.statusText}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching data from SharePoint:', error);
-        throw error;  // Rethrow so calling functions can handle the error as needed
-    }
 };
 
 // #3 get Occupied Parking Details ----------------------------------------------------------------------------------------

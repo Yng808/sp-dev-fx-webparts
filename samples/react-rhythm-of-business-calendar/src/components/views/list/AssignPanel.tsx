@@ -1,11 +1,11 @@
 import React, { FC, useState, useEffect } from 'react';
-import { EventOccurrence, IEvent } from 'model';
+import { EventOccurrence } from 'model';
 import moment from 'moment';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from './EventDetailsList.module.scss';
 import { sp } from '@pnp/sp';
 import { IDropdownOption } from '@fluentui/react';
-import { fetchParkingStalls, fetchBookingsForGroup, fetchBookedParkingForEvent, filterAvailableParking, formatParkingOptions, fetchFromSharePoint, fetchOccupiedParkingDetails, composeEmailInBrowser} from './spEventDetailsList';
+import { fetchParkingStalls, fetchBookedParkingForEvent, filterAvailableParking, formatParkingOptions, fetchOccupiedParkingDetails, composeEmailInBrowser} from './spEventDetailsList';
 import { showAlert } from './AlertHost';
 import { assignGroupEmail, noParkingAvailableEmail } from './EmailTemplate';
 
@@ -20,10 +20,8 @@ interface AssignPanelProps {
 }
 
 export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen, groupIDToDisplay, setGroupIDToDisplay, filteredEvents, setLoadingSpots, onOpenPreview }) => {
-    const [parkingStallsOptions, setParkingStallsOptions] = useState<IDropdownOption[]>([]);
     const [parkingStallsOptionsEach, setParkingStallsOptionsEach] = useState<{ [key: number]: IDropdownOption[] }>({});
     const [parkingMap, setParkingMap] = useState<{ [id: number]: string }>({});
-    const [selectedParkingStall, setSelectedParkingStall] = useState<string>('');
     const [individualSelections, setIndividualSelections] = useState<{ [key: string]: number }>({});
     const [panelParkingLoading, setPanelParkingLoading] = useState(false);
     const [occupiedMapByDay, setOccupiedMapByDay] = useState<{ [date: string]: { [stallId: number]: { payGrade: string; surname: string }[] } }>({});
@@ -31,37 +29,10 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
 
     useEffect(() => {
         if (isPanelOpen && groupIDToDisplay !== 0) {
-            setParkingStallsOptions([]);
             setParkingStallsOptionsEach({});
-        loadAvailableParkingForAllEvents(groupIDToDisplay);
+            Promise.all(filteredEvents.filter(ev => ev.groupID === groupIDToDisplay).map(ev => loadAvailableParking(ev)));
         }
     }, [isPanelOpen, groupIDToDisplay]);
-
-    useEffect(() => {
-        if (parkingStallsOptions.length > 0 && !selectedParkingStall) {
-        const excludedIds = [35, 46, 47, -1];
-        const firstAvailable = parkingStallsOptions.find(opt => !excludedIds.includes(Number(opt.key)));
-        if (firstAvailable) {
-            setSelectedParkingStall(firstAvailable.key.toString());
-        }
-        }
-    }, [parkingStallsOptions]);
-
-    useEffect(() => {
-        const excludedIds = [35, 46, 47, -1];
-        Object.entries(parkingStallsOptionsEach).forEach(([eventId, options]) => {
-        const alreadySelected = individualSelections[Number(eventId)];
-        if (!alreadySelected && options.length > 0) {
-            const firstAvailable = options.find(opt => !excludedIds.includes(Number(opt.key)));
-            if (firstAvailable) {
-            setIndividualSelections(prev => ({
-                ...prev,
-                [Number(eventId)]: Number(firstAvailable.key),
-            }));
-            }
-        }
-        });
-    }, [parkingStallsOptionsEach]);
 
     useEffect(() => {
         const fetchParkingNames = async () => {
@@ -107,129 +78,9 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
         loadOccupied();
     }, [isPanelOpen, groupIDToDisplay, filteredEvents]);
 
-    const openPanel = async (groupID: number) => {
-        setGroupIDToDisplay(groupID);
-        setIsPanelOpen(true);
-        setParkingStallsOptions([]);
-        setParkingStallsOptionsEach([]);
-        setPanelParkingLoading(true);
-        await loadAvailableParkingForAllEvents(groupID);
-        setPanelParkingLoading(false);
-    };
-
     const closePanel = () => {
         setIsPanelOpen(false);
-        setParkingStallsOptions([]);
-        setParkingStallsOptionsEach([]);
-    };
-
-    const loadAvailableParkingForAllEvents = async (groupID: number) => {
-    setLoadingSpots(true);
-    try {
-        const web = await sp.web.get();
-        const siteUrl = web.Url;
-        const allParking = await fetchParkingStalls(siteUrl);
-        const bookingsData = await fetchBookingsForGroup(siteUrl, groupID);
-        type GroupEvent = { start: moment.Moment; end: moment.Moment };
-        const groupEvents: GroupEvent[] = bookingsData.d.results.map((ev: any) => ({
-        start: moment(ev.EventDate),
-        end: moment(ev.EndDate),
-        }));
-        const groupStart = moment.min(groupEvents.map(ev => ev.start));
-        const groupEnd = moment.max(groupEvents.map(ev => ev.end));
-        const bookedParkingIds = await fetchBookedParkingForEvent(siteUrl, groupStart, groupEnd);
-        const allBookedParkingIds = new Set(bookedParkingIds);
-        const availableParking = filterAvailableParking(allParking, allBookedParkingIds);
-
-        if (availableParking.length === 0) {
-        const events = filteredEvents.filter(event => event.groupID === groupID);
-        for (const event of events) {
-            await loadAvailableParking(event);
-        }
-        }
-        availableParking.push({ id: -1, parking: "Unavailable" });
-        const finalOptions = formatParkingOptions(availableParking);
-        setParkingStallsOptions(finalOptions);
-    } catch (error) {
-        console.error("Error determining available parking:", error);
-    } finally {
-        setLoadingSpots(false);
-    }
-    };
-
-    const getEventIdsByGroupId = async (groupID: number): Promise<number[]> => {
-        try {
-        const web = await sp.web.get();
-        const siteUrl = web.Url;
-        const query = `$filter=GroupID eq ${groupID}&$select=ID`;
-        const data = await fetchFromSharePoint(siteUrl, 'Rob Calendar Events2', query);
-        return data.d.results.map((item: any) => item.ID);
-        } catch (error) {
-        console.error('Error fetching event IDs by group ID:', error);
-        return [];
-        }
-    };
-
-    const handleAssignToAllEvents = async () => {
-        setLoadingSpots(true);
-        try {
-        const eventsToUpdate = filteredEvents.filter(event => event.groupID === Number(groupIDToDisplay));
-        if (eventsToUpdate.length === 0) {
-            showAlert(`No events found for Group ID ${groupIDToDisplay}.`, 'warning');
-            setLoadingSpots(false);
-            return;
-        }
-        for (const event of eventsToUpdate) {
-            const selectedStall = individualSelections[event.groupID] !== undefined
-            ? Number(individualSelections[event.groupID])
-            : Number(selectedParkingStall);
-            if (selectedStall !== undefined && selectedStall !== null && !isNaN(selectedStall)) {
-            await updateEventsInDatabase({
-                ...event,
-                parkingStalls: selectedStall,
-                requestStatus: 'Approved',
-                groupID: event.groupID,
-            });
-            } else {
-            showAlert(`Please select a parking stall for group ${event.groupID}`, 'warning');
-            setLoadingSpots(false);
-            return;
-            }
-        }
-        const email = assignGroupEmail(eventsToUpdate, parkingMap);
-        composeEmailInBrowser(email.to, email.subject, email.body);
-        showAlert('Parking has been assigned to all events in the group.', 'success');
-        setIsPanelOpen(false);
-        } catch (error) {
-        console.error('Error updating events:', error);
-        showAlert('There was an error assigning parking to the events.', 'danger');
-        } finally {
-        setLoadingSpots(false);
-        }
-    };
-
-    const updateEventsInDatabase = async (event: Partial<IEvent>) => {
-        try {
-        const itemIds = await getEventIdsByGroupId(event.groupID);
-        if (itemIds.length === 0) {
-            showAlert('No items found with the given groupID or items may have been deleted.', 'warning');
-            return;
-        }
-        for (const itemId of itemIds) {
-            if (event.parkingStalls) {
-            await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(itemId).update({
-                ParkingStallsId: event.parkingStalls,
-                RequestStatus: event.requestStatus,
-            });
-            } else {
-            showAlert('Please select a valid parking stall.', 'warning');
-            break;
-            }
-        }
-        } catch (error) {
-        console.error('Error updating events in database:', error);
-        showAlert('There was an error updating the events.', 'danger');
-        }
+        setParkingStallsOptionsEach({});
     };
 
     const loadAvailableParking = async (event: EventOccurrence) => {
@@ -322,7 +173,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                             {eventsForDay.length > 0 ? (
                             eventsForDay.map((event) => {
                                 const allStallIds = Object.keys(parkingMap).map(Number);
-                                const visualOptions = parkingStallsOptionsEach[event.id] || parkingStallsOptions;
+                                const visualOptions = parkingStallsOptionsEach[event.id] || [];
                                 const availableStallIds = visualOptions.filter(opt => opt.key !== -1).map((opt) => Number(opt.key));
                                 return (
                                 <div key={event.id} className={styles.parkingOptionWrapper}>
@@ -383,69 +234,15 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
 
                 {(panelParkingLoading || panelParkingOccupiedLoading) ? (
                     <div>Loading...</div>
-                ) : parkingStallsOptions.filter(opt => opt.key !== -1).length > 0 ? (
-                    // Single stall assigned to all events
-                    <div className="d-flex flex-column gap-2 w-100">
-                    <select
-                        className="form-control w-100"
-                        value={selectedParkingStall}
-                        onChange={(e) => setSelectedParkingStall(e.target.value)}
-                    >
-                        <option value="">Select Parking</option>
-                        {parkingStallsOptions.map((option) => (
-                        <option key={option.key} value={option.key}>
-                            {option.text}
-                        </option>
-                        ))}
-                    </select>
-                    <button className="btn btn-success w-100" onClick={async () => {
-                        const events = filteredEvents.filter(ev => ev.groupID === groupIDToDisplay);
-                        if (!selectedParkingStall) {
-                            showAlert(`Please select a parking stall.`, 'warning');
-                            return;
-                        }
-
-                        await Promise.all(events.map(ev =>
-                            updateEventInDatabase(ev.id, Number(selectedParkingStall))
-                        ));
-
-                        const updatedEvents = events.map(ev => ({
-                            ...ev,
-                            requestorEmail: ev.requestorEmail,
-                            requestorRank: ev.requestorRank, 
-                            requestorLastName: ev.requestorLastName,
-                            parkingStalls: Number(selectedParkingStall)
-                        })) as unknown as EventOccurrence[];
-
-                        const allUnavailable = updatedEvents.every(ev => ev.parkingStalls === -1);
-
-                        if (allUnavailable) {
-                        const email = noParkingAvailableEmail(updatedEvents);
-                        composeEmailInBrowser(email.to, email.subject, email.body);
-                        } else {
-                        const updatedParkingMap = { ...parkingMap, [-1]: 'Unavailable' };
-
-                        const email = assignGroupEmail(updatedEvents, updatedParkingMap);
-                        composeEmailInBrowser(email.to, email.subject, email.body);
-                        }
-
-                        showAlert("Parking has been assigned to all events in the group.", 'success');
-                        setIsPanelOpen(false);
-                        onOpenPreview();
-                        }}
-                        >
-                        Assign and send email
-                    </button>
-                    </div>
-                ) : (() => {
-                    // Per-event stall selection
-                    const events = filteredEvents.filter(event => event.groupID === groupIDToDisplay);
-                    return (
+                ) : (
                     <>
-                        {events.map(event => {
+                    {filteredEvents
+                        .filter(event => event.groupID === groupIDToDisplay)
+                        .map(event => {
                         const options = parkingStallsOptionsEach[event.id] || [];
                         const hasUnavailable = options.some(opt => opt.key === -1);
                         const allOptions = hasUnavailable ? options : [...options, { key: -1, text: "Unavailable" }];
+
                         return (
                             <div key={event.id} className="d-flex align-items-center w-100 mt-3">
                             <p className="mb-0" style={{ minWidth: '100px' }}>
@@ -457,7 +254,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                                 onChange={(e) => handleIndividualParkingChange(event.id, e.target.value)}
                             >
                                 <option value="">Select Parking</option>
-                                {allOptions.map((option) => (
+                                {allOptions.map(option => (
                                 <option key={option.key} value={option.key}>
                                     {option.text}
                                 </option>
@@ -468,6 +265,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                         })}
                         <button
                         className="btn btn-success mt-3 w-100" onClick={async () => {
+                            const events = filteredEvents.filter(ev => ev.groupID === groupIDToDisplay);
                             const unselected = events.filter(ev => individualSelections[ev.id] === undefined || isNaN(individualSelections[ev.id]) || individualSelections[ev.id] === 0);
                             if (unselected.length > 0) {
                             showAlert(`Please select parking for all events before assigning.`, 'warning');
@@ -504,8 +302,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                         Assign and send email
                         </button>
                     </>
-                    );
-                })()}
+                )}
                 </div>
             </div>
             </div>
