@@ -14,8 +14,6 @@ export interface OccupiedStall {
     surname: string;
 }
 
-// #1 loadAvailableParkingForAllEvents ------------------------------------------------------------------------------------
-
 // Fetch all parking stalls
 export const fetchParkingStalls = async (siteUrl: string): Promise<ParkingSpot[]> => {
     const parkingResponse = await fetch(
@@ -77,8 +75,6 @@ export const formatParkingOptions = (availableParking: ParkingSpot[]): IDropdown
     }));
 };
 
-// #3 get Occupied Parking Details ----------------------------------------------------------------------------------------
-
 // Fetch PayGrade and LastName of occupied
 export const fetchOccupiedParkingDetails = async (
     siteUrl: string,
@@ -111,8 +107,7 @@ export const fetchOccupiedParkingDetails = async (
     }));
 };
 
-// #4 Edit Button ---------------------------------------------------------------------------------------------------------
-
+// Map SharePoint item to EventOccurrence model
 export const mapSharePointItemToEventOccurrence = (item: any): EventOccurrence => {
     const event = new Event(undefined, undefined, undefined, undefined, item.ID);
 
@@ -145,12 +140,9 @@ export const fetchEventOccurrenceById = async (siteUrl: string, eventId: number)
     return mapSharePointItemToEventOccurrence(json.d);
 };
 
-
-// #5 Emails --------------------------------------------------------------------------------------------------------------
-
 export function composeEmailInBrowser(to: string, subject: string, body: string) {
   const url = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(
     to
   )}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   window.open(url, '_blank');
-}
+};
