@@ -72,7 +72,7 @@ export function noParkingAvailableEmail(events: EventOccurrence[]): EmailContent
     };
 }
 
-// Multi: Date(s) Changed
+// Multi OR Single: Date(s) Changed
 export function datesChangedEmail(event: EventOccurrence, newStart: moment.Moment, newEnd: moment.Moment): EmailContent {
     return {
         to: event.requestorEmail,
@@ -91,7 +91,7 @@ export function datesChangedEmail(event: EventOccurrence, newStart: moment.Momen
     };
 }
 
-// Multi: Cancel
+// Multi OR Single: Cancel
 export function cancelGroupEmail(events: EventOccurrence[]): EmailContent {
     if (!events.length) throw new Error('No events provided.');
 
@@ -130,7 +130,7 @@ export function timeChangedEmail(event: EventOccurrence, newStart: moment.Moment
         subject: buildSubject(event.dvPayGrade, event.dvSurname, formatDateRange([newStart, newEnd]), 'Time Changed'),
         body: `Aloha ${event.requestorRank} ${event.requestorLastName},
 
-        This email is to inform you that your base parking request scheduled for ${newStart.format('DD MMM, YYYY')} has been updated to the new time: ${newStart.format('HHmm')}-${newEnd.format('HHmm')}.
+        This email is to inform you that your base parking request scheduled for ${newStart.format('DD MMM, YYYY')} at ${newStart.format('HHmm')}-${newEnd.format('HHmm')} has been updated to the new time: ${newStart.format('HHmm')}-${newEnd.format('HHmm')}.
 
         Assigned Parking: ${parkingName || 'N/A'}
 
