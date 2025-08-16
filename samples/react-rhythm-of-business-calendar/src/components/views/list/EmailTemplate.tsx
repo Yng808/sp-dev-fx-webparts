@@ -25,6 +25,52 @@ function buildSubject(dvPayGrade: string, dvSurname: string, dateRange: string, 
     return `Base Parking Request for ${dvPayGrade} ${dvSurname} on ${dateRange}: ${status}`;
 }
 
+function formatLine(ev: EventOccurrence, stallName: string) {
+    const date = ev.start.format('DD MMM, YYYY');
+    const time = `${ev.start.format('HHmm')}-${ev.end.format('HHmm')}`;
+
+    let label: string;
+    if (ev.requestStatus === 'Cancelled') {
+        label = 'Cancelled';
+    } else if (ev.parkingStalls === -1) {
+        label = 'Unavailable';
+    } else {
+        label = stallName || 'Unknown Stall';
+    }
+
+    return `${date} ${time} ${label}`;
+}
+
+// Multi OR Single: Snapshot of the group's current state
+export function snapshotGroupEmail(events: EventOccurrence[], parkingMap: { [id: number]: string } ): EmailContent {
+    const sorted = [...events].sort((a, b) => a.start.diff(b.start));
+    const first = sorted[0];
+
+    const lines = sorted.map(ev => {
+        const stallName =
+        ev.parkingStalls === -1
+            ? 'Unavailable'
+            : parkingMap[ev.parkingStalls as number] ?? String(ev.parkingStalls ?? '');
+        return formatLine(ev, stallName);
+    });
+
+    return {
+        to: first.requestorEmail,
+        subject: `Base Parking Request for ${first.dvPayGrade} ${first.dvSurname} on ${formatDateRange(sorted)}`,
+        body: `Aloha ${first.requestorRank} ${first.requestorLastName},
+
+        This email is to inform you of the status of the requested date(s):
+
+        ${lines.join('\n')}
+
+        Mahalo!
+
+        USINDOPACOM Protocol
+        Email: indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil
+        COMM: (808)-477-7747`
+        };
+}
+
 // Multi OR Single: Parking Assignment
 export function assignGroupEmail(events: EventOccurrence[], parkingMap: { [id: number]: string }): EmailContent {
     const sorted = [...events].sort((a, b) => a.start.diff(b.start));

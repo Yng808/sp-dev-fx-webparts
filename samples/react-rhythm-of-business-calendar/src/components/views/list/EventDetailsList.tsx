@@ -10,7 +10,7 @@ import { EditPanel } from './EditPanel';
 import { ReassignPanel } from './ReassignPanel';
 import { ChangeDatesPanel } from './ChangeDatesPanel';
 import { showAlert, AlertHost } from './AlertHost';
-import { assignGroupEmail, cancelEventEmail, cancelGroupEmail } from './EmailTemplate';
+import { assignGroupEmail, cancelEventEmail, cancelGroupEmail, snapshotGroupEmail } from './EmailTemplate';
 import { CurrentParkingPanel } from './PreviewPanel';
 
 interface EventDetailsListProps {
@@ -151,7 +151,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             return;
         }
         const mapWithUnavailable = { ...parkingMap, [-1]: 'Unavailable' };
-        const { to, subject, body } = assignGroupEmail(groupEvents, mapWithUnavailable);
+        const { to, subject, body } = snapshotGroupEmail(groupEvents, mapWithUnavailable);
         composeEmailInBrowser(to, subject, body);
     };
 
