@@ -19,7 +19,7 @@ export interface OccupiedStall {
 // Gets all parking stalls from SharePoint
 export const fetchParkingStalls = async (siteUrl: string): Promise<ParkingSpot[]> => {
     const parkingResponse = await fetch(
-        `${siteUrl}/_api/web/lists/getbytitle('DVParkingStalls')/items?$select=ID,ParkingAssignment`,
+        `${siteUrl}/_api/web/lists/getbytitle('DVParkingStalls')/items?$select=ID,ParkingAssignment,Available&$filter=Available eq 'Yes'`,
         {
             method: "GET",
             headers: {
