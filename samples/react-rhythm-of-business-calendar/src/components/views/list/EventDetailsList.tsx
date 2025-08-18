@@ -9,7 +9,7 @@ import { AssignPanel } from './AssignPanel';
 import { EditPanel } from './EditPanel';
 import { ReassignPanel } from './ReassignPanel';
 import { ChangeDatesPanel } from './ChangeDatesPanel';
-import { showAlert, AlertHost } from './AlertHost';
+import { showAlert, AlertHost, ConfirmDialog } from './AlertHost';
 import { assignGroupEmail, cancelEventEmail, cancelGroupEmail, snapshotGroupEmail } from './EmailTemplate';
 import { CurrentParkingPanel } from './PreviewPanel';
 
@@ -61,6 +61,10 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [reassignEnd, setReassignEnd] = useState('');
     // Preview Panel
     const [isCurrentPanelOpen, setIsCurrentPanelOpen] = useState(false);
+    // Cancel Panel
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [confirmConfig, setConfirmConfig] = useState<{message: string; onConfirm: () => void;} | null>(null);
+
 
 
     const replaceGroupEvents = (groupId: number, updated: EventOccurrence[]) => {
@@ -195,10 +199,9 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     };
 
     // Cancel entire group
-    const handleCancelGroup = async (groupId: number) => {
-        const confirmed = window.confirm(`Are you sure you want to cancel ALL events in group ${groupId}?`);
-        if (!confirmed) return;
-
+    const handleCancelGroup = (groupId: number) => {
+        setConfirmConfig({ message: `Are you sure you want to cancel ALL events in group ${groupId}?`,
+        onConfirm: async () => {
         const groupEvents = filteredEvents.filter(ev => ev.groupID === groupId);
         const eventIds = groupEvents.map(ev => ev.id);
         try {
@@ -217,13 +220,15 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             console.error('Error cancelling group events:', error);
             showAlert('There was an error cancelling the group events.', 'warning');
         }
+        },
+    });
+    setShowConfirm(true);
     };
 
     // Cancel by event
-    const handleCancel = async (event: EventOccurrence) => {
-        const confirmed = window.confirm(`Are you sure you want to cancel event ${event.id}?`);
-        if (!confirmed) return;
-
+    const handleCancel = (event: EventOccurrence) => {
+        setConfirmConfig({ message: `Are you sure you want to cancel event ${event.id}?`,
+        onConfirm: async () => {
         try {
             await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(event.id).update({
                 RequestStatus: 'Cancelled',
@@ -237,6 +242,9 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             showAlert('Failed to update status to Cancelled.', 'warning');
             console.error(error);
         }
+        },
+    });
+    setShowConfirm(true);
     };
 
     return (
@@ -411,6 +419,12 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 setIsPanelOpen={setIsCurrentPanelOpen}
                 groupIDToDisplay={groupIDToDisplay}
                 filteredEvents={filteredEvents}
+            /> 
+            <ConfirmDialog
+                show={showConfirm}
+                message={confirmConfig?.message || ""}
+                onConfirm={() => {confirmConfig?.onConfirm(); setShowConfirm(false);}}
+                onCancel={() => setShowConfirm(false)}
             /> 
             <AlertHost />
         </div>

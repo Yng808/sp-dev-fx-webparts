@@ -37,3 +37,17 @@ export const AlertHost: React.FC = () => {
         </div>
     );
 };
+// Confirm Dialog
+export const ConfirmDialog: React.FC<{show: boolean; message: string; onConfirm: () => void; onCancel: () => void;}> = ({ show, message, onConfirm, onCancel }) => {
+    if (!show) return null;
+
+    return (
+        <div className={`alert alert-warning position-fixed top-50 start-50 translate-middle m-3 d-flex flex-column justify-content-between align-items-center ${styles.alertButton}`} role="alert">
+            <h6>{message}</h6>
+            <div className="mt-2">
+                <button type="button" className="btn btn-danger me-2" onClick={onConfirm}>Yes</button>
+                <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+            </div>
+        </div>
+    );
+};
