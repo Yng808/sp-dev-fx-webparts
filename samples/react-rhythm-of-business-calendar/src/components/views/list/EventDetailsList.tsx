@@ -394,7 +394,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 siteTimeZone={siteTimeZone}
                 setIsPanelOpen={setIsPanelOpen}
                 setGroupIDToDisplay={setGroupIDToDisplay}
-                 onReplaceGroupEvents={replaceGroupEvents}
+                onReplaceGroupEvents={replaceGroupEvents}
+                parkingMap={parkingMap}
             />
             <ReassignPanel
                 isReassignPanelOpen={isReassignPanelOpen}

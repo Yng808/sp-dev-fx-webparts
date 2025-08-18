@@ -173,17 +173,33 @@ export function fieldsChangedEmail(original: EventOccurrence, updated: Record<st
         COMM: (808)-477-7747`
     };
 }
-
 // Multi OR Single: Date(s) Changed
-export function datesChangedEmail(event: EventOccurrence, newStart: moment.Moment, newEnd: moment.Moment): EmailContent {
+export function datesChangedEmail(previousEvents: EventOccurrence[], updatedEvents: EventOccurrence[], parkingMap: { [id: number]: string } = {}): EmailContent {
+    const prevSorted = [...previousEvents].sort((a, b) => a.start.diff(b.start));
+    const nextSorted = [...updatedEvents].sort((a, b) => a.start.diff(b.start));
+
+    const first = (nextSorted[0] || prevSorted[0]);
+ 
+    const prevCancelled = nextSorted.filter(ev => ev.requestStatus === 'Cancelled');
+    const prevRange = prevCancelled.length ? formatDateRange(prevCancelled) : 'None';
+ 
+    const activeEvents = nextSorted.filter(ev => ev.requestStatus !== 'Cancelled');
+    const newRange = activeEvents.length ? formatDateRange(activeEvents) : 'None';
+
+    const subjectEvents = activeEvents.length ? activeEvents : nextSorted;
+
     return {
-        to: event.requestorEmail,
-        subject: buildSubject(event.dvPayGrade, event.dvSurname, formatDateRange([newStart, newEnd]), 'Date Changed'),
-        body: `Aloha ${event.requestorRank} ${event.requestorLastName},
+        to: first.requestorEmail,
+        subject: buildSubject(first.dvPayGrade, first.dvSurname, formatDateRange(subjectEvents), 'Date Changed'),
+        body: `Aloha ${first.requestorRank} ${first.requestorLastName},
 
         This email is to inform you that your base parking request dates have been updated.
 
-        New Dates: ${newStart.format('DD MMM, YYYY')} - ${newEnd.format('DD MMM, YYYY')}
+        Previous Date(s):
+        ${prevRange}
+
+        New Date(s):
+        ${newRange}
 
         Mahalo!
         

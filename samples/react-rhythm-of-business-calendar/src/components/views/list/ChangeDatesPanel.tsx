@@ -17,9 +17,10 @@ interface ChangeDatesPanelProps {
     setIsPanelOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setGroupIDToDisplay: React.Dispatch<React.SetStateAction<number>>;
     onReplaceGroupEvents: (groupId: number, updated: EventOccurrence[]) => void;
+    parkingMap: { [id: number]: string };
 }
 
-export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanelOpen, setIsChangeDatesPanelOpen, groupToChangeDates, setGroupToChangeDates, filteredEvents, siteTimeZone, setIsPanelOpen, setGroupIDToDisplay, onReplaceGroupEvents }) => {
+export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanelOpen, setIsChangeDatesPanelOpen, groupToChangeDates, setGroupToChangeDates, filteredEvents, siteTimeZone, setIsPanelOpen, setGroupIDToDisplay, onReplaceGroupEvents, parkingMap }) => {
     const [changeStartDate, setChangeStartDate] = useState('');
     const [changeEndDate, setChangeEndDate] = useState('');
 
@@ -162,8 +163,20 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
 
             // success path
             showAlert('Group events successfully updated!', 'success');
-            const first = groupEvents[0];
-            const email = datesChangedEmail(first, moment(changeStartDate), moment(changeEndDate));
+
+            // previous = events before save
+            const previousEvents = groupEvents;
+
+            // reload the updated group from SharePoint so we have the final dates/times/stalls
+            const resp2 = await fetch(
+            `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items?$select=*` +
+            `&$filter=GroupID eq ${templateEvent.groupID}`,
+            { headers: { Accept: 'application/json;odata=verbose' } }
+            );
+            const json2 = await resp2.json();
+            const updatedEvents = (json2.d.results as any[]).map(mapSharePointItemToEventOccurrence);
+
+            const email = datesChangedEmail(previousEvents, updatedEvents , parkingMap);
             composeEmailInBrowser(email.to, email.subject, email.body);
             setIsChangeDatesPanelOpen(false);
             setGroupToChangeDates(null);
