@@ -61,7 +61,7 @@ export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReass
         // Case 2: Approved & check parking availability
         const web = await sp.web.get();
         const siteUrl = web.Url;
-        const bookedParkingSet = await fetchBookedParkingForEvent(siteUrl, newStart, newEnd, eventToReassign.id);
+        const bookedParkingSet = await fetchBookedParkingForEvent(siteUrl, newStart, newEnd, [eventToReassign.id]);
 
         if (!bookedParkingSet.has(parkingId)) {
             await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(eventToReassign.id).update({

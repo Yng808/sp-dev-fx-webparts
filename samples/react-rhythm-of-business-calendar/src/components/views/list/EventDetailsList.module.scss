@@ -45,12 +45,12 @@
 .leftSide {
   display: flex;
   flex-direction: row;
-  gap: 20px;
+  gap: 10px;
   flex-wrap: nowrap;
   flex: 2 1 0;
-  max-width: 600px;
+  max-width: 700px;
   width: 100%;
-  max-height: 350px;
+  max-height: 650px;
   overflow-x: auto;
   overflow-y: auto;
   border: 2px solid black;

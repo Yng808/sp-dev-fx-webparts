@@ -3,7 +3,7 @@ import moment from 'moment-timezone';
 import styles from './EventDetailsList.module.scss';
 import { EventOccurrence } from 'model';
 import { sp } from '@pnp/sp';
-import { composeEmailInBrowser, fetchBookedParkingForEvent } from './spEventDetailsList';
+import { composeEmailInBrowser, fetchBookedParkingForEvent, mapSharePointItemToEventOccurrence } from './spEventDetailsList';
 import { showAlert } from './AlertHost';
 import { datesChangedEmail } from './EmailTemplate';
 
@@ -16,9 +16,10 @@ interface ChangeDatesPanelProps {
     siteTimeZone: { momentId: string };
     setIsPanelOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setGroupIDToDisplay: React.Dispatch<React.SetStateAction<number>>;
+    onReplaceGroupEvents: (groupId: number, updated: EventOccurrence[]) => void;
 }
 
-export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanelOpen, setIsChangeDatesPanelOpen, groupToChangeDates, setGroupToChangeDates, filteredEvents, siteTimeZone, setIsPanelOpen, setGroupIDToDisplay }) => {
+export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanelOpen, setIsChangeDatesPanelOpen, groupToChangeDates, setGroupToChangeDates, filteredEvents, siteTimeZone, setIsPanelOpen, setGroupIDToDisplay, onReplaceGroupEvents }) => {
     const [changeStartDate, setChangeStartDate] = useState('');
     const [changeEndDate, setChangeEndDate] = useState('');
 
@@ -47,29 +48,40 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
         const web = await sp.web.get();
         const siteUrl = web.Url;
 
+        // group events (from props) in date order
         const groupEvents = filteredEvents
             .filter(ev => ev.groupID === groupToChangeDates)
-            .sort((a, b) => moment(a.start).diff(b.start));
+            .sort((a, b) => a.start.diff(b.start));
 
-        const newDates: string[] = [];
-        let curr = moment(changeStartDate);
-        const end = moment(changeEndDate);
-        while (curr.isSameOrBefore(end, "day")) {
-            newDates.push(curr.format("YYYY-MM-DD"));
-            curr.add(1, "day");
+        if (!groupEvents.length) {
+            showAlert('No events found for this group.', 'warning');
+            return;
         }
 
-        const minCount = Math.min(groupEvents.length, newDates.length);
+        const ignoreIds = groupEvents.map(ev => ev.id);
 
+        // build full date list
+        const newDates: string[] = [];
+        for (let cur = moment(changeStartDate); cur.isSameOrBefore(moment(changeEndDate), 'day'); cur.add(1, 'day')) {
+            newDates.push(cur.format('YYYY-MM-DD'));
+        }
+
+        // map existing events by date
+        const eventMap = new Map<string, EventOccurrence>();
+        groupEvents.forEach(ev => eventMap.set(ev.start.format('YYYY-MM-DD'), ev));
+
+        const templateEvent = groupEvents[0];
         let anyConflicts = false;
-        // Update existing events to match new dates
-        for (let i = 0; i < minCount; i++) {
-            const origEvent = groupEvents[i];
-            const newDate = newDates[i];
-            const origStartTime = origEvent.start.format('HH:mm:ss');
-            const origEndTime = origEvent.end.format('HH:mm:ss');
+
+        for (const newDate of newDates) {
+            const origEvent = eventMap.get(newDate);
+            const origStartTime = templateEvent.start.format('HH:mm:ss');
+            const origEndTime = templateEvent.end.format('HH:mm:ss');
             const newStart = moment.tz(`${newDate}T${origStartTime}`, siteTimeZone.momentId);
             const newEnd = moment.tz(`${newDate}T${origEndTime}`, siteTimeZone.momentId);
+
+            if (origEvent) {
+            // UPDATE existing
             const parkingId = origEvent.parkingStalls;
             // Case 1 Event is new or has no parking assigned — just update date and mark as "New"
             if (origEvent.requestStatus === "New" || !parkingId || parkingId === -1) {
@@ -78,18 +90,14 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
                     EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
                     RequestStatus: 'New'
                 });
-                continue;
-            }
-
-            const web = await sp.web.get();
-            const siteUrl = web.Url;
-            const bookedParkingSet = await fetchBookedParkingForEvent(siteUrl, newStart, newEnd,  origEvent.id);
+            } else {
+            const booked = await fetchBookedParkingForEvent(siteUrl, newStart, newEnd, ignoreIds);
             // Case 2 Parking stall is available — update event and approve
-            if (!bookedParkingSet.has(parkingId)) {
+            if (!booked.has(parkingId)) {
                 await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(origEvent.id).update({
                     EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
                     EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
-                    RequestStatus: 'Approved'
+                    RequestStatus: 'Approved',
                 });
             } else /* Case 3 Parking stall is taken — clear stall, set to "New", open assign panel */ {
                 await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(origEvent.id).update({
@@ -99,34 +107,19 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
                     RequestStatus: 'New'
                 });
                 anyConflicts = true;
-                setIsChangeDatesPanelOpen(false);
-                setGroupIDToDisplay(origEvent.groupID);
-                setIsPanelOpen(true);
-                showAlert(`Parking for one or more events is not available at the new date. Please reassign parking.`, 'warning');
-                return;
+                }
             }
-        }
-        // Add new events if date range is extended
-        if (newDates.length > groupEvents.length) {
-            const templateEvent = groupEvents[0];
-            for (let i = groupEvents.length; i < newDates.length; i++) {
-                const newDate = newDates[i];
-                const origStartTime = templateEvent.start.format('HH:mm:ss');
-                const origEndTime = templateEvent.end.format('HH:mm:ss');
-                const newStart = moment.tz(`${newDate}T${origStartTime}`, siteTimeZone.momentId);
-                const newEnd = moment.tz(`${newDate}T${origEndTime}`, siteTimeZone.momentId);
-
-                let newRequestStatus = 'New';
+            } else {
+            // ADD new
+                let newRequestStatus: 'New' | 'Approved' = 'New';
                 let newParkingStallId: number | null = null;
-                let hasConflict = false;
-                
                 if (templateEvent.parkingStalls && templateEvent.parkingStalls !== -1) {
-                    const bookedParkingSet = await fetchBookedParkingForEvent(siteUrl, newStart, newEnd, null);
-                    if (!bookedParkingSet.has(templateEvent.parkingStalls)) {
+                    const booked = await fetchBookedParkingForEvent(siteUrl, newStart, newEnd, ignoreIds);
+                    if (!booked.has(templateEvent.parkingStalls)) {
                         newParkingStallId = templateEvent.parkingStalls;
                         newRequestStatus = 'Approved';
                     } else {
-                        hasConflict = true;
+                        anyConflicts = true; // add as New without stall
                     }
                 }
 
@@ -135,34 +128,45 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
                     EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
                     EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss')
                 });
-
-                if (hasConflict) {
-                    anyConflicts = true;
-                    setIsChangeDatesPanelOpen(false);
-                    setGroupIDToDisplay(templateEvent.groupID);
-                    setIsPanelOpen(true);
-                    showAlert(`Parking not available for new date(s). Please assign stall(s).`, 'warning');
-                }
             }
         }
-        // Cancel extra events if date range is shortened
-        if (groupEvents.length > newDates.length) {
-            for (let i = newDates.length; i < groupEvents.length; i++) {
-                const ev = groupEvents[i];
+
+        // cancel anything outside the new range
+        for (const ev of groupEvents) {
+            const evDate = ev.start.format('YYYY-MM-DD');
+            if (!newDates.includes(evDate)) {
                 await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(ev.id).update({
-                    RequestStatus: 'Cancelled'
+                    RequestStatus: 'Cancelled',
                 });
             }
         }
-        // Show success message only if no conflicts occurred
-        if (!anyConflicts) {
+
+        if (anyConflicts) {
+            // refresh this group's events from SP and push to parent so AssignPanel sees them
+            const resp = await fetch(
+            `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items?$select=*` +
+            `&$filter=GroupID eq ${templateEvent.groupID}`,
+            { headers: { Accept: 'application/json;odata=verbose' } }
+            );
+            const json = await resp.json();
+            const updatedGroup = (json.d.results as any[]).map(mapSharePointItemToEventOccurrence);
+
+            onReplaceGroupEvents(templateEvent.groupID, updatedGroup);
+
+            setIsChangeDatesPanelOpen(false);
+            setGroupIDToDisplay(templateEvent.groupID);
+            setIsPanelOpen(true);
+            showAlert(`Parking not available for one or more new date(s). Please assign stall(s).`, 'warning');
+            return;
+        }
+
+            // success path
             showAlert('Group events successfully updated!', 'success');
             const first = groupEvents[0];
             const email = datesChangedEmail(first, moment(changeStartDate), moment(changeEndDate));
             composeEmailInBrowser(email.to, email.subject, email.body);
             setIsChangeDatesPanelOpen(false);
             setGroupToChangeDates(null);
-        }
     };
 
     if (!isChangeDatesPanelOpen) return null;

@@ -63,6 +63,15 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [isCurrentPanelOpen, setIsCurrentPanelOpen] = useState(false);
 
 
+    const replaceGroupEvents = (groupId: number, updated: EventOccurrence[]) => {
+    setFilteredEvents(prev => {
+        const others = prev.filter(ev => ev.groupID !== groupId);
+        return [...others, ...updated].sort((a,b) =>
+        a.groupID - b.groupID || a.start.diff(b.start)
+        );
+    });
+    };
+
     useEffect(() => {
         let filtered = [...cccurrences]; // Create a mutable copy of the readonly array
 
@@ -385,6 +394,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 siteTimeZone={siteTimeZone}
                 setIsPanelOpen={setIsPanelOpen}
                 setGroupIDToDisplay={setGroupIDToDisplay}
+                 onReplaceGroupEvents={replaceGroupEvents}
             />
             <ReassignPanel
                 isReassignPanelOpen={isReassignPanelOpen}

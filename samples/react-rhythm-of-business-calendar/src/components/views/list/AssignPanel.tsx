@@ -227,7 +227,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                         const matchedEvent = filteredEvents.find(e => e.groupID === groupIDToDisplay);
                         return (
                         <>
-                            <h6>Assignment for: {matchedEvent?.dvPayGrade || 'N/A'} {matchedEvent?.dvSurname || ''}</h6>
+                            <h6>Assignment for: {matchedEvent?.dvPayGrade || ''} {matchedEvent?.dvSurname || ''}</h6>
                             <h6>GroupID: {matchedEvent?.groupID || ''} & Bridge: {matchedEvent?.dvVisiting || ''}</h6>
                         </>
                         );
@@ -272,6 +272,8 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                                 ));
                                 const updatedEvents = events.map(ev => ({
                                     ...ev,
+                                    dvPayGrade: ev.dvPayGrade,
+                                    dvSurname: ev.dvSurname,
                                     requestorEmail: ev.requestorEmail, 
                                     requestorRank: ev.requestorRank,   
                                     requestorLastName: ev.requestorLastName,

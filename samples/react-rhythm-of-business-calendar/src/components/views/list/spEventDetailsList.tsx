@@ -40,7 +40,7 @@ export const fetchParkingStalls = async (siteUrl: string): Promise<ParkingSpot[]
 };
 
 // Gets already booked stalls for a date range
-export const fetchBookedParkingForEvent = async (siteUrl: string, eventStart: moment.Moment, eventEnd: moment.Moment, ignoreEventId?: number) => {
+export const fetchBookedParkingForEvent = async (siteUrl: string, eventStart: moment.Moment, eventEnd: moment.Moment, ignoreEventIds: number[] = []): Promise<Set<number>> => {
     const bookedParkingResponse = await fetch(
         `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items` +
         `?$select=ID,ParkingStallsId,EventDate,EndDate` +
@@ -60,7 +60,7 @@ export const fetchBookedParkingForEvent = async (siteUrl: string, eventStart: mo
 
     const bookedData = await bookedParkingResponse.json();
     return new Set<number>(
-        bookedData.d.results.filter((item: any) => item.ID !== ignoreEventId).map((item: any) => item.ParkingStallsId).filter((id: number | null) => id != null) as number[]
+        bookedData.d.results.filter((item: any) => !ignoreEventIds.includes(item.ID)).map((item: any) => item.ParkingStallsId).filter((id: number | null) => id != null) as number[]
     );
 };
 
