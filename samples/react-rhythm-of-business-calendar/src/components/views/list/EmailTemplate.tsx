@@ -41,6 +41,36 @@ function formatLine(ev: EventOccurrence, stallName: string) {
     return `${date} ${time} ${label}`;
 }
 
+function getChangedFields(original: EventOccurrence, updated: Record<string, string>) {
+    const changes: { label: string; before: string; after: string }[] = [];
+
+    const fieldLabels: Record<string, string> = {
+        dvPayGrade: "DV Pay Grade",
+        dvRank: "DV Rank",
+        dvFirstName: "DV First Name",
+        dvSurname: "DV Last Name",
+        jdirVisiting: "DV Visiting JDIR/Office",
+        dvVisiting: "Is DV Visiting Bridge",
+        requestorRank: "Requestor Rank",
+        requestorFirstName: "Requestor First Name",
+        requestorLastName: "Requestor Last Name",
+        requestorOffice: "Requestor Office",
+        requestorDutyPhone: "Requestor Duty Phone",
+        requestorCellPhone: "Requestor Cell Phone",
+        requestorEmail: "Requestor Email"
+    };
+
+    for (const key in updated) {
+        const before = (original as any)[key] ?? "";
+        const after = updated[key as keyof typeof updated] ?? "";
+        if (before !== after) {
+        changes.push({ label: fieldLabels[key], before, after });
+        }
+    }
+
+    return changes;
+}
+
 // Multi OR Single: Snapshot of the group's current state
 export function snapshotGroupEmail(events: EventOccurrence[], parkingMap: { [id: number]: string } ): EmailContent {
     const sorted = [...events].sort((a, b) => a.start.diff(b.start));
@@ -59,7 +89,7 @@ export function snapshotGroupEmail(events: EventOccurrence[], parkingMap: { [id:
         subject: `Base Parking Request for ${first.dvPayGrade} ${first.dvSurname} on ${formatDateRange(sorted)}`,
         body: `Aloha ${first.requestorRank} ${first.requestorLastName},
 
-        This email is to inform you of the status of the requested date(s):
+        This email is to inform you of the status of your request:
 
         ${lines.join('\n')}
 
@@ -109,6 +139,32 @@ export function noParkingAvailableEmail(events: EventOccurrence[]): EmailContent
         body: `Aloha ${first.requestorRank} ${first.requestorLastName},
         
         Unfortunately, there is no parking available for the following date(s): ${formatDateRange(events)}
+
+        Mahalo!
+        
+        USINDOPACOM Protocol
+        Email: indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil
+        COMM: (808)-477-7747`
+    };
+}
+
+export function fieldsChangedEmail(original: EventOccurrence, updated: Record<string, string>, groupEvents: EventOccurrence[]) {
+    const changes = getChangedFields(original, updated);
+    if (!changes.length) return null;
+
+    const sorted = [...groupEvents].sort((a, b) => a.start.diff(b.start));
+    const first = sorted[0];
+
+    const changesText = changes.map(c => `${c.label}\nPreviously: ${c.before || "N/A"}\nNow: ${c.after || "N/A"}\n`).join("\n");
+
+    return {
+        to: first.requestorEmail,
+        subject: `Base Parking Request for ${first.dvPayGrade} ${first.dvSurname} on ${formatDateRange(sorted)}: Updated`,
+        body: `Aloha ${first.requestorRank} ${first.requestorLastName},
+
+        This email is to inform you of the change(s) to your request:
+
+        ${changesText}
 
         Mahalo!
         

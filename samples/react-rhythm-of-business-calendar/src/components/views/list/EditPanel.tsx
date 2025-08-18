@@ -3,6 +3,8 @@ import styles from './EventDetailsList.module.scss';
 import { EventOccurrence } from 'model';
 import { sp } from '@pnp/sp';
 import { showAlert } from './AlertHost';
+import { fieldsChangedEmail } from './EmailTemplate';
+import { composeEmailInBrowser } from './spEventDetailsList';
 
 interface EditPanelProps {
     isEditPanelOpen: boolean;
@@ -48,6 +50,13 @@ export const EditPanel: FC<EditPanelProps> = ({ isEditPanelOpen, setIsEditPanelO
             }
         }
         }
+        // After updates succeed, send email if fields changed
+        if (eventToEdit) {
+            const email = fieldsChangedEmail(eventToEdit, editFields, eventsToUpdate);
+            if (email) {
+                composeEmailInBrowser(email.to, email.subject, email.body);
+            }
+        }
         showAlert('Successfully updated fields!', 'success');
         setIsEditPanelOpen(false);
         setEditFields({ dvPayGrade: '', dvRank: '', dvFirstName: '', dvSurname: '', jdirVisiting: '', dvVisiting: '', requestorRank: '', requestorFirstName: '', requestorLastName: '', requestorOffice: '', requestorDutyPhone: '', requestorCellPhone: '', requestorEmail: ''});
@@ -84,8 +93,7 @@ export const EditPanel: FC<EditPanelProps> = ({ isEditPanelOpen, setIsEditPanelO
                     <div className={styles.row}>
                         <div>Requestor Duty Phone:  <input className="form-control" value={editFields.requestorDutyPhone} onChange={e => setEditFields({ ...editFields, requestorDutyPhone: e.target.value })}/></div>
                         <div>Requestor Cell Phone:  <input className="form-control" value={editFields.requestorCellPhone} onChange={e => setEditFields({ ...editFields, requestorCellPhone: e.target.value })}/></div>
-                        <div>Requestor Email:       <input className="form-control" value={editFields.requestorEmail} onChange={e => setEditFields({ ...editFields, requestorEmail: e.target.value })}/>
-                    </div>
+                        <div>Requestor Email:       <input className="form-control" value={editFields.requestorEmail} onChange={e => setEditFields({ ...editFields, requestorEmail: e.target.value })}/></div>
                     </div>
                 </div>
                 <button className="btn btn-success" onClick={handleEditSave}>Save Changes</button>
