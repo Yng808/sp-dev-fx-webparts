@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react';
 import moment from 'moment-timezone';
 import styles from './EventDetailsList.module.scss';
 import { sp } from '@pnp/sp';
-import { fetchBookedParkingForEvent, composeEmailInBrowser } from './spEventDetailsList';
 import { EventOccurrence } from 'model';
 import { showAlert } from './AlertHost';
-import { timeChangedEmail } from './EmailTemplate';
 
 interface Props {
     isReassignPanelOpen: boolean;
@@ -17,7 +15,7 @@ interface Props {
     parkingMap: { [id: number]: string };
 }
 
-export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReassignPanelOpen, eventToReassign, siteTimeZone, setIsPanelOpen, setGroupIDToDisplay, parkingMap }) => {
+export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReassignPanelOpen, eventToReassign, siteTimeZone, setIsPanelOpen, setGroupIDToDisplay }) => {
     const [reassignStart, setReassignStart] = useState('');
     const [reassignEnd, setReassignEnd] = useState('');
 
@@ -44,54 +42,18 @@ export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReass
         }
 
         try {
-        const parkingId = eventToReassign.parkingStalls;
-
-        // Case 1: Event is "New"
-        if (eventToReassign.requestStatus === "New" || !parkingId || parkingId === -1) {
             await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(eventToReassign.id).update({
-            EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
-            EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
-            RequestStatus: 'New'
+                EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
+                EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
+                RequestStatus: 'New',
+                ParkingStallsId: null
             });
-            showAlert('Event time updated!', 'success');
+            showAlert('Event time updated. Please reassign parking.', 'success');
             setIsReassignPanelOpen(false);
-            return;
-        }
-
-        // Case 2: Approved & check parking availability
-        const web = await sp.web.get();
-        const siteUrl = web.Url;
-        const bookedParkingSet = await fetchBookedParkingForEvent(siteUrl, newStart, newEnd, [eventToReassign.id]);
-
-        if (!bookedParkingSet.has(parkingId)) {
-            await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(eventToReassign.id).update({
-            EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
-            EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
-            RequestStatus: 'Approved'
-            });
-            showAlert('Event time and parking updated!', 'success');
-            setIsReassignPanelOpen(false);
-
-            const parkingName = parkingMap[parkingId];
-            const email = timeChangedEmail(eventToReassign, newStart, newEnd, parkingName);
-            composeEmailInBrowser(email.to, email.subject, email.body);
-            return;
-        }
-
-        // Case 3: Parking not available
-        await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(eventToReassign.id).update({
-            EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
-            EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
-            ParkingStallsId: null,
-            RequestStatus: 'New'
-        });
-
-        showAlert('Parking not available at the new time. Please reassign parking.', 'warning');
-        setIsReassignPanelOpen(false);
-        setGroupIDToDisplay(eventToReassign.groupID);
-        setIsPanelOpen(true);
+            setGroupIDToDisplay(eventToReassign.groupID);
+            setIsPanelOpen(true);
         } catch (err) {
-        console.error(err);
+            console.error(err);
             showAlert('Failed to re-assign event.', 'danger');
         }
     };
@@ -105,10 +67,8 @@ export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReass
                 <div>
                     <h6>New Start Time: <input type="time" className="form-control" value={reassignStart} onChange={e => setReassignStart(e.target.value)}/></h6>
                     <h6>New End Time:   <input type="time" className="form-control" value={reassignEnd} onChange={e => setReassignEnd(e.target.value)}/></h6>
-                    
                     <button className="btn btn-success mt-2 w-100" onClick={handleReassignSave}>Save Changes</button>
                 </div>
-
                 <div>
                     <h6>GroupID:        {eventToReassign.groupID}</h6>
                     <h6>Assignment for: {eventToReassign.dvPayGrade} {eventToReassign.dvSurname}</h6>

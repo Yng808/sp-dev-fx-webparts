@@ -18,7 +18,7 @@ export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({ isPanelOpen,
     const [panelParkingOccupiedLoading, setPanelParkingOccupiedLoading] = useState(true);
 
     const getEventDateRange = (events: EventOccurrence[], groupID: number) => {
-        const filtered = events.filter((event) => event.groupID === groupID);
+        const filtered = events.filter((event) => event.groupID === groupID && event.requestStatus !== "Cancelled");
         if (filtered.length === 0) return [];
         const startDate = moment.min(filtered.map((event) => moment(event.start)));
         const endDate = moment.max(filtered.map((event) => moment(event.end)));
@@ -83,7 +83,7 @@ export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({ isPanelOpen,
                             const dayOfWeek = moment(day);
                             const dayKey = dayOfWeek.format('YYYY-MM-DD');
                             const eventsForDay = filteredEvents.filter(
-                                (event) => event.groupID === groupIDToDisplay && moment(event.start).isSame(dayOfWeek, 'day')
+                                (event) => event.groupID === groupIDToDisplay && event.requestStatus !== "Cancelled" && moment(event.start).isSame(dayOfWeek, 'day')
                             );
                             return (
                                 // Render a block for each day of the schedule

@@ -3,9 +3,8 @@ import moment from 'moment-timezone';
 import styles from './EventDetailsList.module.scss';
 import { EventOccurrence } from 'model';
 import { sp } from '@pnp/sp';
-import { composeEmailInBrowser, fetchBookedParkingForEvent, mapSharePointItemToEventOccurrence } from './spEventDetailsList';
+import { mapSharePointItemToEventOccurrence } from './spEventDetailsList';
 import { showAlert } from './AlertHost';
-import { datesChangedEmail } from './EmailTemplate';
 
 interface ChangeDatesPanelProps {
     isChangeDatesPanelOpen: boolean;
@@ -20,13 +19,13 @@ interface ChangeDatesPanelProps {
     parkingMap: { [id: number]: string };
 }
 
-export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanelOpen, setIsChangeDatesPanelOpen, groupToChangeDates, setGroupToChangeDates, filteredEvents, siteTimeZone, setIsPanelOpen, setGroupIDToDisplay, onReplaceGroupEvents, parkingMap }) => {
+export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanelOpen, setIsChangeDatesPanelOpen, groupToChangeDates, setGroupToChangeDates, filteredEvents, siteTimeZone, setIsPanelOpen, setGroupIDToDisplay, onReplaceGroupEvents }) => {
     const [changeStartDate, setChangeStartDate] = useState('');
     const [changeEndDate, setChangeEndDate] = useState('');
 
     useEffect(() => {
         if (groupToChangeDates) {
-            const groupEvents = filteredEvents.filter(e => e.groupID === groupToChangeDates);
+            const groupEvents = filteredEvents.filter(e => e.groupID === groupToChangeDates && e.requestStatus !== "Cancelled");
             groupEvents.sort((a, b) => moment(a.start).diff(moment(b.start)));
             const start = groupEvents.length ? groupEvents[0].start.format('YYYY-MM-DD') : '';
             const end = groupEvents.length ? groupEvents[groupEvents.length - 1].end.format('YYYY-MM-DD') : '';
@@ -59,8 +58,6 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
             return;
         }
 
-        const ignoreIds = groupEvents.map(ev => ev.id);
-
         // build full date list
         const newDates: string[] = [];
         for (let cur = moment(changeStartDate); cur.isSameOrBefore(moment(changeEndDate), 'day'); cur.add(1, 'day')) {
@@ -72,8 +69,8 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
         groupEvents.forEach(ev => eventMap.set(ev.start.format('YYYY-MM-DD'), ev));
 
         const templateEvent = groupEvents[0];
-        let anyConflicts = false;
 
+        // Update or add events for new range
         for (const newDate of newDates) {
             const origEvent = eventMap.get(newDate);
             const origStartTime = templateEvent.start.format('HH:mm:ss');
@@ -82,50 +79,19 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
             const newEnd = moment.tz(`${newDate}T${origEndTime}`, siteTimeZone.momentId);
 
             if (origEvent) {
-            // UPDATE existing
-            const parkingId = origEvent.parkingStalls;
-            // Case 1 Event is new or has no parking assigned — just update date and mark as "New"
-            if (origEvent.requestStatus === "New" || !parkingId || parkingId === -1) {
-                await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(origEvent.id).update({
-                    EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
-                    EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
-                    RequestStatus: 'New'
-                });
-            } else {
-            const booked = await fetchBookedParkingForEvent(siteUrl, newStart, newEnd, ignoreIds);
-            // Case 2 Parking stall is available — update event and approve
-            if (!booked.has(parkingId)) {
-                await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(origEvent.id).update({
-                    EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
-                    EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
-                    RequestStatus: 'Approved',
-                });
-            } else /* Case 3 Parking stall is taken — clear stall, set to "New", open assign panel */ {
+                // Always reset to New and clear parking
                 await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(origEvent.id).update({
                     EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
                     EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
                     ParkingStallsId: null,
                     RequestStatus: 'New'
                 });
-                anyConflicts = true;
-                }
-            }
             } else {
-            // ADD new
-                let newRequestStatus: 'New' | 'Approved' = 'New';
-                let newParkingStallId: number | null = null;
-                if (templateEvent.parkingStalls && templateEvent.parkingStalls !== -1) {
-                    const booked = await fetchBookedParkingForEvent(siteUrl, newStart, newEnd, ignoreIds);
-                    if (!booked.has(templateEvent.parkingStalls)) {
-                        newParkingStallId = templateEvent.parkingStalls;
-                        newRequestStatus = 'Approved';
-                    } else {
-                        anyConflicts = true; // add as New without stall
-                    }
-                }
-
+                // Add new event with New + no stall
                 await sp.web.lists.getByTitle('Rob Calendar Events2').items.add({
-                    Title: templateEvent.title || 'Event', GroupID: templateEvent.groupID, DVPayGrade: templateEvent.dvPayGrade, DVRank: templateEvent.dvRank, DVFirstName: templateEvent.dvFirstName, DVSurname: templateEvent.dvSurname, JDIRVisiting: templateEvent.jdirVisiting, DVVisiting: templateEvent.dvVisiting, RequestorRank: templateEvent.requestorRank, RequestorFirstName: templateEvent.requestorFirstName, RequestorLastName: templateEvent.requestorLastName, RequestorOffice: templateEvent.requestorOffice, RequestorDutyPhone: templateEvent.requestorDutyPhone, RequestorCellPhone: templateEvent.requestorCellPhone, RequestorEmail: templateEvent.requestorEmail, ParkingStallsId: newParkingStallId, RequestStatus: newRequestStatus,
+                    Title: templateEvent.title || 'Event', GroupID: templateEvent.groupID, DVPayGrade: templateEvent.dvPayGrade, DVRank: templateEvent.dvRank, DVFirstName: templateEvent.dvFirstName, DVSurname: templateEvent.dvSurname, JDIRVisiting: templateEvent.jdirVisiting, DVVisiting: templateEvent.dvVisiting, RequestorRank: templateEvent.requestorRank, RequestorFirstName: templateEvent.requestorFirstName, RequestorLastName: templateEvent.requestorLastName, RequestorOffice: templateEvent.requestorOffice, RequestorDutyPhone: templateEvent.requestorDutyPhone, RequestorCellPhone: templateEvent.requestorCellPhone, RequestorEmail: templateEvent.requestorEmail,
+                    ParkingStallsId: null,
+                    RequestStatus: 'New',
                     EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
                     EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss')
                 });
@@ -137,49 +103,25 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
             const evDate = ev.start.format('YYYY-MM-DD');
             if (!newDates.includes(evDate)) {
                 await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(ev.id).update({
-                    RequestStatus: 'Cancelled',
+                    RequestStatus: 'Cancelled'
                 });
             }
         }
 
-        if (anyConflicts) {
-            // refresh this group's events from SP and push to parent so AssignPanel sees them
-            const resp = await fetch(
+        // Refresh group's events from SP and push to parent so AssignPanel sees them
+        const resp = await fetch(
             `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items?$select=*` +
             `&$filter=GroupID eq ${templateEvent.groupID}`,
             { headers: { Accept: 'application/json;odata=verbose' } }
-            );
-            const json = await resp.json();
-            const updatedGroup = (json.d.results as any[]).map(mapSharePointItemToEventOccurrence);
+        );
+        const json = await resp.json();
+        const updatedGroup = (json.d.results as any[]).map(mapSharePointItemToEventOccurrence);
 
-            onReplaceGroupEvents(templateEvent.groupID, updatedGroup);
-
-            setIsChangeDatesPanelOpen(false);
-            setGroupIDToDisplay(templateEvent.groupID);
-            setIsPanelOpen(true);
-            showAlert(`Parking not available for one or more new date(s). Please assign stall(s).`, 'warning');
-            return;
-        }
-
-            // success path
-            showAlert('Group events successfully updated!', 'success');
-
-            // previous = events before save
-            const previousEvents = groupEvents;
-
-            // reload the updated group from SharePoint so we have the final dates/times/stalls
-            const resp2 = await fetch(
-            `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items?$select=*` +
-            `&$filter=GroupID eq ${templateEvent.groupID}`,
-            { headers: { Accept: 'application/json;odata=verbose' } }
-            );
-            const json2 = await resp2.json();
-            const updatedEvents = (json2.d.results as any[]).map(mapSharePointItemToEventOccurrence);
-
-            const email = datesChangedEmail(previousEvents, updatedEvents , parkingMap);
-            composeEmailInBrowser(email.to, email.subject, email.body);
-            setIsChangeDatesPanelOpen(false);
-            setGroupToChangeDates(null);
+        onReplaceGroupEvents(templateEvent.groupID, updatedGroup);
+        setIsChangeDatesPanelOpen(false);
+        setGroupIDToDisplay(templateEvent.groupID);
+        setIsPanelOpen(true);
+        showAlert(`Dates updated. Please assign parking.`, 'warning');
     };
 
     if (!isChangeDatesPanelOpen) return null;

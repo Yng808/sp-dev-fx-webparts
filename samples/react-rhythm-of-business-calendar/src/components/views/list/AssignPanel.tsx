@@ -137,7 +137,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
     };
 
     const getEventDateRange = (events: EventOccurrence[], groupID: number) => {
-        const filteredEventsByGroup = events.filter((event) => event.groupID === groupID);
+        const filteredEventsByGroup = events.filter((event) => event.groupID === groupID && event.requestStatus !== "Cancelled");
         if (filteredEventsByGroup.length === 0) return [];
         const startDate = moment.min(filteredEventsByGroup.map((event) => moment(event.start)));
         const endDate = moment.max(filteredEventsByGroup.map((event) => moment(event.end)));
@@ -165,7 +165,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                                 const dayOfWeek = moment(day);
                                 const dayKey = dayOfWeek.format('YYYY-MM-DD');
                                 const eventsForDay = filteredEvents.filter((event) =>
-                                    event.groupID === groupIDToDisplay && moment(event.start).isSame(dayOfWeek, 'day')
+                                    event.groupID === groupIDToDisplay && event.requestStatus !== "Cancelled" && moment(event.start).isSame(dayOfWeek, 'day')
                                 );
                                 return (
                                     <div key={dayOfWeek.format('YYYY-MM-DD')} className={styles.dayBlock}>
@@ -238,8 +238,8 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                     ) : (
                         <>
                         {filteredEvents
-                            .filter(event => event.groupID === groupIDToDisplay)
-                            .map(event => {
+                        .filter(event => event.groupID === groupIDToDisplay && event.requestStatus !== "Cancelled")
+                        .map(event => {
                                 const options = parkingStallsOptionsEach[event.id] || [];
                                 const hasUnavailable = options.some(opt => opt.key === -1);
                                 const allOptions = hasUnavailable ? options : [...options, { key: -1, text: "Unavailable" }];
@@ -261,7 +261,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                                 );
                             })}
                             <button className="btn btn-success mt-3 w-100" onClick={async () => {
-                                const events = filteredEvents.filter(ev => ev.groupID === groupIDToDisplay);
+                                const events = filteredEvents.filter(ev => ev.groupID === groupIDToDisplay && ev.requestStatus !== "Cancelled");
                                 const unselected = events.filter(ev => individualSelections[ev.id] === undefined || isNaN(individualSelections[ev.id]) || individualSelections[ev.id] === 0);
                                 if (unselected.length > 0) {
                                 showAlert(`Please select parking for all events before assigning.`, 'warning');
