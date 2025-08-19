@@ -21,12 +21,12 @@ function formatDateRange(dates: (EventOccurrence | moment.Moment)[]): string {
     return startDate === endDate ? startDate : `${startDate} - ${endDate}`;
 }
 
-function buildSubject(dvPayGrade: string, dvSurname: string, dateRange: string, status: string): string {
-    return `Base Parking Request for ${dvPayGrade} ${dvSurname} on ${dateRange}: ${status}`;
+function buildSubject(dvRank: string, dvSurname: string, dateRange: string, status: string): string {
+    return `Base Parking Request for ${dvRank} ${dvSurname} on ${dateRange}: ${status}`;
 }
 
 function formatLine(ev: EventOccurrence, stallName: string) {
-    const date = ev.start.format('DD MMM, YYYY');
+    const date = ev.start.format('DD MMM');
     const time = `${ev.start.format('HHmm')}-${ev.end.format('HHmm')}`;
 
     let label: string;
@@ -38,7 +38,7 @@ function formatLine(ev: EventOccurrence, stallName: string) {
         label = stallName || 'Unknown Stall';
     }
 
-    return `${date} ${time} ${label}`;
+    return `~ ${date} - ${time} - ${label}`;
 }
 
 function getChangedFields(original: EventOccurrence, updated: Record<string, string>) {
@@ -86,7 +86,7 @@ export function snapshotGroupEmail(events: EventOccurrence[], parkingMap: { [id:
 
     return {
         to: first.requestorEmail,
-        subject: `Base Parking Request for ${first.dvPayGrade} ${first.dvSurname} on ${formatDateRange(sorted)}`,
+        subject: `Base Parking Request for ${first.dvRank} ${first.dvSurname} on ${formatDateRange(sorted)}`,
         body: `Aloha ${first.requestorRank} ${first.requestorLastName},
 
         This email is to inform you of the status of your request:
@@ -98,28 +98,34 @@ export function snapshotGroupEmail(events: EventOccurrence[], parkingMap: { [id:
         USINDOPACOM Protocol
         Email: indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil
         COMM: (808)-477-7747`
-        };
+    };
 }
 
 // Multi OR Single: Parking Assignment
 export function assignGroupEmail(events: EventOccurrence[], parkingMap: { [id: number]: string }): EmailContent {
     const sorted = [...events].sort((a, b) => a.start.diff(b.start));
     const lines = sorted.map(ev => {
-        const date = ev.start.format('DD MMM, YYYY');
+        const date = ev.start.format('DD MMM');
         const timeRange = `${ev.start.format('HHmm')}-${ev.end.format('HHmm')}`;
         const stallName = parkingMap[ev.parkingStalls ?? -1] || 'Unknown Stall';
-        return `${date} ${timeRange} - ${stallName}`;
+        return `~ ${date} - ${timeRange} - ${stallName}`;
     });
 
     const first = sorted[0];
     return {
         to: first.requestorEmail,
-        subject: buildSubject(first.dvPayGrade, first.dvSurname, formatDateRange(sorted), 'Parking Assigned'),
+        subject: buildSubject(first.dvRank, first.dvSurname, formatDateRange(sorted), 'Parking Assigned'),
         body: `Aloha ${first.requestorRank} ${first.requestorLastName},
 
-        Your base parking request has been approved for the following:
+        The following DV Parking has been assigned to ${first.dvRank} ${first.dvSurname}:
 
         ${lines.join('\n')}
+ 
+        Map(s) attached for your use & dissemination.
+        
+        PLEASE ensure your DV DOES NOT park in another stall if there is another vehicle in stall and call us at (808) 477-7747.
+        
+        Please submit any changes or cancellations to indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil
 
         Mahalo!
 
@@ -135,7 +141,7 @@ export function noParkingAvailableEmail(events: EventOccurrence[]): EmailContent
     const first = events[0];
     return {
         to: first.requestorEmail,
-        subject: buildSubject(first.dvPayGrade, first.dvSurname, formatDateRange(events), 'No Parking Available'),
+        subject: buildSubject(first.dvRank, first.dvSurname, formatDateRange(events), 'No Parking Available'),
         body: `Aloha ${first.requestorRank} ${first.requestorLastName},
         
         Unfortunately, there is no parking available for the following date(s): ${formatDateRange(events)}
@@ -159,7 +165,7 @@ export function fieldsChangedEmail(original: EventOccurrence, updated: Record<st
 
     return {
         to: first.requestorEmail,
-        subject: `Base Parking Request for ${first.dvPayGrade} ${first.dvSurname} on ${formatDateRange(sorted)}: Updated`,
+        subject: `Base Parking Request for ${first.dvRank} ${first.dvSurname} on ${formatDateRange(sorted)}: Updated`,
         body: `Aloha ${first.requestorRank} ${first.requestorLastName},
 
         This email is to inform you of the change(s) to your request:
@@ -190,7 +196,7 @@ export function datesChangedEmail(previousEvents: EventOccurrence[], updatedEven
 
     return {
         to: first.requestorEmail,
-        subject: buildSubject(first.dvPayGrade, first.dvSurname, formatDateRange(subjectEvents), 'Date Changed'),
+        subject: buildSubject(first.dvRank, first.dvSurname, formatDateRange(subjectEvents), 'Date Changed'),
         body: `Aloha ${first.requestorRank} ${first.requestorLastName},
 
         This email is to inform you that your base parking request dates have been updated.
@@ -218,15 +224,15 @@ export function cancelGroupEmail(events: EventOccurrence[]): EmailContent {
 
     // Format each event's date and time
     const formattedDates = sorted.map(ev => {
-        const date = ev.start.format('DD MMM, YYYY');
+        const date = ev.start.format('DD MMM');
         const timeRange = `${ev.start.format('HHmm')}-${ev.end.format('HHmm')}`;
-        return `${date} ${timeRange}`;
+        return `~ ${date} - ${timeRange}`;
     });
 
     const first = sorted[0];
     return {
         to: first.requestorEmail,
-        subject: buildSubject(first.dvPayGrade, first.dvSurname, formatDateRange(sorted), 'Cancelled'),
+        subject: buildSubject(first.dvRank, first.dvSurname, formatDateRange(sorted), 'Cancelled'),
         body: `Aloha ${first.requestorRank} ${first.requestorLastName},
 
         This email is to inform you that the base parking request for the following dates has been cancelled:
@@ -245,7 +251,7 @@ export function cancelGroupEmail(events: EventOccurrence[]): EmailContent {
 export function timeChangedEmail(event: EventOccurrence, newStart: moment.Moment, newEnd: moment.Moment, parkingName?: string): EmailContent {
     return {
         to: event.requestorEmail,
-        subject: buildSubject(event.dvPayGrade, event.dvSurname, formatDateRange([newStart, newEnd]), 'Time Changed'),
+        subject: buildSubject(event.dvRank, event.dvSurname, formatDateRange([newStart, newEnd]), 'Time Changed'),
         body: `Aloha ${event.requestorRank} ${event.requestorLastName},
 
         This email is to inform you that your base parking request scheduled for ${newStart.format('DD MMM, YYYY')} at ${newStart.format('HHmm')}-${newEnd.format('HHmm')} has been updated to the new time: ${newStart.format('HHmm')}-${newEnd.format('HHmm')}.
@@ -264,10 +270,10 @@ export function timeChangedEmail(event: EventOccurrence, newStart: moment.Moment
 export function cancelEventEmail(event: EventOccurrence): EmailContent {
     return {
         to: event.requestorEmail,
-        subject: buildSubject(event.dvPayGrade, event.dvSurname, formatDateRange([event.start, event.end]), 'Cancelled'),
+        subject: buildSubject(event.dvRank, event.dvSurname, formatDateRange([event.start, event.end]), 'Cancelled'),
         body: `Aloha ${event.requestorRank} ${event.requestorLastName},
 
-        This email is to inform you that the base parking request for ${event.start.format('DD MMM, YYYY')} ${event.start.format('HHmm')}-${event.end.format('HHmm')} has been cancelled.
+        This email is to inform you that the base parking request for ${event.start.format('DD MMM, YYYY')} - ${event.start.format('HHmm')}-${event.end.format('HHmm')} has been cancelled.
 
         Mahalo!
 

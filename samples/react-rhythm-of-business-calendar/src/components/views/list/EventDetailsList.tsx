@@ -35,7 +35,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [endDate, setEndDate] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [requestStatusFilter, setRequestStatusFilter] = useState<string>('New');
-    const predefinedStatuses = ['New', 'Approved', 'Cancelled', 'Denied'];
+    const predefinedStatuses = ['New', 'Approved', 'Cancelled'];
     // Parking Map
     const [parkingMap, setParkingMap] = useState<{ [id: number]: string }>({});
     const [loadingSpots, setLoadingSpots] = useState<boolean>(false);
@@ -199,8 +199,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     };
 
     // Cancel entire group
-    const handleCancelGroup = (groupId: number) => {
-        setConfirmConfig({ message: `Are you sure you want to cancel ALL events in group ${groupId}?`,
+    const handleCancelGroup = (groupId: number, event: EventOccurrence) => {
+        setConfirmConfig({ message: `Are you sure you want to cancel ALL events in group ${groupId} for ${event.dvRank} ${event.dvFirstName} ${event.dvSurname}?`,
         onConfirm: async () => {
         const groupEvents = filteredEvents.filter(ev => ev.groupID === groupId);
         const eventIds = groupEvents.map(ev => ev.id);
@@ -210,7 +210,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     RequestStatus: 'Cancelled',
                 });
             }
-            showAlert(`All events in group ${groupId} cancelled successfully!`, 'success');
+            showAlert(`All events in group ${groupId} for ${event.dvRank} ${event.dvFirstName} ${event.dvSurname} cancelled successfully!`, 'success');
 
             if (groupEvents.length > 0) {
                 const email = cancelGroupEmail(groupEvents);
@@ -227,13 +227,13 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
     // Cancel by event
     const handleCancel = (event: EventOccurrence) => {
-        setConfirmConfig({ message: `Are you sure you want to cancel event ${event.id}?`,
+        setConfirmConfig({ message: `Are you sure you want to cancel this event for ${event.dvRank} ${event.dvFirstName} ${event.dvSurname}?`,
         onConfirm: async () => {
         try {
             await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(event.id).update({
                 RequestStatus: 'Cancelled',
             });
-            showAlert(`Event ${event.id} cancelled successfully!`, 'success');
+            showAlert(`Event for ${event.dvRank} ${event.dvFirstName} ${event.dvSurname} cancelled successfully!`,'success');
 
             const { to, subject, body } = cancelEventEmail(event);
             composeEmailInBrowser(to, subject, body);
@@ -342,18 +342,26 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                 <tr key={index}>
                                     <td>
                                         <div>
-                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 203, 123)", border: "1px solid #000" }} onClick={() => handleSendGroupEmail(event.groupID)}>Email</button>
-                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(123, 218, 255)", border: "1px solid #000" }} onClick={() => { setGroupIDToDisplay(event.groupID); setIsPanelOpen(true); }}>Assign</button>
-                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)", border: "1px solid #000" }} onClick={() => openEditPanel(event.groupID, event.id)}>Edit</button> 
-                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(226, 233, 127)", border: "1px solid #000" }} onClick={() => openChangeDatesPanel(event.groupID)}>Change Dates</button>
-                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 123, 134)", border: "1px solid #000" }} onClick={() => handleCancelGroup(event.groupID)}>Cancel</button>
-                                        </div>
+                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 203, 123)", border: "1px solid #000" }} onClick={() => handleSendGroupEmail(event.groupID)}>Email</button>   
+                                            {event.requestStatus !== 'Cancelled' && (
+                                                <>
+                                                    <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(123, 218, 255)", border: "1px solid #000" }} onClick={() => { setGroupIDToDisplay(event.groupID); setIsPanelOpen(true); }}>Assign</button>
+                                                    <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)", border: "1px solid #000" }} onClick={() => openEditPanel(event.groupID, event.id)}>Edit</button> 
+                                                    <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(226, 233, 127)", border: "1px solid #000" }} onClick={() => openChangeDatesPanel(event.groupID)}>Change Dates</button>
+                                                    <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 123, 134)", border: "1px solid #000" }} onClick={() => handleCancelGroup(event.groupID, event)}>Cancel</button>
+                                                
+                                                </>
+                                            )}
+                                    </div>
+                                
                                     </td>
                                     <td>
+                                    {event.requestStatus !== 'Cancelled' && (
                                         <div>
                                             <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(226, 233, 127)", border: "1px solid #000" }} onClick={() => openReassignPanel(event)}>Change Time</button>
                                             <button className="btn btn-sm" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 123, 134)", border: "1px solid #000" }} onClick={() => handleCancel(event)}>Cancel</button>
                                         </div>
+                                    )}
                                     </td>
                                     <td>{event.groupID}</td>
                                     <td>{event.requestStatus}</td>

@@ -272,7 +272,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                                 ));
                                 const updatedEvents = events.map(ev => ({
                                     ...ev,
-                                    dvPayGrade: ev.dvPayGrade,
+                                    dvRank: ev.dvRank,
                                     dvSurname: ev.dvSurname,
                                     requestorEmail: ev.requestorEmail, 
                                     requestorRank: ev.requestorRank,   
