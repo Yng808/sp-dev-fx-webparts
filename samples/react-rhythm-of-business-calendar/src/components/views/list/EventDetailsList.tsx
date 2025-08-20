@@ -59,6 +59,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [eventToReassign, setEventToReassign] = useState<EventOccurrence | null>(null);
     const [reassignStart, setReassignStart] = useState('');
     const [reassignEnd, setReassignEnd] = useState('');
+    const [timeChangeNotice, setTimeChangeNotice] = useState<string | null>(null);
     // Preview Panel
     const [isCurrentPanelOpen, setIsCurrentPanelOpen] = useState(false);
     // Cancel Panel
@@ -392,6 +393,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 filteredEvents={filteredEvents}
                 setLoadingSpots={setLoadingSpots}
                 onOpenPreview={() => setIsCurrentPanelOpen(true)} 
+                timeChangeNotice={timeChangeNotice}
+                setTimeChangeNotice={setTimeChangeNotice}
             />
             <EditPanel
                 isEditPanelOpen={isEditPanelOpen}
@@ -421,6 +424,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 setIsPanelOpen={setIsPanelOpen}
                 setGroupIDToDisplay={setGroupIDToDisplay}
                 parkingMap={parkingMap}
+                setTimeChangeNotice={setTimeChangeNotice}
             /> 
             <CurrentParkingPanel
                 isPanelOpen={isCurrentPanelOpen}

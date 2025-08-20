@@ -4,6 +4,7 @@ import styles from './EventDetailsList.module.scss';
 import { sp } from '@pnp/sp';
 import { EventOccurrence } from 'model';
 import { showAlert } from './AlertHost';
+import { buildTimeChangeNotice } from './EmailTemplate';
 
 interface Props {
     isReassignPanelOpen: boolean;
@@ -13,9 +14,10 @@ interface Props {
     setIsPanelOpen: (open: boolean) => void;
     setGroupIDToDisplay: (id: number) => void;
     parkingMap: { [id: number]: string };
+    setTimeChangeNotice: (notice: string | null) => void;
 }
 
-export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReassignPanelOpen, eventToReassign, siteTimeZone, setIsPanelOpen, setGroupIDToDisplay }) => {
+export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReassignPanelOpen, eventToReassign, siteTimeZone, setIsPanelOpen, setGroupIDToDisplay, setTimeChangeNotice }) => {
     const [reassignStart, setReassignStart] = useState('');
     const [reassignEnd, setReassignEnd] = useState('');
 
@@ -50,6 +52,12 @@ export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReass
             });
             showAlert('Event time updated. Please reassign parking.', 'success');
             setIsReassignPanelOpen(false);
+            setTimeChangeNotice(
+            buildTimeChangeNotice(eventToReassign, newStart, newEnd));
+
+            (eventToReassign as any).start = newStart;
+            (eventToReassign as any).end = newEnd;
+            
             setGroupIDToDisplay(eventToReassign.groupID);
             setIsPanelOpen(true);
         } catch (err) {

@@ -102,7 +102,7 @@ export function snapshotGroupEmail(events: EventOccurrence[], parkingMap: { [id:
 }
 
 // Multi OR Single: Parking Assignment
-export function assignGroupEmail(events: EventOccurrence[], parkingMap: { [id: number]: string }): EmailContent {
+export function assignGroupEmail(events: EventOccurrence[], parkingMap: { [id: number]: string }, timeChangeNotice?: string): EmailContent {
     const sorted = [...events].sort((a, b) => a.start.diff(b.start));
     const lines = sorted.map(ev => {
         const date = ev.start.format('DD MMM');
@@ -117,7 +117,7 @@ export function assignGroupEmail(events: EventOccurrence[], parkingMap: { [id: n
         subject: buildSubject(first.dvRank, first.dvSurname, formatDateRange(sorted), 'Parking Assigned'),
         body: `Aloha ${first.requestorRank} ${first.requestorLastName},
 
-        The following DV Parking has been assigned to ${first.dvRank} ${first.dvSurname}:
+        ${timeChangeNotice ? `${timeChangeNotice}\n\n` : ''} The following DV Parking has been assigned to ${first.dvRank} ${first.dvSurname}:
 
         ${lines.join('\n')}
  
@@ -161,7 +161,7 @@ export function fieldsChangedEmail(original: EventOccurrence, updated: Record<st
     const sorted = [...groupEvents].sort((a, b) => a.start.diff(b.start));
     const first = sorted[0];
 
-    const changesText = changes.map(c => `${c.label}\nPreviously: ${c.before || "N/A"}\nNow: ${c.after || "N/A"}\n`).join("\n");
+    const changesText = changes.map(c => `${c.label}\nPreviously: ${c.before || "N/A"}\nNow: ${c.after || "N/A"}\n`).join("\n").trim();
 
     return {
         to: first.requestorEmail,
@@ -264,6 +264,10 @@ export function timeChangedEmail(event: EventOccurrence, newStart: moment.Moment
         Email: indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil
         COMM: (808)-477-7747`
     };
+}
+
+export function buildTimeChangeNotice(ev: EventOccurrence, newStart: moment.Moment, newEnd: moment.Moment): string {
+  return `This email is to inform you that your base parking request scheduled for ${ev.start.format('DD MMM, YYYY')} at ${ev.start.format('HHmm')}-${ev.end.format('HHmm')} has been updated to the new time: ${newStart.format('HHmm')}-${newEnd.format('HHmm')}.`;
 }
 
 // Single: Cancel

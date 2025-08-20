@@ -17,9 +17,11 @@ interface AssignPanelProps {
     filteredEvents: EventOccurrence[];
     setLoadingSpots: React.Dispatch<React.SetStateAction<boolean>>;
     onOpenPreview: () => void;
+    timeChangeNotice?: string | null; 
+    setTimeChangeNotice?: (notice: string | null) => void;
 }
 
-export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen, groupIDToDisplay, setGroupIDToDisplay, filteredEvents, setLoadingSpots, onOpenPreview }) => {
+export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen, groupIDToDisplay, setGroupIDToDisplay, filteredEvents, setLoadingSpots, onOpenPreview, timeChangeNotice, setTimeChangeNotice }) => {
     const [parkingStallsOptionsEach, setParkingStallsOptionsEach] = useState<{ [key: number]: IDropdownOption[] }>({});
     const [parkingMap, setParkingMap] = useState<{ [id: number]: string }>({});
     const [individualSelections, setIndividualSelections] = useState<{ [key: string]: number }>({});
@@ -277,7 +279,9 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                                     requestorEmail: ev.requestorEmail, 
                                     requestorRank: ev.requestorRank,   
                                     requestorLastName: ev.requestorLastName,
-                                    parkingStalls: individualSelections[ev.id]
+                                    parkingStalls: individualSelections[ev.id],
+                                    start: ev.start.clone(),
+                                    end: ev.end.clone()
                                 })) as unknown as EventOccurrence[];
 
                                 const allUnavailable = updatedEvents.every(ev => ev.parkingStalls === -1);
@@ -288,8 +292,12 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                                 } else {
                                 const updatedParkingMap = { ...parkingMap, [-1]: 'Unavailable' };
 
-                                const email = assignGroupEmail(updatedEvents, updatedParkingMap);
+                                const email = assignGroupEmail(updatedEvents, updatedParkingMap, timeChangeNotice || undefined);
                                 composeEmailInBrowser(email.to, email.subject, email.body);
+                                }
+
+                                if (setTimeChangeNotice) {
+                                    setTimeChangeNotice(null);
                                 }
 
                                 showAlert("All assignments completed.", 'success');
