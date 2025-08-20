@@ -14,7 +14,7 @@ interface CurrentParkingPanelProps {
 
 export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({ isPanelOpen, setIsPanelOpen, groupIDToDisplay, filteredEvents }) => {
     const [parkingMap, setParkingMap] = useState<{ [id: number]: string }>({});
-    const [occupiedMapByDay, setOccupiedMapByDay] = useState<{ [date: string]: { [stallId: number]: { payGrade: string; surname: string }[] } }>({});
+    const [occupiedMapByDay, setOccupiedMapByDay] = useState<{ [date: string]: { [stallId: number]: { payGrade: string; surname: string; start: string; end: string;  }[] } }>({});
     const [panelParkingOccupiedLoading, setPanelParkingOccupiedLoading] = useState(true);
 
     const getEventDateRange = (events: EventOccurrence[], groupID: number) => {
@@ -58,7 +58,7 @@ export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({ isPanelOpen,
                 occupiedDetails.forEach(o => {
                     if (!newMap[dayKey]) newMap[dayKey] = {};
                     if (!newMap[dayKey][o.parkingId]) newMap[dayKey][o.parkingId] = [];
-                    newMap[dayKey][o.parkingId].push({ payGrade: o.payGrade, surname: o.surname });
+                    newMap[dayKey][o.parkingId].push({ payGrade: o.payGrade, surname: o.surname, start: o.start, end: o.end });
                 });
             }
             setOccupiedMapByDay(newMap);
@@ -97,7 +97,13 @@ export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({ isPanelOpen,
                                                     <div key={event.id} className={styles.parkingOptionWrapper}>
                                                         {Object.keys(parkingMap).map(stallIdStr => {
                                                             const stallId = Number(stallIdStr);
-                                                            const occupantsForDay = occupiedMapByDay[dayKey]?.[stallId] || [];
+                                                            const eventStart = moment(event.start);
+                                                            const eventEnd = moment(event.end);
+                                                            const occupantsForDay = (occupiedMapByDay[dayKey]?.[stallId] || []).filter(
+                                                                o =>
+                                                                    moment(o.start).isBefore(eventEnd) &&
+                                                                    moment(o.end).isAfter(eventStart)
+                                                            );
                                                             // If the stall is occupied, render it with occupant info
                                                             if (occupantsForDay.length > 0) {
                                                                 return (

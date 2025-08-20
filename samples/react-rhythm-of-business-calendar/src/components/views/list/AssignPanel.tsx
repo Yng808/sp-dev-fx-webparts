@@ -5,7 +5,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from './EventDetailsList.module.scss';
 import { sp } from '@pnp/sp';
 import { IDropdownOption } from '@fluentui/react';
-import { fetchParkingStalls, fetchBookedParkingForEvent, filterAvailableParking, formatParkingOptions, fetchOccupiedParkingDetails, composeEmailInBrowser} from './spEventDetailsList';
+import { fetchParkingStalls, fetchBookedParkingForEvent, filterAvailableParking, formatParkingOptions, fetchOccupiedParkingDetails, composeEmailInBrowser, OccupiedStall} from './spEventDetailsList';
 import { ConfirmDialog, showAlert } from './AlertHost';
 import { assignGroupEmail, noParkingAvailableEmail } from './EmailTemplate';
 
@@ -28,7 +28,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
     const [parkingMap, setParkingMap] = useState<{ [id: number]: string }>({});
     const [individualSelections, setIndividualSelections] = useState<{ [key: string]: number }>({});
     const [panelParkingLoading, setPanelParkingLoading] = useState(false);
-    const [occupiedMapByDay, setOccupiedMapByDay] = useState<{ [date: string]: { [stallId: number]: { payGrade: string; surname: string }[] } }>({});
+    const [occupiedMapByDay, setOccupiedMapByDay] = useState<{ [date: string]: { [stallId: number]: OccupiedStall[] }}>({});
     const [panelParkingOccupiedLoading, setPanelParkingOccupiedLoading] = useState(true);
     const [showConfirm, setShowConfirm] = useState(false);
 
@@ -67,11 +67,16 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
             occupiedDetails.forEach(o => {
             if (!newMap[dayKey]) newMap[dayKey] = {};
             if (!newMap[dayKey][o.parkingId]) newMap[dayKey][o.parkingId] = [];
-            const alreadyExists = newMap[dayKey][o.parkingId].some(
-                existing => existing.payGrade === o.payGrade && existing.surname === o.surname
-            );
-            if (!alreadyExists) {
-                newMap[dayKey][o.parkingId].push({ payGrade: o.payGrade, surname: o.surname });
+
+            const overlap = moment(o.start).isBefore(end) && moment(o.end).isAfter(start);
+
+            if (overlap) {
+                const alreadyExists = newMap[dayKey][o.parkingId].some(
+                    existing => existing.payGrade === o.payGrade && existing.surname === o.surname && existing.start === o.start && existing.end === o.end
+                );
+                if (!alreadyExists) {
+                    newMap[dayKey][o.parkingId].push({ parkingId: o.parkingId, payGrade: o.payGrade, surname: o.surname, start: o.start, end: o.end });
+                }
             }
             });
         }
@@ -191,7 +196,14 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                                                             </div>
                                                         );
                                                     } else {
-                                                        const occupantsForDay = occupiedMapByDay[dayKey]?.[stallId] || [];
+                                                        const eventStart = moment(event.start);
+                                                        const eventEnd = moment(event.end);
+
+                                                        const occupantsForDay = (occupiedMapByDay[dayKey]?.[stallId] || []).filter(
+                                                            o =>
+                                                                moment(o.start).isBefore(eventEnd) &&
+                                                                moment(o.end).isAfter(eventStart)
+                                                        );
                                                         if (occupantsForDay.length > 0) {
                                                         return (
                                                             <div key={stallId} className={styles.parkingOption + ' ' + styles.occupiedOption}>

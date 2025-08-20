@@ -12,6 +12,8 @@ export interface OccupiedStall {
     parkingId: number;
     payGrade: string;
     surname: string;
+    start: string;
+    end: string;
 }
 
 // #1 Parking data -----------------------------------------------------------------------------------------------------
@@ -105,7 +107,9 @@ export const fetchOccupiedParkingDetails = async (
     return data.d.results.map((item: any) => ({
         parkingId: item.ParkingStallsId,
         payGrade: item.DVPayGrade,
-        surname: item.DVSurname
+        surname: item.DVSurname,
+        start: item.EventDate,
+        end: item.EndDate
     }));
 };
 
