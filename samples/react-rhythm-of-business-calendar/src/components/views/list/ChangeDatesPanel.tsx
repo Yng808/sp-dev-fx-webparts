@@ -120,9 +120,12 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
         const updatedGroup = (json.d.results as any[]).map(mapSharePointItemToEventOccurrence);
 
         onReplaceGroupEvents(templateEvent.groupID, updatedGroup);
+        const oldStart = groupEvents[0].start.clone();
+        const oldEnd = groupEvents[groupEvents.length - 1].end.clone();
 
-        const prevRange = `${groupEvents[0].start.format('DD MMM, YYYY')} - ${groupEvents[groupEvents.length - 1].end.format('DD MMM, YYYY')}`;
-        const newRange = `${startDateMoment.format('DD MMM, YYYY')} - ${endDateMoment.format('DD MMM, YYYY')}`;
+        const prevRange = oldStart.isSame(oldEnd, 'day') ? oldStart.format('DD MMM, YYYY') : `${oldStart.format('DD MMM, YYYY')} - ${oldEnd.format('DD MMM, YYYY')}`;
+        const newRange = startDateMoment.isSame(endDateMoment, 'day') ? startDateMoment.format('DD MMM, YYYY') : `${startDateMoment.format('DD MMM, YYYY')} - ${endDateMoment.format('DD MMM, YYYY')}`;
+ 
         setDateChangeNotice(buildDateChangeNotice(prevRange, newRange));
 
         setIsChangeDatesPanelOpen(false);
