@@ -102,7 +102,7 @@ export function snapshotGroupEmail(events: EventOccurrence[], parkingMap: { [id:
 }
 
 // Multi OR Single: Parking Assignment
-export function assignGroupEmail(events: EventOccurrence[], parkingMap: { [id: number]: string }, timeChangeNotice?: string): EmailContent {
+export function assignGroupEmail(events: EventOccurrence[], parkingMap: { [id: number]: string }, timeChangeNotice?: string, dateChangeNotice?: string): EmailContent {
     const sorted = [...events].sort((a, b) => a.start.diff(b.start));
     const lines = sorted.map(ev => {
         const date = ev.start.format('DD MMM');
@@ -117,7 +117,7 @@ export function assignGroupEmail(events: EventOccurrence[], parkingMap: { [id: n
         subject: buildSubject(first.dvRank, first.dvSurname, formatDateRange(sorted), 'Parking Assigned'),
         body: `Aloha ${first.requestorRank} ${first.requestorLastName},
 
-        ${timeChangeNotice ? `${timeChangeNotice}\n\n` : ''} The following DV Parking has been assigned to ${first.dvRank} ${first.dvSurname}:
+        ${dateChangeNotice ? `${dateChangeNotice}\n\n` : ''}${timeChangeNotice ? `${timeChangeNotice}\n\n` : ''}The following DV Parking has been assigned to ${first.dvRank} ${first.dvSurname}:
 
         ${lines.join('\n')}
  
@@ -214,6 +214,17 @@ export function datesChangedEmail(previousEvents: EventOccurrence[], updatedEven
         COMM: (808)-477-7747`
     };
 }
+
+export function buildDateChangeNotice(prevRange: string, newRange: string): string {
+    return `This email is to inform you that your base parking request dates have been updated.
+
+    Previous Date(s):
+    ${prevRange}
+
+    New Date(s):
+    ${newRange}`;
+}
+
 
 // Multi OR Single: Cancel
 export function cancelGroupEmail(events: EventOccurrence[]): EmailContent {

@@ -19,9 +19,11 @@ interface AssignPanelProps {
     onOpenPreview: () => void;
     timeChangeNotice?: string | null; 
     setTimeChangeNotice?: (notice: string | null) => void;
+    dateChangeNotice?: string | null;
+    setDateChangeNotice?: (notice: string | null) => void;
 }
 
-export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen, groupIDToDisplay, setGroupIDToDisplay, filteredEvents, setLoadingSpots, onOpenPreview, timeChangeNotice, setTimeChangeNotice }) => {
+export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen, groupIDToDisplay, setGroupIDToDisplay, filteredEvents, setLoadingSpots, onOpenPreview, timeChangeNotice, setTimeChangeNotice, dateChangeNotice, setDateChangeNotice }) => {
     const [parkingStallsOptionsEach, setParkingStallsOptionsEach] = useState<{ [key: number]: IDropdownOption[] }>({});
     const [parkingMap, setParkingMap] = useState<{ [id: number]: string }>({});
     const [individualSelections, setIndividualSelections] = useState<{ [key: string]: number }>({});
@@ -292,12 +294,15 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                                 } else {
                                 const updatedParkingMap = { ...parkingMap, [-1]: 'Unavailable' };
 
-                                const email = assignGroupEmail(updatedEvents, updatedParkingMap, timeChangeNotice || undefined);
+                                const email = assignGroupEmail(updatedEvents, updatedParkingMap, timeChangeNotice || undefined, dateChangeNotice || undefined );
                                 composeEmailInBrowser(email.to, email.subject, email.body);
                                 }
 
                                 if (setTimeChangeNotice) {
                                     setTimeChangeNotice(null);
+                                }
+                                if (setDateChangeNotice) {
+                                    setDateChangeNotice(null);
                                 }
 
                                 showAlert("All assignments completed.", 'success');

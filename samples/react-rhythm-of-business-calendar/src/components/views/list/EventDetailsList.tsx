@@ -54,6 +54,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [groupToChangeDates, setGroupToChangeDates] = useState<number | null>(null);
     const [changeStartDate, setChangeStartDate] = useState('');
     const [changeEndDate, setChangeEndDate] = useState('');
+    const [dateChangeNotice, setDateChangeNotice] = useState<string | null>(null);
     // Change Time Panel
     const [isReassignPanelOpen, setIsReassignPanelOpen] = useState(false);
     const [eventToReassign, setEventToReassign] = useState<EventOccurrence | null>(null);
@@ -395,6 +396,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 onOpenPreview={() => setIsCurrentPanelOpen(true)} 
                 timeChangeNotice={timeChangeNotice}
                 setTimeChangeNotice={setTimeChangeNotice}
+                dateChangeNotice={dateChangeNotice}
+                setDateChangeNotice={setDateChangeNotice}   
             />
             <EditPanel
                 isEditPanelOpen={isEditPanelOpen}
@@ -412,6 +415,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 filteredEvents={filteredEvents}
                 siteTimeZone={siteTimeZone}
                 setIsPanelOpen={setIsPanelOpen}
+                setDateChangeNotice={setDateChangeNotice}
                 setGroupIDToDisplay={setGroupIDToDisplay}
                 onReplaceGroupEvents={replaceGroupEvents}
                 parkingMap={parkingMap}

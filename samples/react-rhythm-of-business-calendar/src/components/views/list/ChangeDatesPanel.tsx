@@ -5,6 +5,7 @@ import { EventOccurrence } from 'model';
 import { sp } from '@pnp/sp';
 import { mapSharePointItemToEventOccurrence } from './spEventDetailsList';
 import { showAlert } from './AlertHost';
+import { buildDateChangeNotice } from './EmailTemplate';
 
 interface ChangeDatesPanelProps {
     isChangeDatesPanelOpen: boolean;
@@ -13,13 +14,14 @@ interface ChangeDatesPanelProps {
     setGroupToChangeDates: React.Dispatch<React.SetStateAction<number | null>>;
     filteredEvents: EventOccurrence[];
     siteTimeZone: { momentId: string };
+    setDateChangeNotice: (notice: string | null) => void;
     setIsPanelOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setGroupIDToDisplay: React.Dispatch<React.SetStateAction<number>>;
     onReplaceGroupEvents: (groupId: number, updated: EventOccurrence[]) => void;
     parkingMap: { [id: number]: string };
 }
 
-export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanelOpen, setIsChangeDatesPanelOpen, groupToChangeDates, setGroupToChangeDates, filteredEvents, siteTimeZone, setIsPanelOpen, setGroupIDToDisplay, onReplaceGroupEvents }) => {
+export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanelOpen, setIsChangeDatesPanelOpen, groupToChangeDates, setGroupToChangeDates, filteredEvents, siteTimeZone, setDateChangeNotice, setIsPanelOpen, setGroupIDToDisplay, onReplaceGroupEvents }) => {
     const [changeStartDate, setChangeStartDate] = useState('');
     const [changeEndDate, setChangeEndDate] = useState('');
 
@@ -118,6 +120,11 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
         const updatedGroup = (json.d.results as any[]).map(mapSharePointItemToEventOccurrence);
 
         onReplaceGroupEvents(templateEvent.groupID, updatedGroup);
+
+        const prevRange = `${groupEvents[0].start.format('DD MMM, YYYY')} - ${groupEvents[groupEvents.length - 1].end.format('DD MMM, YYYY')}`;
+        const newRange = `${startDateMoment.format('DD MMM, YYYY')} - ${endDateMoment.format('DD MMM, YYYY')}`;
+        setDateChangeNotice(buildDateChangeNotice(prevRange, newRange));
+
         setIsChangeDatesPanelOpen(false);
         setGroupIDToDisplay(templateEvent.groupID);
         setIsPanelOpen(true);
