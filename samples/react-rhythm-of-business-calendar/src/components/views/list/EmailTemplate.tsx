@@ -22,7 +22,7 @@ function formatDateRange(dates: (EventOccurrence | moment.Moment)[]): string {
 }
 
 function buildSubject(dvRank: string, dvSurname: string, dateRange: string, status: string): string {
-    return `Base Parking Request for ${dvRank} ${dvSurname} on ${dateRange}: ${status}`;
+    return `USINDOPACOM DV Parking Request for ${dvRank} ${dvSurname} on ${dateRange}: ${status}`;
 }
 
 function formatLine(ev: EventOccurrence, stallName: string) {
@@ -86,7 +86,7 @@ export function snapshotGroupEmail(events: EventOccurrence[], parkingMap: { [id:
 
     return {
         to: first.requestorEmail,
-        subject: `Base Parking Request for ${first.dvRank} ${first.dvSurname} on ${formatDateRange(sorted)}`,
+        subject: `USINDOPACOM DV Parking Request for ${first.dvRank} ${first.dvSurname} on ${formatDateRange(sorted)}`,
         body: `Aloha ${first.requestorRank} ${first.requestorLastName},
 
         This email is to inform you of the status of your request:
@@ -165,7 +165,7 @@ export function fieldsChangedEmail(original: EventOccurrence, updated: Record<st
 
     return {
         to: first.requestorEmail,
-        subject: `Base Parking Request for ${first.dvRank} ${first.dvSurname} on ${formatDateRange(sorted)}: Updated`,
+        subject: `USINDOPACOM DV Parking Request for ${first.dvRank} ${first.dvSurname} on ${formatDateRange(sorted)}: Updated`,
         body: `Aloha ${first.requestorRank} ${first.requestorLastName},
 
         This email is to inform you of the change(s) to your request:
