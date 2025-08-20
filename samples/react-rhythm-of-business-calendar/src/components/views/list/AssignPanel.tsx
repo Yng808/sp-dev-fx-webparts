@@ -6,7 +6,7 @@ import styles from './EventDetailsList.module.scss';
 import { sp } from '@pnp/sp';
 import { IDropdownOption } from '@fluentui/react';
 import { fetchParkingStalls, fetchBookedParkingForEvent, filterAvailableParking, formatParkingOptions, fetchOccupiedParkingDetails, composeEmailInBrowser} from './spEventDetailsList';
-import { showAlert } from './AlertHost';
+import { ConfirmDialog, showAlert } from './AlertHost';
 import { assignGroupEmail, noParkingAvailableEmail } from './EmailTemplate';
 
 interface AssignPanelProps {
@@ -26,6 +26,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
     const [panelParkingLoading, setPanelParkingLoading] = useState(false);
     const [occupiedMapByDay, setOccupiedMapByDay] = useState<{ [date: string]: { [stallId: number]: { payGrade: string; surname: string }[] } }>({});
     const [panelParkingOccupiedLoading, setPanelParkingOccupiedLoading] = useState(true);
+    const [showConfirm, setShowConfirm] = useState(false);
 
     useEffect(() => {
         if (isPanelOpen && groupIDToDisplay !== 0) {
@@ -77,8 +78,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
     }, [isPanelOpen, groupIDToDisplay, filteredEvents]);
 
     const closePanel = () => {
-        setIsPanelOpen(false);
-        setParkingStallsOptionsEach({});
+        setShowConfirm(true);
     };
 
     const loadAvailableParking = async (event: EventOccurrence) => {
@@ -300,6 +300,12 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                         </>
                         )}
                     </div>
+                    <ConfirmDialog
+                        show={showConfirm}
+                        message="Are you sure you want to stop the assignment process?"
+                        onConfirm={() => { setShowConfirm(false); setIsPanelOpen(false); setParkingStallsOptionsEach({});}}
+                        onCancel={() => { setShowConfirm(false); }}
+                    />
                 </div>
             </div>
         )}
