@@ -202,21 +202,33 @@ export class Builder {
     private static _fillWeeksWithEvents(weeks: WeekInfo[], cccurrences: readonly EventOccurrence[]) {
         // 1) keep only approved events with an actual stall assigned
         const visible = cccurrences.filter(isApprovedWithAssignedStall);
+
+        // 2) sort by start date first, then stall #
         const sortedOccurrences = [...visible].sort((a, b) => {
+            const dayDiff = a.start.diff(b.start, "day");
+            if (dayDiff !== 0) return dayDiff;
+
+            const timeDiff = a.start.diff(b.start, "minute");
+            if (timeDiff !== 0) return timeDiff;
+
             const aStall = typeof a.parkingStalls === 'number' ? a.parkingStalls : Number.POSITIVE_INFINITY;
             const bStall = typeof b.parkingStalls === 'number' ? b.parkingStalls : Number.POSITIVE_INFINITY;
             return aStall - bStall;
         });
 
+        // 3) fill each week with only its events
         for (const week of weeks) {
-            // console.log('inside for loop of fill weeks with events');
-            //console.log('week:',week);
-            sortedOccurrences.forEach(occurrence => {
+            const weekStart = week.start.clone().startOf("day");
+            const weekEnd = week.end.clone().endOf("day");
 
-                week.include(occurrence)
-                //console.log('fill weeks occurrence:', occurrence);
-            });
-            //console.log('end of loop fill weeks with events');
+            const weekEvents = sortedOccurrences.filter(ev =>
+                ev.end.isAfter(weekStart, "second") &&
+                ev.start.isBefore(weekEnd, "second")
+            );
+
+            for (const occurrence of weekEvents) {
+                week.include(occurrence);
+            }
         }
     }
 }

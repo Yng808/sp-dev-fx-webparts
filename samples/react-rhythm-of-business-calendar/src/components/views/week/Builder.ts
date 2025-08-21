@@ -113,6 +113,15 @@ export class Builder {
 
         //const sortedEventOccurrences = [...filteredEventOccurrences].sort(EventOccurrence.StartAscComparer);
         const sortedEventOccurrences = [...filteredEventOccurrences].sort((a, b) => {
+            // First: by day
+            const dayDiff = a.start.diff(b.start, "day");
+            if (dayDiff !== 0) return dayDiff;
+
+            // Then: by time of day
+            const timeDiff = a.start.diff(b.start, "minute");
+            if (timeDiff !== 0) return timeDiff;
+
+            // Finally: by stall #
             const aStall = typeof a.parkingStalls === 'number' ? a.parkingStalls : Number.POSITIVE_INFINITY;
             const bStall = typeof b.parkingStalls === 'number' ? b.parkingStalls : Number.POSITIVE_INFINITY;
             return aStall - bStall;
