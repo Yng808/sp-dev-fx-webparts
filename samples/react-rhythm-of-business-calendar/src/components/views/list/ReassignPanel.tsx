@@ -13,11 +13,12 @@ interface Props {
     siteTimeZone: any;
     setIsPanelOpen: (open: boolean) => void;
     setGroupIDToDisplay: (id: number) => void;
+    setEventIdToDisplay: (id: number | null) => void;
     parkingMap: { [id: number]: string };
     setTimeChangeNotice: (notice: string | null) => void;
 }
 
-export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReassignPanelOpen, eventToReassign, siteTimeZone, setIsPanelOpen, setGroupIDToDisplay, setTimeChangeNotice }) => {
+export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReassignPanelOpen, eventToReassign, siteTimeZone, setIsPanelOpen, setGroupIDToDisplay, setEventIdToDisplay, setTimeChangeNotice }) => {
     const [reassignStart, setReassignStart] = useState('');
     const [reassignEnd, setReassignEnd] = useState('');
 
@@ -59,6 +60,7 @@ export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReass
             (eventToReassign as any).end = newEnd;
             
             setGroupIDToDisplay(eventToReassign.groupID);
+            setEventIdToDisplay(eventToReassign.id); 
             setIsPanelOpen(true);
         } catch (err) {
             console.error(err);

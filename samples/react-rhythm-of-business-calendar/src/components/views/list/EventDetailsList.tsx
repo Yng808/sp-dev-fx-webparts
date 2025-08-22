@@ -45,6 +45,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     // Assign Panel
     const [isPanelOpen, setIsPanelOpen] = useState<boolean>(false);
     const [groupIDToDisplay, setGroupIDToDisplay] = useState<number>(0);
+    const [eventIdToDisplay, setEventIdToDisplay] = useState<number | null>(null);
     // Edit Panel
     const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
     const [editGroupID, setEditGroupID] = useState<number | null>(null);
@@ -391,6 +392,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 setIsPanelOpen={setIsPanelOpen}
                 groupIDToDisplay={groupIDToDisplay}
                 setGroupIDToDisplay={setGroupIDToDisplay}
+                eventIdToDisplay={eventIdToDisplay}
+                setEventIdToDisplay={setEventIdToDisplay}  
                 filteredEvents={filteredEvents}
                 setLoadingSpots={setLoadingSpots}
                 onOpenPreview={() => setIsCurrentPanelOpen(true)} 
@@ -427,6 +430,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 siteTimeZone={siteTimeZone}
                 setIsPanelOpen={setIsPanelOpen}
                 setGroupIDToDisplay={setGroupIDToDisplay}
+                setEventIdToDisplay={setEventIdToDisplay} 
                 parkingMap={parkingMap}
                 setTimeChangeNotice={setTimeChangeNotice}
             /> 

@@ -9,19 +9,21 @@ interface CurrentParkingPanelProps {
     isPanelOpen: boolean;
     setIsPanelOpen: React.Dispatch<React.SetStateAction<boolean>>;
     groupIDToDisplay: number;
+    eventIdToDisplay?: number | null;
     filteredEvents: EventOccurrence[];
 }
 
-export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({ isPanelOpen, setIsPanelOpen, groupIDToDisplay, filteredEvents }) => {
+export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({ isPanelOpen, setIsPanelOpen, groupIDToDisplay, eventIdToDisplay, filteredEvents }) => {
     const [parkingMap, setParkingMap] = useState<{ [id: number]: string }>({});
     const [occupiedMapByDay, setOccupiedMapByDay] = useState<{ [date: string]: { [stallId: number]: { rank: string; surname: string; start: string; end: string;  }[] } }>({});
     const [panelParkingOccupiedLoading, setPanelParkingOccupiedLoading] = useState(true);
 
-    const getEventDateRange = (events: EventOccurrence[], groupID: number) => {
-        const filtered = events.filter((event) => event.groupID === groupID && event.requestStatus !== "Cancelled");
-        if (filtered.length === 0) return [];
-        const startDate = moment.min(filtered.map((event) => moment(event.start)));
-        const endDate = moment.max(filtered.map((event) => moment(event.end)));
+    const targetEvents = eventIdToDisplay ? filteredEvents.filter(ev => ev.id === eventIdToDisplay) : filteredEvents.filter(ev => ev.groupID === groupIDToDisplay && ev.requestStatus !== "Cancelled");
+
+    const getEventDateRange = () => {
+        if (targetEvents.length === 0) return [];
+        const startDate = moment.min(targetEvents.map((event) => moment(event.start)));
+        const endDate = moment.max(targetEvents.map((event) => moment(event.end)));
         const range = [];
         let current = startDate.clone();
         while (current.isSameOrBefore(endDate, 'day')) {
@@ -32,7 +34,7 @@ export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({ isPanelOpen,
     };
 
     useEffect(() => {
-        if (!isPanelOpen || !groupIDToDisplay) return;
+        if (!isPanelOpen || targetEvents.length === 0) return;
 
         const loadData = async () => {
             setPanelParkingOccupiedLoading(true);
@@ -48,7 +50,7 @@ export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({ isPanelOpen,
             setParkingMap(map);
 
             // Load occupied stalls by day
-            const dateRange = getEventDateRange(filteredEvents, groupIDToDisplay);
+            const dateRange = getEventDateRange();
             const newMap: typeof occupiedMapByDay = {};
             for (const day of dateRange) {
                 const start = moment(day).startOf('day');
@@ -66,7 +68,7 @@ export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({ isPanelOpen,
         };
 
         loadData();
-    }, [isPanelOpen, groupIDToDisplay, filteredEvents]);
+    }, [isPanelOpen, groupIDToDisplay, eventIdToDisplay, filteredEvents]);
 
     if (!isPanelOpen) return null;
 
@@ -79,11 +81,11 @@ export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({ isPanelOpen,
                     {panelParkingOccupiedLoading ? (
                         <div>Loading...</div>
                     ) : (
-                        getEventDateRange(filteredEvents, groupIDToDisplay).map((day) => {
+                        getEventDateRange().map((day) => {
                             const dayOfWeek = moment(day);
                             const dayKey = dayOfWeek.format('YYYY-MM-DD');
-                            const eventsForDay = filteredEvents.filter(
-                                (event) => event.groupID === groupIDToDisplay && event.requestStatus !== "Cancelled" && moment(event.start).isSame(dayOfWeek, 'day')
+                            const eventsForDay = targetEvents.filter(
+                                (event) => moment(event.start).isSame(dayOfWeek, 'day')
                             );
                             return (
                                 // Render a block for each day of the schedule
