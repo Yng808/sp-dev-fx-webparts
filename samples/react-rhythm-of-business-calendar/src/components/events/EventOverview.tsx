@@ -45,7 +45,7 @@ export const EventOverview: FC<IProps> = ({ event, className, parkingMap }) => {
                 <Stack horizontal verticalAlign='start' styles={titleStackStyles}>
                     <StackItem grow>
                         <Text block className={titleClassName} data-is-focusable>
-                            {`${parkingMap?.[Number(event.parkingStalls)] ?? 'Unavailable'} - (${event.start.format('HH:mm')}-${event.end.format('HH:mm')}) - ${event.requestorRank} ${event.requestorLastName}`}
+                            {`${parkingMap?.[Number(event.parkingStalls)] ?? 'Unavailable'} - (${event.start.format('HH:mm')}-${event.end.format('HH:mm')}) - ${event.dvRank} ${event.dvSurname}`}
                         </Text>
                     </StackItem>
                     {renderLiveUpdateMark()}

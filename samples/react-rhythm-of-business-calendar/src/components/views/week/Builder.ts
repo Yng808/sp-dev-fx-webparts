@@ -59,12 +59,12 @@ export class ContentRowInfo {
 
     public include(cccurrence: EventOccurrence): void {
         const occurrenceTimeZone = cccurrence.start.tz();
-        const weekStart = this._startDate.clone().startOf('day').tz(occurrenceTimeZone, true); // Adjusted to start of the week
-        const weekEnd = this._endDate.clone().endOf('day').tz(occurrenceTimeZone, true);       // Adjusted to end of the week 
-        // Check if the event overlaps with the current week
+        const weekStart = this._startDate.clone().startOf('day').tz(occurrenceTimeZone, true); 
+        const weekEnd = this._endDate.clone().endOf('day').tz(occurrenceTimeZone, true);       
+
         if (
-            cccurrence.end.isAfter(weekStart, 'second') && // Ends after the start of the week
-            cccurrence.start.isBefore(weekEnd, 'second')   // Starts before the end of the week
+            cccurrence.end.isAfter(weekStart, 'second') && 
+            cccurrence.start.isBefore(weekEnd, 'second')   
         ) {
             const { start, end } = cccurrence;
             // Determine the exact positions for the event within the weekly range
@@ -111,20 +111,22 @@ export class Builder {
             );
         });
 
-        //const sortedEventOccurrences = [...filteredEventOccurrences].sort(EventOccurrence.StartAscComparer);
         const sortedEventOccurrences = [...filteredEventOccurrences].sort((a, b) => {
-            // First: by day
-            const dayDiff = a.start.diff(b.start, "day");
+            // 1. Group by day
+            const dayDiff = a.start.clone().startOf("day").diff(b.start.clone().startOf("day"), "days");
             if (dayDiff !== 0) return dayDiff;
 
-            // Then: by time of day
-            const timeDiff = a.start.diff(b.start, "minute");
-            if (timeDiff !== 0) return timeDiff;
-
-            // Finally: by stall #
+            // 2. Stall #
             const aStall = typeof a.parkingStalls === 'number' ? a.parkingStalls : Number.POSITIVE_INFINITY;
             const bStall = typeof b.parkingStalls === 'number' ? b.parkingStalls : Number.POSITIVE_INFINITY;
-            return aStall - bStall;
+            if (aStall !== bStall) return aStall - bStall;
+            // 3. Start time
+            const timeDiff = a.start.diff(b.start, "minutes");
+            if (timeDiff !== 0) return timeDiff;
+            // 4. Last name
+            const aName = a.dvSurname?.toLowerCase() ?? "";
+            const bName = b.dvSurname?.toLowerCase() ?? "";
+            return aName.localeCompare(bName);
         });
 
         for (const cccurrence of sortedEventOccurrences) {

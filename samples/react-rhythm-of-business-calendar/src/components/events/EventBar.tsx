@@ -114,7 +114,7 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
                     )} */}
                     
                     <div>
-                        {`${parkingLabel} - (${event.start.format('HH:mm')}-${event.end.format('HH:mm')}) - ${event.requestorRank} ${event.requestorLastName}`}
+                        {`${parkingLabel} - (${event.start.format('HH:mm')}-${event.end.format('HH:mm')}) - ${event.dvRank} ${event.dvSurname}`}
                     </div>
                     
                 </StackItem>

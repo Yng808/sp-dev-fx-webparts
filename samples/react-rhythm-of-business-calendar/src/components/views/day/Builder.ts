@@ -40,9 +40,17 @@ export class Builder {
         const approvedWithStall = cccurrences.filter(isApprovedWithAssignedStall);
         // Sort occurences by title 
         const sortedOccurrences = [...approvedWithStall].sort((a, b) => { 
+            // Stall #
             const aStall = typeof a.parkingStalls === 'number' ? a.parkingStalls : Number.POSITIVE_INFINITY;
             const bStall = typeof b.parkingStalls === 'number' ? b.parkingStalls : Number.POSITIVE_INFINITY;
-            return aStall - bStall;
+            if (aStall !== bStall) return aStall - bStall;
+            // Then start time
+            const timeDiff = a.start.diff(b.start, "minutes");
+            if (timeDiff !== 0) return timeDiff;
+            // Finally last name
+            const aName = a.dvSurname?.toLowerCase() ?? "";
+            const bName = b.dvSurname?.toLowerCase() ?? "";
+            return aName.localeCompare(bName);
         });
 
         // Include occurrences in the DayInfo

@@ -203,17 +203,26 @@ export class Builder {
         // 1) keep only approved events with an actual stall assigned
         const visible = cccurrences.filter(isApprovedWithAssignedStall);
 
-        // 2) sort by start date first, then stall #
+        // 2) sort by day, stall #, then start time
         const sortedOccurrences = [...visible].sort((a, b) => {
-            const dayDiff = a.start.diff(b.start, "day");
+            // Group by calendar day
+            const dayDiff = a.start.clone().startOf("day").diff(
+                b.start.clone().startOf("day"),
+                "days"
+            );
             if (dayDiff !== 0) return dayDiff;
 
-            const timeDiff = a.start.diff(b.start, "minute");
+            // Stall #
+            const aStall = typeof a.parkingStalls === "number" ? a.parkingStalls : Number.POSITIVE_INFINITY;
+            const bStall = typeof b.parkingStalls === "number" ? b.parkingStalls : Number.POSITIVE_INFINITY;
+            if (aStall !== bStall) return aStall - bStall;
+            // Start time
+            const timeDiff = a.start.diff(b.start, "minutes");
             if (timeDiff !== 0) return timeDiff;
-
-            const aStall = typeof a.parkingStalls === 'number' ? a.parkingStalls : Number.POSITIVE_INFINITY;
-            const bStall = typeof b.parkingStalls === 'number' ? b.parkingStalls : Number.POSITIVE_INFINITY;
-            return aStall - bStall;
+            // Last name (if you want consistency like week builder)
+            const aName = a.dvSurname?.toLowerCase() ?? "";
+            const bName = b.dvSurname?.toLowerCase() ?? "";
+            return aName.localeCompare(bName);
         });
 
         // 3) fill each week with only its events
