@@ -14,7 +14,7 @@ interface CurrentParkingPanelProps {
 
 export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({ isPanelOpen, setIsPanelOpen, groupIDToDisplay, filteredEvents }) => {
     const [parkingMap, setParkingMap] = useState<{ [id: number]: string }>({});
-    const [occupiedMapByDay, setOccupiedMapByDay] = useState<{ [date: string]: { [stallId: number]: { payGrade: string; surname: string; start: string; end: string;  }[] } }>({});
+    const [occupiedMapByDay, setOccupiedMapByDay] = useState<{ [date: string]: { [stallId: number]: { rank: string; surname: string; start: string; end: string;  }[] } }>({});
     const [panelParkingOccupiedLoading, setPanelParkingOccupiedLoading] = useState(true);
 
     const getEventDateRange = (events: EventOccurrence[], groupID: number) => {
@@ -58,7 +58,7 @@ export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({ isPanelOpen,
                 occupiedDetails.forEach(o => {
                     if (!newMap[dayKey]) newMap[dayKey] = {};
                     if (!newMap[dayKey][o.parkingId]) newMap[dayKey][o.parkingId] = [];
-                    newMap[dayKey][o.parkingId].push({ payGrade: o.payGrade, surname: o.surname, start: o.start, end: o.end });
+                    newMap[dayKey][o.parkingId].push({ rank: o.rank, surname: o.surname, start: o.start, end: o.end });
                 });
             }
             setOccupiedMapByDay(newMap);
@@ -110,7 +110,7 @@ export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({ isPanelOpen,
                                                                     <div key={stallId} className={`${styles.parkingOption} ${styles.occupiedOption}`}>
                                                                         {parkingMap[stallId] || `Stall ${stallId}`}<br />
                                                                         <span style={{ fontSize: '0.8em' }}>
-                                                                            {occupantsForDay.map(o => `${o.payGrade} ${o.surname}`).join(', ')}
+                                                                            {occupantsForDay.map(o => `${o.rank} ${o.surname}`).join(', ')}
                                                                         </span>
                                                                     </div>
                                                                 );

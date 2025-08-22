@@ -72,10 +72,10 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
 
             if (overlap) {
                 const alreadyExists = newMap[dayKey][o.parkingId].some(
-                    existing => existing.payGrade === o.payGrade && existing.surname === o.surname && existing.start === o.start && existing.end === o.end
+                    existing => existing.rank === o.rank && existing.surname === o.surname && existing.start === o.start && existing.end === o.end
                 );
                 if (!alreadyExists) {
-                    newMap[dayKey][o.parkingId].push({ parkingId: o.parkingId, payGrade: o.payGrade, surname: o.surname, start: o.start, end: o.end });
+                    newMap[dayKey][o.parkingId].push({ parkingId: o.parkingId, rank: o.rank, surname: o.surname, start: o.start, end: o.end });
                 }
             }
             });
@@ -209,9 +209,14 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                                                             <div key={stallId} className={styles.parkingOption + ' ' + styles.occupiedOption}>
                                                                 {parkingMap[stallId] || `Stall ${stallId}`}{" "}
                                                                 <br />
-                                                                <span style={{ fontSize: '0.8em', maxWidth: '80px', display: 'inline-block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                                    {occupantsForDay.map(o => `${o.payGrade} ${o.surname}`).join(', ')}
-                                                                </span>
+                                                                <span style={{ fontSize: '0.8em', maxWidth: '80px', display: 'inline-block' }}>
+                                                                    {occupantsForDay.map((o, idx) => (
+                                                                        <div key={idx} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                                                                        {o.rank} <br />
+                                                                        {o.surname}
+                                                                        </div>
+                                                                    ))}
+                                                                    </span>
                                                             </div>
                                                         );
                                                         } else {
@@ -244,7 +249,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                         return (
                         <>
                             <h6>Assignment for: {matchedEvent?.dvPayGrade || ''} {matchedEvent?.dvSurname || ''}</h6>
-                            <h6>GroupID: {matchedEvent?.groupID || ''} & Bridge: {matchedEvent?.dvVisiting || ''}</h6>
+                            <h6>GroupID: {matchedEvent?.groupID || ''} _ Bridge: {matchedEvent?.dvVisiting || ''}</h6>
                         </>
                         );
                     })()}

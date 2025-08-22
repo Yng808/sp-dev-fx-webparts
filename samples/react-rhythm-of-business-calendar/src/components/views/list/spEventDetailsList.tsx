@@ -10,7 +10,7 @@ export interface ParkingSpot {
 
 export interface OccupiedStall {
     parkingId: number;
-    payGrade: string;
+    rank: string;
     surname: string;
     start: string;
     end: string;
@@ -87,7 +87,7 @@ export const fetchOccupiedParkingDetails = async (
 ): Promise<OccupiedStall[]> => {
     const response = await fetch(
         `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items` +
-        `?$select=ParkingStallsId,DVPayGrade,DVSurname,EventDate,EndDate` +
+        `?$select=ParkingStallsId,DVRank,DVSurname,EventDate,EndDate` +
         `&$filter=RequestStatus eq 'Approved' and ` +
         `(EndDate gt datetime'${eventStart.toISOString()}' and EventDate lt datetime'${eventEnd.toISOString()}')`,
         {
@@ -106,7 +106,7 @@ export const fetchOccupiedParkingDetails = async (
 
     return data.d.results.map((item: any) => ({
         parkingId: item.ParkingStallsId,
-        payGrade: item.DVPayGrade,
+        rank: item.DVRank,
         surname: item.DVSurname,
         start: item.EventDate,
         end: item.EndDate

@@ -24,7 +24,7 @@ interface ParkingSpot {
 
 interface OccupiedStall {
     parkingId: number;
-    payGrade: string;
+    rank: string;
     surname: string;
 }
 
@@ -368,7 +368,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     <td>{event.groupID}</td>
                                     <td>{event.requestStatus}</td>
                                     <td>{event.dvPayGrade}</td>
-                                    <td style={{maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{`${event.dvRank} ${event.dvFirstName} ${event.dvSurname}`}</td>
+                                    <td style={{maxWidth: '120px', whiteSpace: 'normal', wordWrap: 'break-word'}}>{`${event.dvRank} ${event.dvFirstName} ${event.dvSurname}`}</td>
                                     <td>{event.parkingStalls === -1 ? 'Unavailable' : (parkingMap[event.parkingStalls] || event.parkingStalls)}</td>
                                     <td>
                                         <div>{event.start.format('DD MMM, YYYY')}</div>
@@ -376,7 +376,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     </td>
                                     <td>{event.jdirVisiting}</td>
                                     <td>
-                                        <div style={{maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{`${event.requestorRank} ${event.requestorFirstName} ${event.requestorLastName}`}</div>
+                                        <div style={{maxWidth: '120px', whiteSpace: 'normal', wordWrap: 'break-word'}}>{`${event.requestorRank} ${event.requestorFirstName} ${event.requestorLastName}`}</div>
                                         <div style={{maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{`${event.requestorOffice} ${event.requestorCellPhone?.replace(/^(\(\d{3}\))(\d{3}-\d{4})$/, '$1 $2') || ''}`}</div>
                                     </td>
                                     <td>{event.dvVisiting}</td>
