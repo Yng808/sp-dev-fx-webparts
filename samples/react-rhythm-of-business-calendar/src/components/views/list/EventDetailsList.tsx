@@ -230,7 +230,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
     // Cancel by event
     const handleCancel = (event: EventOccurrence) => {
-        setConfirmConfig({ message: `Are you sure you want to cancel this event for ${event.dvRank} ${event.dvFirstName} ${event.dvSurname}?`,
+        setConfirmConfig({ message: `Are you sure you want to cancel the event for ${event.dvRank} ${event.dvFirstName} ${event.dvSurname} on ${event.start.format("MMM DD, YYYY")}?`,
         onConfirm: async () => {
         try {
             await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(event.id).update({
