@@ -46,6 +46,7 @@ interface IEventListItemResult extends IListItemResult {
     RequestorEmail: SPField.Query_Text;
     ParkingStalls: SPField.Query_Lookup;
     GroupID: SPField.Query_Text;
+    Editor: SPField.Query_User;
 }
 
 interface IEventUpdateListItem extends IUpdateListItem {
@@ -152,6 +153,7 @@ const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: IT
     event.requestorEmail = row.RequestorEmail.replace(/<[^>]+>/g, '').trim();
     event.parkingStalls = row.ParkingStalls?.[0]?.lookupId ?? undefined;
     event.groupID = Number(row.GroupID); 
+    event.editor = SPField.toUser(row.Editor);
 };
 
 const getEventTypeValue = (event: Event) => {

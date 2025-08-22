@@ -1,5 +1,5 @@
 import { Moment } from "moment-timezone";
-import { Color, IManyToManyRelationship } from "common";
+import { Color, IManyToManyRelationship, User } from "common";
 import { Event, Recurrence, RefinerValue } from "model";
 
 export interface IEvent {
@@ -38,7 +38,7 @@ export interface IEvent {
     readonly requestorCellPhone: string;
     readonly requestorEmail: string;
     readonly groupID: number;
-
+    readonly editor: User;
     getWrappedEvent(): Event;
     getSeriesMaster(): Event;
     getExceptionOrEvent(): Event;

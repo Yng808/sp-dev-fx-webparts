@@ -313,12 +313,13 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             <th style={{ backgroundColor: 'lightblue' }}>ID</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Status</th>
                             <th style={{ backgroundColor: 'lightblue' }}>DV Pay Grade</th>
-                            <th style={{ backgroundColor: 'lightblue' }}>DV Info</th>
+                            <th style={{ backgroundColor: 'lightblue', minWidth: '120px'}}>DV Info</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Parking Assignment</th>
                             <th style={{ backgroundColor: 'lightblue', minWidth: '100px' }}>Request Date</th>
                             <th style={{ backgroundColor: 'lightblue' }}>JDIR</th>
                             <th style={{ backgroundColor: 'lightblue', minWidth: '120px' }}>Requestor Info</th>
                             <th style={{ backgroundColor: 'lightblue' }}>Bridge</th>
+                            <th style={{ backgroundColor: 'lightblue', minWidth: '150px' }}>Last Modified By</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -375,12 +376,15 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                         <div>{event.start.format('DD MMM, YYYY')}</div>
                                         <div>{event.start.format('HHmm')}-{event.end.format('HHmm')}</div>
                                     </td>
-                                    <td>{event.jdirVisiting}</td>
+                                    <td>
+                                        <div style={{maxWidth: '40px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{event.jdirVisiting}</div>
+                                    </td>
                                     <td>
                                         <div style={{maxWidth: '120px', whiteSpace: 'normal', wordWrap: 'break-word'}}>{`${event.requestorRank} ${event.requestorFirstName} ${event.requestorLastName}`}</div>
                                         <div style={{maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{`${event.requestorOffice} ${event.requestorCellPhone?.replace(/^(\(\d{3}\))(\d{3}-\d{4})$/, '$1 $2') || ''}`}</div>
                                     </td>
                                     <td>{event.dvVisiting}</td>
+                                    <td>{event.editor?.title}</td>
                                 </tr>
                             );
                         })}

@@ -49,6 +49,7 @@ interface IState {
     requestorEmail: string;
     parkingStalls: number;
     groupID: number;
+    editor: User;
 }
 
 export class Event extends ListItemEntity<IState> implements IEvent {
@@ -139,6 +140,7 @@ export class Event extends ListItemEntity<IState> implements IEvent {
         this.state.requestorEmail = "";
         this.state.parkingStalls = undefined;
         this.state.groupID = undefined;
+        this.state.editor = undefined;
         //this.state.readAheadDueDate = null;
 
         this.refinerValues = ManyToManyRelationship.create<Event, RefinerValue>(this, 'events', { comparer: Event.RefinerValueOrderAscComparer });
@@ -521,6 +523,9 @@ export class Event extends ListItemEntity<IState> implements IEvent {
 
     public get groupID(): number { return this.state.groupID; }
     public set groupID(val: number) { this.state.groupID = val; }
+
+    public get editor(): User { return this.state.editor; }
+    public set editor(val: User) { this.state.editor = val }
 }
 
 export type EventMap = Map<number, Event>;
