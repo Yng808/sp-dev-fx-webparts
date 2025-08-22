@@ -192,32 +192,32 @@ const ViewRoute: FC = () => {
     const commandBarItems = useCallback(
         (numberOfEventsNeedingApproval: number) => {
             const staticItems: ICommandBarItemProps[] = [
-                {
-                  key: 'new-event',
-                  text: strings.Command_NewEvent.Text,
-                  iconProps: { iconName: 'Add' },
-                  onClick: () => newEvent()
-                },
-                userCanManageSettings && {
-                  key: 'settings',
-                  text: strings.Command_Settings.Text,
-                  iconProps: { iconName: 'Settings' },
-                  onClick: () => editSettings()
-                },
-                userIsAnApprover && {
-                  key: 'approvals',
-                  text: numberOfEventsNeedingApproval
-                    ? `${strings.Command_Approvals.Text} (${numberOfEventsNeedingApproval})`
-                    : strings.Command_Approvals.Text,
-                  iconProps: { iconName: 'InboxCheck' },
-                  onClick: () => openMyApprovalsPanel()
-                },
-                {
-                  key: 'filter-current-month',
-                  text: 'Hide events/trips outside current month',
-                  iconProps: { iconName: showOnlyCurrentMonth ? 'CheckboxComposite' : 'Checkbox' },
-                  onClick: () => setShowOnlyCurrentMonth(!showOnlyCurrentMonth)
-                }
+                // {
+                //   key: 'new-event',
+                //   text: strings.Command_NewEvent.Text,
+                //   iconProps: { iconName: 'Add' },
+                //   onClick: () => newEvent()
+                // },
+                // userCanManageSettings && {
+                //   key: 'settings',
+                //   text: strings.Command_Settings.Text,
+                //   iconProps: { iconName: 'Settings' },
+                //   onClick: () => editSettings()
+                // },
+                // userIsAnApprover && {
+                //   key: 'approvals',
+                //   text: numberOfEventsNeedingApproval
+                //     ? `${strings.Command_Approvals.Text} (${numberOfEventsNeedingApproval})`
+                //     : strings.Command_Approvals.Text,
+                //   iconProps: { iconName: 'InboxCheck' },
+                //   onClick: () => openMyApprovalsPanel()
+                // },
+                // {
+                //   key: 'filter-current-month',
+                //   text: 'Hide events/trips outside current month',
+                //   iconProps: { iconName: showOnlyCurrentMonth ? 'CheckboxComposite' : 'Checkbox' },
+                //   onClick: () => setShowOnlyCurrentMonth(!showOnlyCurrentMonth)
+                // }
               ].filter(Boolean) as ICommandBarItemProps[];
             
               // Merge the dynamic filter buttons from context.

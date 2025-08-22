@@ -42,12 +42,12 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
 
         ReactDom.render(
             <div>
-                <button
+                {/* <button
                     onClick={this.generatePDF}
                     className="btn btn-primary mb-3 ms-3"
                 >
                     Download as PDF
-                </button>
+                </button> */}
                 <FilterConfigContext.Provider value={{ filterButtons, showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief, showLocation }}>
                     <RhythmOfBusinessCalendarApp webpart={this} />
                 </FilterConfigContext.Provider>
