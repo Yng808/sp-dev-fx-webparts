@@ -33,7 +33,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
     const [occupiedMapByDay, setOccupiedMapByDay] = useState<{ [date: string]: { [stallId: number]: OccupiedStall[] }}>({});
     const [panelParkingOccupiedLoading, setPanelParkingOccupiedLoading] = useState(true);
     const [showConfirm, setShowConfirm] = useState(false);
-    
+
     const targetEvents = eventIdToDisplay ? filteredEvents.filter(ev => ev.id === eventIdToDisplay) : filteredEvents.filter(ev => ev.groupID === groupIDToDisplay && ev.requestStatus !== "Cancelled");
 
     useEffect(() => {
@@ -219,7 +219,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                                                                         {o.surname}
                                                                         </div>
                                                                     ))}
-                                                                    </span>
+                                                                </span>
                                                             </div>
                                                         );
                                                         } else {

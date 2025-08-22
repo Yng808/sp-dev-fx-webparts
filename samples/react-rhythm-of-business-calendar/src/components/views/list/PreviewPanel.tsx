@@ -111,8 +111,13 @@ export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({ isPanelOpen,
                                                                 return (
                                                                     <div key={stallId} className={`${styles.parkingOption} ${styles.occupiedOption}`}>
                                                                         {parkingMap[stallId] || `Stall ${stallId}`}<br />
-                                                                        <span style={{ fontSize: '0.8em' }}>
-                                                                            {occupantsForDay.map(o => `${o.rank} ${o.surname}`).join(', ')}
+                                                                       <span style={{ fontSize: '0.8em', maxWidth: '80px', display: 'inline-block' }}>
+                                                                            {occupantsForDay.map((o, idx) => (
+                                                                                <div key={idx} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                                                                                {o.rank} <br />
+                                                                                {o.surname}
+                                                                                </div>
+                                                                            ))}
                                                                         </span>
                                                                     </div>
                                                                 );
