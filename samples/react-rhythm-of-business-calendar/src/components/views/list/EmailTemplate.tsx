@@ -163,10 +163,15 @@ export function fieldsChangedEmail(original: EventOccurrence, updated: Record<st
 
     const changesText = changes.map(c => `${c.label}\nPreviously: ${c.before || "N/A"}\nNow: ${c.after || "N/A"}\n`).join("\n").trim();
 
+    const rank = updated.dvRank?.trim() || first.dvRank;
+    const surname = updated.dvSurname?.trim() || first.dvSurname;
+    const requestorRank = updated.requestorRank?.trim() || first.requestorRank;
+    const requestorLastName = updated.requestorLastName?.trim() || first.requestorLastName;
+
     return {
         to: first.requestorEmail,
-        subject: `USINDOPACOM DV Parking Request for ${first.dvRank} ${first.dvSurname} on ${formatDateRange(sorted)}: Updated`,
-        body: `Aloha ${first.requestorRank} ${first.requestorLastName},
+        subject: `USINDOPACOM DV Parking Request for ${rank} ${surname} on ${formatDateRange(sorted)}: Updated`,
+        body: `Aloha ${requestorRank} ${requestorLastName},
 
         This email is to inform you of the change(s) to your request:
 
