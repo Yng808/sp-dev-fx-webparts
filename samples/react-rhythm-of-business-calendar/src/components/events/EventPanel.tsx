@@ -1,7 +1,7 @@
 import { PrincipalType } from '@pnp/sp';
 import { Guid } from '@microsoft/sp-core-library';
 import React from 'react';
-import { FocusZone, format, ICommandBarItemProps, IDropdownOption, Label, Link, MessageBar, MessageBarType, Stack, Text, DefaultButton } from "@fluentui/react";
+import { FocusZone, format, ICommandBarItemProps, IDropdownOption, Label, Link, MessageBar, MessageBarType, Stack, Text } from "@fluentui/react";
 import { Entity, ErrorHandler, humanizeDuration, mapToArray, now, User, ValidationRule } from 'common';
 import { EntityPanelBase, IEntityPanelProps, IDataPanelBaseState, ResponsiveGrid, GridRow, GridCol, LiveText, LiveUpdate, IDataPanelBase, LiveToggle, LiveUserPicker, LiveTextField, LiveTimePicker, LiveDatePicker, Validation, ITransformer, LiveMultiselectDropdown, LiveDropdown } from "common/components";
 import { Event, Refiner, RefinerValue, RecurPattern, EventModerationStatus, Approvers, humanizeRecurrencePattern } from "model";
@@ -11,12 +11,12 @@ import { RefinerValuePill } from '../refiners';
 import { ListItemTechnicals } from '../shared';
 import { PatternChoiceGroup, DailyEditor, WeeklyEditor, MonthlyEditor, YearlyEditor, UntilEditor } from '../recurrence';
 import { IEventCommands } from './IEventCommands';
-import { fetchParkingStalls } from 'components/views/list/spEventDetailsList';
 import { PersistConcurrencyFailureMessage, Validation as validationStrings, EventPanel as strings } from "ComponentStrings";
 
 import styles from './EventPanel.module.scss';
 import EventAttachments from './EventAttachments';
 import { sp } from "@pnp/sp";
+import { fetchParkingStalls } from 'components/views/list/spEventDetailsList';
 
 export class RefinerValueValidationRule extends ValidationRule<Event> {
     constructor(
@@ -41,9 +41,7 @@ type IProps = IOwnProps & IEntityPanelProps<Event> & ServicesProp<DirectoryServi
 interface IOwnState {
     refinerValueOptionsByRefiner: Map<Refiner, IDropdownOption[]>;
     refiners: readonly Refiner[];
-    parkingStallsOptions: IDropdownOption[];
     parkingMap: { [id: number]: string };
-    loadingSpots: boolean;
 }
 type IState = IOwnState & IDataPanelBaseState<Event>;
 
@@ -56,15 +54,13 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
 
     protected resetState(): IState {
         this._buildRefinerValueOptions();
-        //this._buildRefinerValueValidationRules();
+        this._buildRefinerValueValidationRules();
 
         return {
             ...super.resetState(),
             refinerValueOptionsByRefiner: new Map(),
             refiners: [],
-            parkingStallsOptions: [],
             parkingMap: this.state?.parkingMap ?? {},
-            loadingSpots: false
         };
     }
 
@@ -76,7 +72,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
     public componentShouldRender() {
         super.componentShouldRender();
         this._buildRefinerValueOptions();
-        //this._buildRefinerValueValidationRules();
+        this._buildRefinerValueValidationRules();
     }
 
     public componentDidMount(): void {
@@ -89,9 +85,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
 
         await refinersAsync.promise;
 
-        const refiners = refinersAsync.data.filter(refiner =>
-        refiner.title !== "Decision Brief" && refiner.title !== "IPC OPR" && refiner.title !== "IPC Attendee" && refiner.title !== "Location"
-        );
+        const refiners = [...refinersAsync.data];
         refiners.sort(Refiner.OrderAscComparer);
 
         const refinerValueToDropdownOption = (value: RefinerValue) => {
@@ -116,77 +110,18 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         this.setState({ refinerValueOptionsByRefiner, refiners });
     }
 
-    private async _loadAvailableParking(start: Date, end: Date) {
-        this.setState({ loadingSpots: true });
+    private async _buildRefinerValueValidationRules() {
+        const { [EventsService]: { refinersAsync } } = this.props.services;
 
-        try {
-            const web = await sp.web.get();
-            const siteUrl = web.Url;
+        await refinersAsync.promise;
 
-            // STEP 1: Fetch all parking stalls
-            const parkingResponse = await fetch(
-            `${siteUrl}/_api/web/lists/getbytitle('DVParkingStalls')/items?$select=ID,ParkingAssignment`,
-            {
-                method: "GET",
-                headers: {
-                Accept: "application/json;odata=verbose",
-                },
-            }
-            );
+        const { data: refiners } = refinersAsync;
 
-            if (!parkingResponse.ok) {
-            throw new Error(`Failed to fetch spots: ${parkingResponse.statusText}`);
-            }
+        this._refinerValueValidationRulesByRefiner.clear();
 
-            const allParkingData = await parkingResponse.json();
-            const allParking = allParkingData.d.results.map((item: any) => ({
-            id: item.ID,
-            //title: item.Title,
-            parking :item.ParkingAssignment
-            }));
-
-            // STEP 2: Fetch booked parking assignments in the time window
-            const bookingsResponse = await fetch(
-            `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items` +
-                `?$select=ParkingStallsId,EventDate,EndDate,RequestStatus` +
-                `&$filter=RequestStatus eq 'Approve Request' 
-                and (EndDate gt datetime'${start.toISOString()}' 
-                and EventDate lt datetime'${end.toISOString()}')`,
-            {
-                method: "GET",
-                headers: {
-                Accept: "application/json;odata=verbose",
-                },
-            }
-            );
-
-            if (!bookingsResponse.ok) {
-            throw new Error(`Failed to fetch bookings: ${bookingsResponse.statusText}`);
-            }
-
-            const bookingsData = await bookingsResponse.json();
-            const bookedParkingIds = new Set(
-            bookingsData.d.results
-                .map((item: any) => item.ParkingStallsId)
-                .filter((id: number | null) => id != null)
-            );
-
-            // STEP 3: Filter parking that aren't booked
-            const availableParking = allParking
-            .filter((parkingSpot: { id: number; parking: string }) => !bookedParkingIds.has(parkingSpot.id))
-            .map((parkingSpot: { id: number; parking: string }) => ({
-                key: parkingSpot.id,
-                text: parkingSpot.parking,
-            }));
-
-            this.setState({
-            parkingStallsOptions: availableParking,
-            loadingSpots: false,
-            });
-
-        } catch (error) {
-            console.error("Error determining available parking:", error);
-            this.setState({ loadingSpots: false });
+        for (const refiner of refiners.filter(Entity.NotDeletedFilter)) {
+            const rule = new RefinerValueValidationRule(refiner);
+            this._refinerValueValidationRulesByRefiner.set(refiner, rule);
         }
     }
 
@@ -238,17 +173,12 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
 
         try {
             const stalls = await fetchParkingStalls(siteUrl);
-            const parkingStallsOptions = stalls.map(stall => ({
-                key: stall.id,
-                text: stall.parking
-            }));
-
             const parkingMap: { [id: number]: string } = {};
             stalls.forEach(stall => {
                 parkingMap[stall.id] = stall.parking;
             });
 
-            this.setState({ parkingStallsOptions, parkingMap });
+            this.setState({ parkingMap });
         } catch (error) {
             console.error("Failed to fetch parking stalls", error);
         }
@@ -465,15 +395,15 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                 </LiveText>
                             </GridCol>
                         </GridRow>
-                    )} */}
-                    {/* <GridRow>
+                    )} 
+                        <GridRow>
                         <GridCol sm={12}>
                             <LiveText label={strings.Field_Location.Label} {...liveProps} propertyName='location'>
                                 {val => <Text data-is-focusable>{val || "-"}</Text>}
                             </LiveText>
                         </GridCol>
-                    </GridRow> */}
-                    {/* <GridRow>
+                    </GridRow>
+                        <GridRow>
                         <GridCol sm={12}>
                             <LiveText
                                 label={strings.Field_Description.Label}
@@ -654,26 +584,6 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             </GridCol>
                         </GridRow>
                     } */}
-                    {/* <GridRow>
-                        <GridCol sm={6}>
-                            <LiveText label="Parking Assignment" {...liveProps} propertyName="parkingStalls">
-                            {(val) => {
-                                return (
-                                <Text data-is-focusable>{val || "-"}</Text>
-                                 );
-                            }}
-                            </LiveText>
-                        </GridCol>
-                        <GridCol sm={6}>
-                            <LiveText label="Request Status" {...liveProps} propertyName="requestStatus">
-                            {(val) => {
-                                return (
-                                <Text data-is-focusable>{val || "-"}</Text>
-                                 );
-                            }}
-                            </LiveText>
-                        </GridCol>
-                    </GridRow>  */}
                     <GridRow>
                         <GridCol sm={6}>
                             <LiveText label="DV Pay Grade" {...liveProps} propertyName="dvPayGrade">
@@ -805,7 +715,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             </LiveText>
                         </GridCol>
                     </GridRow>
-                    <GridRow>
+                    {/* <GridRow>
                         <GridCol sm={12}>
                             <ListItemTechnicals
                                 entity={
@@ -816,7 +726,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                 }
                             />
                         </GridCol>
-                    </GridRow>
+                    </GridRow> */}
                 </ResponsiveGrid>
             </FocusZone>
         );
@@ -875,7 +785,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                         disabled={isAllDay}
                                     />
                                 </GridCol>
-                                {/* <GridCol sm={4} lg={3}>
+                                <GridCol sm={4} lg={3}>
                                     <LiveToggle
                                         {...liveProps}
                                         label={strings.Field_AllDayEvent.Label}
@@ -883,7 +793,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                         offText={strings.Field_AllDayEvent.OffText}
                                         propertyName='isAllDay'
                                     />
-                                </GridCol> */}
+                                </GridCol>
                             </GridRow>
                             <GridRow>
                                 {(!isRecurring || isSeriesException) &&
@@ -919,7 +829,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         </ResponsiveGrid>
                     </GridCol>
                 </GridRow>
-                {/* {isSeriesException &&
+                {isSeriesException &&
                     <GridRow>
                         <GridCol>
                             <Label>{strings.Field_Recurring.Label}</Label>
@@ -984,8 +894,8 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             }
                         </GridCol>
                     </GridRow>
-                } */}
-                {/* <GridRow>
+                }
+                <GridRow>
                     <GridCol sm={12}>
                         <LiveTextField
                             {...liveProps}
@@ -994,8 +904,8 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             rules={Event.LocationValidations}
                         />
                     </GridCol>
-                </GridRow> */}
-                {/* <GridRow>
+                </GridRow> 
+                <GridRow>
                     <GridCol sm={12}>
                         <LiveTextField
                             {...liveProps}
@@ -1043,7 +953,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             allowTextInput
                         />
                     </GridCol>
-                </GridRow> */}
+                </GridRow>
 
                 <GridRow>
                     {refiners.filter(Entity.NotDeletedFilter).map(refiner => {
@@ -1107,9 +1017,9 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         );
                     })}
                 </GridRow>
-                {/* <GridRow>
+                <GridRow>
                     <GridCol sm={12}>
-                        {this._renderModerationStatus()}
+                        {/* {this._renderModerationStatus()} */}
                     </GridCol>
                 </GridRow>
                 {confidentialFieldEnabled &&
@@ -1157,180 +1067,6 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         ) : (
                             <div/>
                         )}
-                    </GridCol>
-                </GridRow> */}
-                <GridRow>
-                    <GridCol sm={6}>
-                        <LiveText label="Parking Assignment" {...liveProps} propertyName="parkingStalls">
-                        {(val) => {
-                            return (
-                            <Text data-is-focusable>{val || "-"}</Text>
-                            );
-                        }}
-                        </LiveText>
-                    </GridCol>
-                    <GridCol sm={6}>
-                        <LiveDropdown
-                        {...liveProps}
-                        label="Request Status"
-                        propertyName="requestStatus"
-                        options={[
-                            { key: 'New Request', text: 'New Request' },
-                            { key: 'Approve Request', text: 'Approve Request' },
-                            { key: 'Cancel Request', text: 'Cancel Request' },
-                            { key: 'Reject Request', text: 'Reject Request' }
-                        ]}
-                        required={false}
-                        getKeyFromValue={(val) => val}
-                        />
-                    </GridCol>
-                </GridRow>
-                <GridRow>
-                    <GridCol sm={6}>
-                        <LiveDropdown
-                        {...liveProps}
-                        label="DV Pay Grade"
-                        propertyName="dvPayGrade"
-                        options={[
-                            { key: 'O-6', text: 'O-6' },
-                            { key: 'O-7', text: 'O-7' },
-                            { key: 'O-8', text: 'O-8' },
-                            { key: 'O-9', text: 'O-9' },
-                            { key: 'O-10', text: 'O-10' },
-                            { key: 'GS-15', text: 'GS-15' },
-                            { key: 'SES-1', text: 'SES-1' },
-                            { key: 'SES-2', text: 'SES-2' },
-                            { key: 'SES-3', text: 'SES-3' },
-                            { key: 'SES-4', text: 'SES-4' }
-                        ]}
-                        required={false}
-                        getKeyFromValue={(val) => val}
-                        />
-                    </GridCol>
-                    <GridCol sm={6}>
-                        <LiveTextField
-                        {...liveProps}
-                        label="DV Rank/Mr./Mrs./Dr."
-                        propertyName="dvRank"
-                        />
-                    </GridCol>
-                </GridRow>
-                <GridRow>
-                    <GridCol sm={6}>
-                        <LiveTextField
-                        {...liveProps}
-                        label="DV First Name"
-                        propertyName="dvFirstName"
-                        />
-                    </GridCol>
-                    <GridCol sm={6}>
-                        <LiveTextField
-                        {...liveProps} 
-                        label="DV Last Name (Surname)" 
-                        propertyName="dvSurname"
-                        />
-                    </GridCol>
-                </GridRow>
-                <GridRow>
-                    <GridCol sm={6}>
-                        <LiveTextField
-                        {...liveProps}
-                        label="Which JDIR/Office is DV Visiting"
-                        propertyName="jdirVisiting"
-                        />
-                    </GridCol>
-                    <GridCol sm={6}>
-                        <LiveTextField
-                        {...liveProps}
-                        label="Is DV visiting COM, DCOM or COS?"
-                        propertyName="dvVisiting"
-                        />
-                    </GridCol>
-                </GridRow>
-                <GridRow>
-                    <GridCol sm={6}>
-                        <LiveTextField
-                        {...liveProps}
-                        label="Requestor Rank/Mr./Mrs./Dr."
-                        propertyName="requestorRank"
-                        />
-                    </GridCol>
-                    <GridCol sm={6}>
-                        <LiveTextField
-                        {...liveProps}
-                        label="Requestor First Name"
-                        propertyName="requestorFirstName"
-                        />
-                    </GridCol>
-                </GridRow>
-                <GridRow>
-                    <GridCol sm={6}>
-                        <LiveTextField
-                        {...liveProps}
-                        label="Requestor Last Name"
-                        propertyName="requestorLastName"
-                        />
-                    </GridCol>
-                    <GridCol sm={6}>
-                        <LiveTextField
-                        {...liveProps}
-                        label="Requestor Office"
-                        propertyName="requestorOffice"
-                        />
-                    </GridCol>
-                </GridRow>
-                <GridRow>
-                    <GridCol sm={6}>
-                        <LiveTextField
-                        {...liveProps}
-                        label="Requestor Duty Phone"
-                        propertyName="requestorDutyPhone"
-                        />
-                    </GridCol>
-                    <GridCol sm={6}>
-                        <LiveTextField
-                        {...liveProps}
-                        label="Requestor Cell Phone"
-                        propertyName="requestorCellPhone"
-                        />
-                    </GridCol>
-                </GridRow>
-                <GridRow>
-                    <GridCol sm={6}>
-                        <LiveTextField
-                        {...liveProps}
-                        label="Requestor Email"
-                        propertyName="requestorEmail"
-                        />
-                    </GridCol>
-                </GridRow>
-                <GridRow>
-                    <GridCol sm={6}>
-                        <LiveDropdown
-                        {...liveProps}
-                        label="Parking Assignment"
-                        propertyName="parkingStalls"
-                        options={this.state.parkingStallsOptions}
-                        getKeyFromValue={(val) => val}
-                        />
-                    </GridCol>
-                    <GridCol sm={6}>
-                        <div style={{ marginTop: '28px' }}>
-                        <DefaultButton
-                        text="Search"
-                        onClick={async () => {
-                            const start = this.entity.start;
-                            const end = this.entity.end;
-
-                            if (start && end) {
-                            await this._loadAvailableParking(start.toDate(), end.toDate());
-                            } else {
-                            console.warn("Start and end dates must be set before checking room availability.");
-                            }
-                        }}
-                        disabled={this.state.loadingSpots}
-                        />
-                        </div>
                     </GridCol>
                 </GridRow>
                 <GridRow>
@@ -1550,6 +1286,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
             //         )
             //         : editSingleCommand
             // ),
+            // canModerate && moderationCommand,
             // canDelete && (
             //     isRecurring
             //         ? (isSeriesMaster
@@ -1557,7 +1294,16 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
             //             : deleteRecurringCommand
             //         )
             //         : deleteSingleCommand
-            // )
+            // ),
+            // canAddToOutlook && (
+            //     isRecurring
+            //         ? (isSeriesMaster
+            //             ? addToOutlookSeriesCommand
+            //             : addToOutlookRecurringCommand
+            //         )
+            //         : addToOutlookSingleCommand
+            // ),
+            // getLinkCommand
         ].filter(Boolean);
     }
 
