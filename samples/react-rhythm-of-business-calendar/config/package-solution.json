@@ -1,8 +1,8 @@
 {
     "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
     "solution": {
-        "name": "TDC",
-        "id": "8588904e-d33f-40ac-9ee0-2fcfcfb0ebc4",
+        "name": "PARKR",
+        "id": "343fc4a8-44f5-41b9-b439-17cd8f23db2a",
         "version": "1.5.0.0",
         "includeClientSideAssets": true,
         "skipFeatureDeployment": true,
@@ -15,6 +15,6 @@
         }
     },
     "paths": {
-        "zippedPackage": "solution/TDC.sppkg"
+        "zippedPackage": "solution/PARKR.sppkg"
     }
 }

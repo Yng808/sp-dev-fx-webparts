@@ -39,7 +39,7 @@
         },
         "test": {
             "deploySiteUrl": "https://contoso.sharepoint.com/sites/appcatalog",
-            "deployScope": "Tenant",
+            "deployScope": "SiteCollection",
             "skipFeatureDeployment": true,
             "environmentSymbol": "Environments.TEST",
             "package": {
@@ -58,7 +58,7 @@
         },
         "stage": {
             "deploySiteUrl": "https://contoso.sharepoint.com/sites/appcatalog",
-            "deployScope": "Tenant",
+            "deployScope": "SiteCollection",
             "skipFeatureDeployment": true,
             "environmentSymbol": "Environments.STAGE",
             "package": {
@@ -77,20 +77,20 @@
         },
         "prod": {
             "deploySiteUrl": "https://contoso.sharepoint.com/sites/appcatalog",
-            "deployScope": "Tenant",
+            "deployScope": "SiteCollection",
             "skipFeatureDeployment": true,
             "environmentSymbol": "Environments.PROD",
             "package": {
-                "name": "TDC",
-                "id": "8588904e-d33f-40ac-9ee0-2fcfcfb0ebc4",
-                "filename": "TDC.sppkg"
+                "name": "PARKR",
+                "id": "343fc4a8-44f5-41b9-b439-17cd8f23db2a",
+                "filename": "PARKR.sppkg"
             },
             "webparts": [
                 {
                     "manifest": "RhythmOfBusinessCalendarWebPart.manifest.json",
-                    "id": "077f5c4a-37bf-4531-ac24-6369ca0f5f53",
-                    "alias": "TDC",
-                    "title": "TDC"
+                    "id": "137873b7-9e7a-4681-951f-6db1e2929d01",
+                    "alias": "PARKR",
+                    "title": "PARKR"
                 }
             ]
         }
