@@ -2,7 +2,7 @@ import { FC, ReactElement } from "react";
 import { Entity, MomentRange, User } from "common";
 import { Approvers, Event, EventOccurrence, Refiner, RefinerValue } from "model";
 import { useConfigurationService, useDirectoryService, useTimeZoneService } from "services";
-import moment, { Moment } from "moment";
+import moment from "moment";
 
 interface IProps {
     events: readonly Event[];

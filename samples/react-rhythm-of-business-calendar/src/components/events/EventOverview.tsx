@@ -1,10 +1,12 @@
 import React, { FC } from 'react';
 import { css, IStackStyles, IStackTokens, Stack, StackItem, Text } from '@fluentui/react';
 import { useConst } from '@fluentui/react-hooks';
-import { LockIcon, POIIcon, RecentIcon, RepeatAllIcon } from '@fluentui/react-icons-mdl2';
+//import { LockIcon, POIIcon, RecentIcon, RepeatAllIcon } from '@fluentui/react-icons-mdl2';
+import { LockIcon } from '@fluentui/react-icons-mdl2';
 import { Entity } from 'common';
 import { LiveUpdate } from 'common/components';
-import { IEvent, humanizeDateRange, humanizeRecurrencePattern } from 'model';
+//import { IEvent, humanizeDateRange, humanizeRecurrencePattern } from 'model';
+import { IEvent } from 'model';
 import { useConfigurationService } from 'services';
 import { RefinerValuePill } from '../refiners';
 
@@ -20,8 +22,8 @@ interface IProps {
 
 export const EventOverview: FC<IProps> = ({ event, className, parkingMap }) => {
     const { active: { useApprovals } } = useConfigurationService();
-    const { title, start, end, isAllDay, location, isSeriesMaster, isPendingApproval, isRejected, isRecurring, isConfidential, recurrence } = event;
-
+    //const { title, start, end, isAllDay, location, isSeriesMaster, isPendingApproval, isRejected, isRecurring, isConfidential, recurrence } = event;
+    const { isPendingApproval, isRejected, isConfidential } = event;
     const titleClassName = css(
         styles.title,
         {
@@ -35,7 +37,7 @@ export const EventOverview: FC<IProps> = ({ event, className, parkingMap }) => {
     const detailsStackTokens: IStackTokens = useConst({ childrenGap: 24 });
     const refinerValuesStackTokens: IStackTokens = useConst({ childrenGap: 6 });
     const confidentialStackTokens: IStackTokens = useConst({ childrenGap: 4 });
-    const iconTextStackTokens: IStackTokens = useConst({ childrenGap: 10 });
+    //const iconTextStackTokens: IStackTokens = useConst({ childrenGap: 10 });
 
     const refinerValues = event.refinerValues.get().filter(Entity.NotDeletedFilter);
 

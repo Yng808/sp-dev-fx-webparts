@@ -3,8 +3,8 @@ import { Cadence } from "model/Cadence";
 
 export class iCalendarFileBuilder {
     public build(event: Event) {
-        const { start, startTime, end, duration, isAllDay, isSeriesMaster, recurrence, location, title, description } = event;
-
+        //const { start, startTime, end, duration, isAllDay, isSeriesMaster, recurrence, location, title, description } = event;
+        const { start, startTime, end, isAllDay, isSeriesMaster, recurrence, location, title, description } = event;
         let adjustedStart = start;
         let adjustedEnd = end;
 

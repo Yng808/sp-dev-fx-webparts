@@ -62,7 +62,7 @@ export const fetchBookedParkingForEvent = async (siteUrl: string, eventStart: mo
 
     const bookedData = await bookedParkingResponse.json();
     return new Set<number>(
-        bookedData.d.results.filter((item: any) => !ignoreEventIds.includes(item.ID)).map((item: any) => item.ParkingStallsId).filter((id: number | null) => id != null) as number[]
+        bookedData.d.results.filter((item: any) => !ignoreEventIds.includes(item.ID)).map((item: any) => item.ParkingStallsId).filter((id: number | null) => id !== null) as number[]
     );
 };
 
@@ -157,4 +157,4 @@ export function composeEmailInBrowser(to: string, subject: string, body: string)
     to
   )}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   window.open(url, '_blank');
-};
+}

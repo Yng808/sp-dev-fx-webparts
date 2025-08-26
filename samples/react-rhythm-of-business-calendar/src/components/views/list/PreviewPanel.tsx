@@ -9,7 +9,7 @@ interface CurrentParkingPanelProps {
     isPanelOpen: boolean;
     setIsPanelOpen: React.Dispatch<React.SetStateAction<boolean>>;
     groupIDToDisplay: number;
-    eventIdToDisplay?: number | null;
+    eventIdToDisplay?: number | undefined;
     filteredEvents: EventOccurrence[];
 }
 
@@ -25,7 +25,7 @@ export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({ isPanelOpen,
         const startDate = moment.min(targetEvents.map((event) => moment(event.start)));
         const endDate = moment.max(targetEvents.map((event) => moment(event.end)));
         const range = [];
-        let current = startDate.clone();
+        const current = startDate.clone();
         while (current.isSameOrBefore(endDate, 'day')) {
             range.push(current.clone());
             current.add(1, 'day');

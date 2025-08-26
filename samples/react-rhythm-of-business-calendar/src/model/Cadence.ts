@@ -193,6 +193,7 @@ class MonthlyByDayCadenceGenerator implements ICadenceGenerator {
     ) { }
 
     public *generate(start: Moment): Generator<Moment, undefined> {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { byDay: { day, weekOf }, every } = this._monthly;
         const current = start.clone();
         // console.log('cadence line 178', current, weekOf, day, this._monthly);

@@ -9,13 +9,13 @@ import { buildTimeChangeNotice } from './EmailTemplate';
 interface Props {
     isReassignPanelOpen: boolean;
     setIsReassignPanelOpen: (open: boolean) => void;
-    eventToReassign: EventOccurrence | null;
+    eventToReassign: EventOccurrence | undefined;
     siteTimeZone: any;
     setIsPanelOpen: (open: boolean) => void;
     setGroupIDToDisplay: (id: number) => void;
-    setEventIdToDisplay: (id: number | null) => void;
+    setEventIdToDisplay: (id: number | undefined) => void;
     parkingMap: { [id: number]: string };
-    setTimeChangeNotice: (notice: string | null) => void;
+    setTimeChangeNotice: (notice: string | undefined) => void;
 }
 
 export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReassignPanelOpen, eventToReassign, siteTimeZone, setIsPanelOpen, setGroupIDToDisplay, setEventIdToDisplay, setTimeChangeNotice }) => {

@@ -70,7 +70,7 @@ const Legend: React.FC = () => {
                                 borderRadius: "4px", // Adjust this for square or rounded square
                                 marginRight: "5px"
                             }}
-                        ></div>
+                        />
                         <span>{value.title}</span>
                     </Stack>
                 ))

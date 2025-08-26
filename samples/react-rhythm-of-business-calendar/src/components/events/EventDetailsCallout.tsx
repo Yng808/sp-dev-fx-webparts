@@ -50,7 +50,7 @@ export const EventDetailsCallout: FC<IProps> = ({ componentRef, commands, parkin
     const [
         viewCommand,
         addToOutlookCommand,
-        getLinkCommand
+        //getLinkCommand
     ] = useEventCommandActionButtons(commands, event);
 
     return (isOpen &&

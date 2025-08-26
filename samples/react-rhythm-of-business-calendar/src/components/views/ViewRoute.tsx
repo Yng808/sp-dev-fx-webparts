@@ -64,7 +64,7 @@ const ViewRoute: FC = () => {
         refinerValuesAsync,
         approversAsync,
     ]);
-
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [showOnlyCurrentMonth, setShowOnlyCurrentMonth] =
         useState<boolean>(false);
 

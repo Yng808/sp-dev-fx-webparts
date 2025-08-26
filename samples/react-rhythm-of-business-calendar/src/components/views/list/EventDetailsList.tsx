@@ -10,22 +10,11 @@ import { EditPanel } from './EditPanel';
 import { ReassignPanel } from './ReassignPanel';
 import { ChangeDatesPanel } from './ChangeDatesPanel';
 import { showAlert, AlertHost, ConfirmDialog } from './AlertHost';
-import { assignGroupEmail, cancelEventEmail, cancelGroupEmail, snapshotGroupEmail } from './EmailTemplate';
+import { cancelEventEmail, cancelGroupEmail, snapshotGroupEmail } from './EmailTemplate';
 import { CurrentParkingPanel } from './PreviewPanel';
 
 interface EventDetailsListProps {
     cccurrences: readonly EventOccurrence[];
-}
-
-interface ParkingSpot {
-    id: number;
-    parking: string;
-}
-
-interface OccupiedStall {
-    parkingId: number;
-    rank: string;
-    surname: string;
 }
 
 const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
@@ -38,6 +27,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const predefinedStatuses = ['New', 'Approved', 'Cancelled'];
     // Parking Map
     const [parkingMap, setParkingMap] = useState<{ [id: number]: string }>({});
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [loadingSpots, setLoadingSpots] = useState<boolean>(false);
     // Time Zones
     const timeZoneService = useTimeZoneService();
@@ -53,13 +43,17 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     // Change Date Panel
     const [isChangeDatesPanelOpen, setIsChangeDatesPanelOpen] = useState(false);
     const [groupToChangeDates, setGroupToChangeDates] = useState<number | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [changeStartDate, setChangeStartDate] = useState('');
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [changeEndDate, setChangeEndDate] = useState('');
     const [dateChangeNotice, setDateChangeNotice] = useState<string | null>(null);
     // Change Time Panel
     const [isReassignPanelOpen, setIsReassignPanelOpen] = useState(false);
     const [eventToReassign, setEventToReassign] = useState<EventOccurrence | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [reassignStart, setReassignStart] = useState('');
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [reassignEnd, setReassignEnd] = useState('');
     const [timeChangeNotice, setTimeChangeNotice] = useState<string | null>(null);
     // Preview Panel
@@ -339,6 +333,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             } else if (!event.isAllDay && event.start.format('MM/DD/YYYY') !== event.end.format('MM/DD/YYYY')) {
                                 eventDateFormatted = event.start.format('DD MMM, YYYY HHmm') + " - " + event.end.format('DD MMM, YYYY HHmm');    
                             } else {
+                                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                 eventDateFormatted = event.start.format('DD MMM, YYYY HHmm') + " - " + event.end.format('DD MMM, YYYY HHmm');
                             }                         
 

@@ -14,27 +14,67 @@ interface AssignPanelProps {
     setIsPanelOpen: React.Dispatch<React.SetStateAction<boolean>>;
     groupIDToDisplay: number;
     setGroupIDToDisplay: React.Dispatch<React.SetStateAction<number>>;
-    eventIdToDisplay?: number | null;
-    setEventIdToDisplay?: React.Dispatch<React.SetStateAction<number | null>>;
+    eventIdToDisplay?: number | undefined;
+    setEventIdToDisplay?: React.Dispatch<React.SetStateAction<number | undefined>>;
     filteredEvents: EventOccurrence[];
     setLoadingSpots: React.Dispatch<React.SetStateAction<boolean>>;
     onOpenPreview: () => void;
-    timeChangeNotice?: string | null; 
-    setTimeChangeNotice?: (notice: string | null) => void;
-    dateChangeNotice?: string | null;
-    setDateChangeNotice?: (notice: string | null) => void;
+    timeChangeNotice?: string | undefined; 
+    setTimeChangeNotice?: (notice: string | undefined) => void;
+    dateChangeNotice?: string | undefined;
+    setDateChangeNotice?: (notice: string | undefined) => void;
 }
 
 export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen, groupIDToDisplay, setGroupIDToDisplay, eventIdToDisplay, setEventIdToDisplay, filteredEvents, setLoadingSpots, onOpenPreview, timeChangeNotice, setTimeChangeNotice, dateChangeNotice, setDateChangeNotice }) => {
     const [parkingStallsOptionsEach, setParkingStallsOptionsEach] = useState<{ [key: number]: IDropdownOption[] }>({});
     const [parkingMap, setParkingMap] = useState<{ [id: number]: string }>({});
     const [individualSelections, setIndividualSelections] = useState<{ [key: string]: number }>({});
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [panelParkingLoading, setPanelParkingLoading] = useState(false);
     const [occupiedMapByDay, setOccupiedMapByDay] = useState<{ [date: string]: { [stallId: number]: OccupiedStall[] }}>({});
     const [panelParkingOccupiedLoading, setPanelParkingOccupiedLoading] = useState(true);
     const [showConfirm, setShowConfirm] = useState(false);
 
     const targetEvents = eventIdToDisplay ? filteredEvents.filter(ev => ev.id === eventIdToDisplay) : filteredEvents.filter(ev => ev.groupID === groupIDToDisplay && ev.requestStatus !== "Cancelled");
+
+    const loadAvailableParking = async (event: EventOccurrence) => {
+        setLoadingSpots(true);
+        try {
+            const web = await sp.web.get();
+            const siteUrl = web.Url;
+            const allParking = await fetchParkingStalls(siteUrl);
+            const refreshed = await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(event.id).get();
+            const start = moment(refreshed.EventDate);
+            const end = moment(refreshed.EndDate);
+            const bookedParkingIds = await fetchBookedParkingForEvent(siteUrl, start, end);
+            const availableParking = filterAvailableParking(allParking, bookedParkingIds);
+            const availableParkingOptions = formatParkingOptions(availableParking);
+        if (availableParkingOptions.length === 0) {
+            availableParkingOptions.push({ key: -1, text: "Unavailable" });
+        }
+        setParkingStallsOptionsEach((prevState) => ({
+            ...prevState,
+            [event.id]: availableParkingOptions,
+        }));
+        } catch (error) {
+            console.error("Error determining available parking:", error);
+        } finally {
+            setLoadingSpots(false);
+        }
+    };
+
+    const getEventDateRange = () => {
+        if (targetEvents.length === 0) return [];
+        const startDate = moment.min(targetEvents.map((event) => moment(event.start)));
+        const endDate = moment.max(targetEvents.map((event) => moment(event.end)));
+        const currentDate = startDate.clone();
+        const dateRange = [];
+        while (currentDate.isBefore(endDate) || currentDate.isSame(endDate, 'day')) {
+            dateRange.push(currentDate.clone());
+            currentDate.add(1, 'days');
+        }
+        return dateRange;
+    };
 
     useEffect(() => {
         if (isPanelOpen && targetEvents.length > 0) {
@@ -94,32 +134,6 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
         setShowConfirm(true);
     };
 
-    const loadAvailableParking = async (event: EventOccurrence) => {
-        setLoadingSpots(true);
-        try {
-            const web = await sp.web.get();
-            const siteUrl = web.Url;
-            const allParking = await fetchParkingStalls(siteUrl);
-            const refreshed = await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(event.id).get();
-            const start = moment(refreshed.EventDate);
-            const end = moment(refreshed.EndDate);
-            const bookedParkingIds = await fetchBookedParkingForEvent(siteUrl, start, end);
-            const availableParking = filterAvailableParking(allParking, bookedParkingIds);
-            const availableParkingOptions = formatParkingOptions(availableParking);
-        if (availableParkingOptions.length === 0) {
-            availableParkingOptions.push({ key: -1, text: "Unavailable" });
-        }
-        setParkingStallsOptionsEach((prevState) => ({
-            ...prevState,
-            [event.id]: availableParkingOptions,
-        }));
-        } catch (error) {
-            console.error("Error determining available parking:", error);
-        } finally {
-            setLoadingSpots(false);
-        }
-    };
-
     const handleIndividualParkingChange = (eventId: number, selectedStall: string) => {
         setIndividualSelections(prevSelections => ({
         ...prevSelections,
@@ -149,19 +163,6 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
         }
     };
 
-    const getEventDateRange = () => {
-        if (targetEvents.length === 0) return [];
-        const startDate = moment.min(targetEvents.map((event) => moment(event.start)));
-        const endDate = moment.max(targetEvents.map((event) => moment(event.end)));
-        let currentDate = startDate.clone();
-        const dateRange = [];
-        while (currentDate.isBefore(endDate) || currentDate.isSame(endDate, 'day')) {
-            dateRange.push(currentDate.clone());
-            currentDate.add(1, 'days');
-        }
-        return dateRange;
-    };
-
     return (
         <>
         {isPanelOpen && (
@@ -171,7 +172,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                     {/* Left Side */}
                     <div className={styles.leftSide}>
                         {(panelParkingLoading || panelParkingOccupiedLoading) ? (
-                            <div></div>
+                            <div/>
                         ) : (
                             getEventDateRange().map((day) => {
                                 const dayOfWeek = moment(day);

@@ -10,11 +10,11 @@ import { buildDateChangeNotice } from './EmailTemplate';
 interface ChangeDatesPanelProps {
     isChangeDatesPanelOpen: boolean;
     setIsChangeDatesPanelOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    groupToChangeDates: number | null;
-    setGroupToChangeDates: React.Dispatch<React.SetStateAction<number | null>>;
+    groupToChangeDates: number | undefined;
+    setGroupToChangeDates: React.Dispatch<React.SetStateAction<number | undefined>>;
     filteredEvents: EventOccurrence[];
     siteTimeZone: { momentId: string };
-    setDateChangeNotice: (notice: string | null) => void;
+    setDateChangeNotice: (notice: string | undefined) => void;
     setIsPanelOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setGroupIDToDisplay: React.Dispatch<React.SetStateAction<number>>;
     onReplaceGroupEvents: (groupId: number, updated: EventOccurrence[]) => void;

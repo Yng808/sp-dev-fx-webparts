@@ -46,7 +46,8 @@ export class RecurrenceData {
         const repeatInstances = repeatInstancesText && !isNaN(Number(repeatInstancesText))
             ? parseInt(repeatInstancesText, 10)
             : null;
-
+        
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const repeatForever = !!repeatForeverNode;
         const windowEnd = windowEndNode && moment(windowEndNode.textContent);
 

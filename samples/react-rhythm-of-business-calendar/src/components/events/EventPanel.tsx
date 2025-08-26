@@ -233,19 +233,21 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
     // }
 
     protected renderDisplayContent(): JSX.Element {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { [ConfigurationService]: { active: config } } = this.props.services;
-        const { refiners } = this.state;
+        //const { refiners } = this.state;
         const event = this.entity;
         const liveProps = {
             entity: event
         };
-        const { isAllDay, start, isConfidential, isRecurring, isSeriesMaster, isSeriesException, seriesMaster } = event;
-        const isConfidentialPrevious = event.hasPrevious && event.previousValue<boolean>('isConfidential');
-        const isConfidentialSnapshot = event.hasSnapshot && event.snapshotValue<boolean>('isConfidential');
-        const confidentialFieldEnabled = (isConfidential || isConfidentialSnapshot || isConfidentialPrevious || config.allowConfidentialEvents);
-        const itemId = event.id;
-        const masterEvent = event.isSeriesException ? event.getSeriesMaster() : event;
-        const eventId = masterEvent.id;
+        //const { isAllDay, start, isConfidential, isRecurring, isSeriesMaster, isSeriesException, seriesMaster } = event;
+        const { isAllDay, isSeriesMaster } = event;
+        //const isConfidentialPrevious = event.hasPrevious && event.previousValue<boolean>('isConfidential');
+        //const isConfidentialSnapshot = event.hasSnapshot && event.snapshotValue<boolean>('isConfidential');
+        //const confidentialFieldEnabled = (isConfidential || isConfidentialSnapshot || isConfidentialPrevious || config.allowConfidentialEvents);
+        //const itemId = event.id;
+        //const masterEvent = event.isSeriesException ? event.getSeriesMaster() : event;
+        //const eventId = masterEvent.id;
 
 
         return (
@@ -1120,162 +1122,164 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
     }
 
     protected buildDisplayHeaderCommands(): ICommandBarItemProps[] {
-        const {
-            commands: { approve, reject, addToOutlook, addSeriesToOutlook, getLink },
-            services: { [DirectoryService]: { currentUserIsSiteAdmin, currentUser, currentUserIsContributor } }
-        } = this.props;
-        const { isRecurring, isSeriesException, isSeriesMaster, seriesMaster, isDeleted, isNew, isApproved, creator } = this.entity;
-        const onEdit = () => { this.edit(); };
-        const onEditSeries = () => { this.edit(seriesMaster.get(), false); };
-        const onDelete = () => { this.confirmDelete(); };
-        const onDeleteSeries = () => {
-            this.edit(seriesMaster.get(), false);
-            this.confirmDelete();
-        };
-        const onApprove = () => { approve(this.entity); };
-        const onReject = () => { reject(this.entity); };
-        const onAddToOutlook = () => { addToOutlook(this.entity); };
-        const onAddSeriesToOutlook = () => { addSeriesToOutlook(this.entity); };
-        const onGetLink = () => { getLink(this.entity); };
+        // const {
+        //     commands: { approve, reject, addToOutlook, addSeriesToOutlook, getLink },
+        //     services: { [DirectoryService]: { currentUserIsSiteAdmin, currentUser, currentUserIsContributor } }
+        // } = this.props;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { creator } = this.entity;
+        //const { isRecurring, isSeriesException, isSeriesMaster, seriesMaster, isDeleted, isNew, isApproved, creator } = this.entity;
+        // const onEdit = () => { this.edit(); };
+        // const onEditSeries = () => { this.edit(seriesMaster.get(), false); };
+        // const onDelete = () => { this.confirmDelete(); };
+        // const onDeleteSeries = () => {
+        //     this.edit(seriesMaster.get(), false);
+        //     this.confirmDelete();
+        // };
+        // const onApprove = () => { approve(this.entity); };
+        // const onReject = () => { reject(this.entity); };
+        // const onAddToOutlook = () => { addToOutlook(this.entity); };
+        // const onAddSeriesToOutlook = () => { addSeriesToOutlook(this.entity); };
+        // const onGetLink = () => { getLink(this.entity); };
 
-        const editSingleCommand: ICommandBarItemProps = {
-            key: 'edit',
-            text: strings.Command_Edit.Text,
-            iconProps: { iconName: 'Edit' },
-            disabled: isDeleted,
-            onClick: onEdit
-        };
+        // const editSingleCommand: ICommandBarItemProps = {
+        //     key: 'edit',
+        //     text: strings.Command_Edit.Text,
+        //     iconProps: { iconName: 'Edit' },
+        //     disabled: isDeleted,
+        //     onClick: onEdit
+        // };
 
-        const editSeriesCommand: ICommandBarItemProps = {
-            key: 'edit',
-            text: "Edit series",
-            iconProps: { iconName: 'Edit' },
-            disabled: isDeleted,
-            onClick: onEdit
-        };
+        // const editSeriesCommand: ICommandBarItemProps = {
+        //     key: 'edit',
+        //     text: "Edit series",
+        //     iconProps: { iconName: 'Edit' },
+        //     disabled: isDeleted,
+        //     onClick: onEdit
+        // };
 
-        const editRecurringCommand: ICommandBarItemProps = {
-            key: 'edit',
-            text: strings.Command_Edit.Text,
-            iconProps: { iconName: 'Edit' },
-            disabled: isDeleted,
-            subMenuProps: {
-                items: [{
-                    key: 'edit-series',
-                    text: strings.Command_Edit_Recurring_Series.Text,
-                    onClick: onEditSeries
-                }, {
-                    key: 'edit-occurrence',
-                    text: strings.Command_Edit_Recurring_Instance.Text,
-                    onClick: onEdit
-                }]
-            }
-        };
+        // const editRecurringCommand: ICommandBarItemProps = {
+        //     key: 'edit',
+        //     text: strings.Command_Edit.Text,
+        //     iconProps: { iconName: 'Edit' },
+        //     disabled: isDeleted,
+        //     subMenuProps: {
+        //         items: [{
+        //             key: 'edit-series',
+        //             text: strings.Command_Edit_Recurring_Series.Text,
+        //             onClick: onEditSeries
+        //         }, {
+        //             key: 'edit-occurrence',
+        //             text: strings.Command_Edit_Recurring_Instance.Text,
+        //             onClick: onEdit
+        //         }]
+        //     }
+        // };
 
-        const moderationCommand: ICommandBarItemProps = {
-            key: 'moderation',
-            text: strings.Command_Approval.Text,
-            iconProps: { iconName: 'EventAccepted' },
-            disabled: isDeleted,
-            subMenuProps: {
-                items: [{
-                    key: 'approve',
-                    iconProps: { iconName: 'Accept' },
-                    text: strings.Command_Approval_Approve.Text,
-                    onClick: onApprove
-                }, {
-                    key: 'decline',
-                    iconProps: { iconName: 'Clear' },
-                    text: strings.Command_Approval_Reject.Text,
-                    onClick: onReject
-                }]
-            }
-        };
+        // const moderationCommand: ICommandBarItemProps = {
+        //     key: 'moderation',
+        //     text: strings.Command_Approval.Text,
+        //     iconProps: { iconName: 'EventAccepted' },
+        //     disabled: isDeleted,
+        //     subMenuProps: {
+        //         items: [{
+        //             key: 'approve',
+        //             iconProps: { iconName: 'Accept' },
+        //             text: strings.Command_Approval_Approve.Text,
+        //             onClick: onApprove
+        //         }, {
+        //             key: 'decline',
+        //             iconProps: { iconName: 'Clear' },
+        //             text: strings.Command_Approval_Reject.Text,
+        //             onClick: onReject
+        //         }]
+        //     }
+        // };
 
-        const deleteSingleCommand: ICommandBarItemProps = {
-            key: 'delete',
-            text: strings.Command_Delete.Text,
-            iconProps: { iconName: 'Delete' },
-            disabled: isDeleted,
-            onClick: onDelete
-        };
+        // const deleteSingleCommand: ICommandBarItemProps = {
+        //     key: 'delete',
+        //     text: strings.Command_Delete.Text,
+        //     iconProps: { iconName: 'Delete' },
+        //     disabled: isDeleted,
+        //     onClick: onDelete
+        // };
 
-        const deleteSeriesMasterCommand: ICommandBarItemProps = {
-            key: 'delete',
-            text: strings.Command_Delete_Series.Text,
-            iconProps: { iconName: 'Delete' },
-            disabled: isDeleted,
-            onClick: onDelete
-        };
+        // const deleteSeriesMasterCommand: ICommandBarItemProps = {
+        //     key: 'delete',
+        //     text: strings.Command_Delete_Series.Text,
+        //     iconProps: { iconName: 'Delete' },
+        //     disabled: isDeleted,
+        //     onClick: onDelete
+        // };
 
-        const deleteRecurringCommand: ICommandBarItemProps = {
-            key: 'delete',
-            text: strings.Command_Delete.Text,
-            iconProps: { iconName: 'Delete' },
-            disabled: isDeleted,
-            subMenuProps: {
-                items: [{
-                    key: 'delete-series',
-                    text: strings.Command_Delete_Recurring_Series.Text,
-                    onClick: onDeleteSeries
-                }, {
-                    key: 'delete-occurrence',
-                    text: strings.Command_Delete_Recurring_Instance.Text,
-                    onClick: onDelete
-                }]
-            }
-        };
+        // const deleteRecurringCommand: ICommandBarItemProps = {
+        //     key: 'delete',
+        //     text: strings.Command_Delete.Text,
+        //     iconProps: { iconName: 'Delete' },
+        //     disabled: isDeleted,
+        //     subMenuProps: {
+        //         items: [{
+        //             key: 'delete-series',
+        //             text: strings.Command_Delete_Recurring_Series.Text,
+        //             onClick: onDeleteSeries
+        //         }, {
+        //             key: 'delete-occurrence',
+        //             text: strings.Command_Delete_Recurring_Instance.Text,
+        //             onClick: onDelete
+        //         }]
+        //     }
+        // };
 
-        const addToOutlookSingleCommand: ICommandBarItemProps = {
-            key: 'add-to-outlook',
-            text: strings.Command_AddToOutlook.Text,
-            iconProps: { iconName: 'AddEvent' },
-            disabled: isDeleted,
-            onClick: onAddToOutlook
-        };
+        // const addToOutlookSingleCommand: ICommandBarItemProps = {
+        //     key: 'add-to-outlook',
+        //     text: strings.Command_AddToOutlook.Text,
+        //     iconProps: { iconName: 'AddEvent' },
+        //     disabled: isDeleted,
+        //     onClick: onAddToOutlook
+        // };
 
-        const addToOutlookSeriesCommand: ICommandBarItemProps = {
-            key: 'add-to-outlook',
-            text: strings.Command_AddToOutlook.Text,
-            iconProps: { iconName: 'AddEvent' },
-            disabled: isDeleted,
-            onClick: onAddSeriesToOutlook
-        };
+        // const addToOutlookSeriesCommand: ICommandBarItemProps = {
+        //     key: 'add-to-outlook',
+        //     text: strings.Command_AddToOutlook.Text,
+        //     iconProps: { iconName: 'AddEvent' },
+        //     disabled: isDeleted,
+        //     onClick: onAddSeriesToOutlook
+        // };
 
-        const addToOutlookRecurringCommand: ICommandBarItemProps = {
-            key: 'add-to-outlook',
-            text: strings.Command_AddToOutlook.Text,
-            iconProps: { iconName: 'AddEvent' },
-            disabled: isDeleted,
-            subMenuProps: {
-                items: [{
-                    key: 'add-to-outlook-series',
-                    text: strings.Command_AddToOutlook_Recurring_Series.Text,
-                    onClick: onAddSeriesToOutlook
-                }, {
-                    key: 'add-to-outlook-occurrence',
-                    text: strings.Command_AddToOutlook_Recurring_Instance.Text,
-                    onClick: onAddToOutlook
-                }]
-            }
-        };
+        // const addToOutlookRecurringCommand: ICommandBarItemProps = {
+        //     key: 'add-to-outlook',
+        //     text: strings.Command_AddToOutlook.Text,
+        //     iconProps: { iconName: 'AddEvent' },
+        //     disabled: isDeleted,
+        //     subMenuProps: {
+        //         items: [{
+        //             key: 'add-to-outlook-series',
+        //             text: strings.Command_AddToOutlook_Recurring_Series.Text,
+        //             onClick: onAddSeriesToOutlook
+        //         }, {
+        //             key: 'add-to-outlook-occurrence',
+        //             text: strings.Command_AddToOutlook_Recurring_Instance.Text,
+        //             onClick: onAddToOutlook
+        //         }]
+        //     }
+        // };
 
-        const getLinkCommand: ICommandBarItemProps = {
-            key: 'get-link',
-            text: strings.Command_GetLink.Text,
-            iconProps: { iconName: 'Link' },
-            disabled: isDeleted,
-            onClick: onGetLink
-        };
+        // const getLinkCommand: ICommandBarItemProps = {
+        //     key: 'get-link',
+        //     text: strings.Command_GetLink.Text,
+        //     iconProps: { iconName: 'Link' },
+        //     disabled: isDeleted,
+        //     onClick: onGetLink
+        // };
 
         //console.log("EventPanel line 885", currentUserIsContributor);
 
-        const userCanApprove = currentUserIsSiteAdmin || this._currentUserIsAnApprover() || currentUserIsContributor;
-        const userIsCreator = User.equal(creator, currentUser);
-        const canEdit = userIsCreator || userCanApprove;
-        const canModerate = !isApproved && userCanApprove;
-        const canDelete = (!isNew || isSeriesException) && canEdit;
-        const canAddToOutlook = (!isNew || isSeriesException) && isApproved;
+        //const userCanApprove = currentUserIsSiteAdmin || this._currentUserIsAnApprover() || currentUserIsContributor;
+        //const userIsCreator = User.equal(creator, currentUser);
+        // const canEdit = userIsCreator || userCanApprove;
+        // const canModerate = !isApproved && userCanApprove;
+        // const canDelete = (!isNew || isSeriesException) && canEdit;
+        // const canAddToOutlook = (!isNew || isSeriesException) && isApproved;
 
         return [
             // canEdit && (

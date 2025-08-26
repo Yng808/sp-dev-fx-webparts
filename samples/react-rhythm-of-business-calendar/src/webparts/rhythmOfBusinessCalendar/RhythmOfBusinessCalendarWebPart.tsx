@@ -34,11 +34,11 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
             console.error('Error parsing filterButtonsJson:', error);
         }
         
-        let showOPR = this.properties.showOPR !== undefined ? this.properties.showOPR : true;
-        let showAttendee = this.properties.showAttendee !== undefined ? this.properties.showAttendee : true;
-        let showReadAheadDueDate = this.properties.showReadAheadDueDate !== undefined ? this.properties.showReadAheadDueDate : true;
-        let showDecisionBrief = this.properties.showDecisionBrief !== undefined ? this.properties.showDecisionBrief : true;
-        let showLocation = this.properties.showLocation !== undefined ? this.properties.showLocation : true;
+        const showOPR = this.properties.showOPR !== undefined ? this.properties.showOPR : true;
+        const showAttendee = this.properties.showAttendee !== undefined ? this.properties.showAttendee : true;
+        const showReadAheadDueDate = this.properties.showReadAheadDueDate !== undefined ? this.properties.showReadAheadDueDate : true;
+        const showDecisionBrief = this.properties.showDecisionBrief !== undefined ? this.properties.showDecisionBrief : true;
+        const showLocation = this.properties.showLocation !== undefined ? this.properties.showLocation : true;
 
         ReactDom.render(
             <div>

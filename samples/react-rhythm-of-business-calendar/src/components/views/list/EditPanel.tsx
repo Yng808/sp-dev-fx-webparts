@@ -9,10 +9,10 @@ import { composeEmailInBrowser } from './spEventDetailsList';
 interface EditPanelProps {
     isEditPanelOpen: boolean;
     setIsEditPanelOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    editGroupID: number | null;
-    setEditGroupID: React.Dispatch<React.SetStateAction<number | null>>;
+    editGroupID: number | undefined;
+    setEditGroupID: React.Dispatch<React.SetStateAction<number | undefined>>;
     filteredEvents: EventOccurrence[];
-    eventToEdit: EventOccurrence | null;
+    eventToEdit: EventOccurrence | undefined;
 }
 
 export const EditPanel: FC<EditPanelProps> = ({ isEditPanelOpen, setIsEditPanelOpen, editGroupID, setEditGroupID, filteredEvents, eventToEdit }) => {

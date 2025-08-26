@@ -1,11 +1,12 @@
 import React, { CSSProperties, FC, useMemo } from 'react';
 import { css, Stack, StackItem, useTheme } from '@fluentui/react';
 import { useConst } from '@fluentui/react-hooks';
-import { LockIcon, POIIcon, RecentIcon, RepeatAllIcon } from '@fluentui/react-icons-mdl2';
+//import { LockIcon, POIIcon, RecentIcon, RepeatAllIcon } from '@fluentui/react-icons-mdl2';
+import { LockIcon } from '@fluentui/react-icons-mdl2';
 import { IEvent } from 'model';
 import { useConfigurationService } from 'services';
 
-import { Humanize as strings } from 'ComponentStrings';
+//import { Humanize as strings } from 'ComponentStrings';
 
 import styles from './EventBar.module.scss';
 
@@ -61,8 +62,8 @@ interface IProps {
 export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverride, size = EventBarSize.Compact, parkingMap }) => {
     const { palette: { themePrimary } } = useTheme();
     const { active: { useApprovals } } = useConfigurationService();
-
-    const { isPendingApproval, isRejected, title, start, end, isAllDay, location, tag, color, isConfidential, isRecurring, comDecision } = event;
+    //const { isPendingApproval, isRejected, title, start, end, isAllDay, location, tag, color, isConfidential, isRecurring, comDecision } = event;
+    const { isPendingApproval, isRejected, title, tag, color, isConfidential } = event;
 
     //console.log("startsIn:", startsIn, " endsIn:", endsIn);
 
@@ -90,11 +91,11 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
         };
     }, [color, themePrimary]);
 
-    const startTimeString = timeStringOverride ||
-        (size === EventBarSize.Compact
-            ? (!isAllDay && `${start?.format('HHmm')}-${end?.format('HHmm')}`)
-            : isAllDay ? strings.AllDay : `${start?.format('HHmm')}-${end?.format('HHmm')}`
-        );
+    // const startTimeString = timeStringOverride ||
+    //     (size === EventBarSize.Compact
+    //         ? (!isAllDay && `${start?.format('HHmm')}-${end?.format('HHmm')}`)
+    //         : isAllDay ? strings.AllDay : `${start?.format('HHmm')}-${end?.format('HHmm')}`
+    //     );
 
     const parkingLabel = event.parkingStalls === -1 ? "Unavailable" : parkingMap?.[event.parkingStalls] ?? "Unavailable";
 

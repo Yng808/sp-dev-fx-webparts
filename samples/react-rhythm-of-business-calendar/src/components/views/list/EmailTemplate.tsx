@@ -61,10 +61,13 @@ function getChangedFields(original: EventOccurrence, updated: Record<string, str
     };
 
     for (const key in updated) {
-        const before = (original as any)[key] ?? "";
-        const after = updated[key as keyof typeof updated] ?? "";
-        if (before !== after) {
-        changes.push({ label: fieldLabels[key], before, after });
+        if (Object.prototype.hasOwnProperty.call(updated, key)) {
+            const before = (original as any)[key] ?? "";
+            const after = updated[key as keyof typeof updated] ?? "";
+
+            if (before !== after) {
+                changes.push({ label: fieldLabels[key], before, after });
+            }
         }
     }
 
