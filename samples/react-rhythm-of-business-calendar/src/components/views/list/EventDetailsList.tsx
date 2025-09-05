@@ -25,6 +25,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [requestStatusFilter, setRequestStatusFilter] = useState<string>('New');
     const predefinedStatuses = ['New', 'Approved', 'Cancelled'];
+    const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
     // Parking Map
     const [parkingMap, setParkingMap] = useState<{ [id: number]: string }>({});
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -72,6 +73,17 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         );
     });
     };
+
+    useEffect(() => {
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape' && isFullscreen) {
+                setIsFullscreen(false);
+            }
+        };
+
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [isFullscreen]);
 
     useEffect(() => {
         let filtered = [...cccurrences]; // Create a mutable copy of the readonly array
@@ -244,8 +256,42 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     setShowConfirm(true);
     };
 
+    const toggleFullscreen = () => {
+        setIsFullscreen(!isFullscreen);
+    };
+
+    // Fullscreen container styles
+    const fullscreenStyles = isFullscreen ? {
+        position: 'fixed' as const,
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'white',
+        zIndex: 9999,
+        padding: '20px',
+        boxSizing: 'border-box' as const,
+        maxWidth: 'none',
+        margin: 0
+    } : {};
+
+    // Table container styles
+    const tableContainerStyles = isFullscreen ? {
+        height: 'calc(100vh - 140px)', // Account for filters and padding
+        overflowY: 'auto' as const,
+        position: 'relative' as const,
+        transform: 'translateZ(0)', // Force hardware acceleration
+        willChange: 'scroll-position' as const
+    } : {
+        height: '600px',
+        overflowY: 'auto' as const,
+        position: 'relative' as const,
+        transform: 'translateZ(0)', // Force hardware acceleration
+        willChange: 'scroll-position' as const
+    };
+
     return (
-        <div className="container">
+        <div className={isFullscreen ? "" : "container-fluid"} style={fullscreenStyles}>
             {/* Filters section */}
             <div className="row mb-3">
                  <div className="col">
@@ -293,14 +339,29 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     />
                 </div>
                 <div className="col">
-                    <button onClick={resetFilters} className="btn mt-3" style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)", border: "1px solid #000" }}>Reset Filters</button>
+                    <label></label>
+                    <button onClick={resetFilters} className='form-control' style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)", border: "1px solid #000" }}>Reset Filters</button>
+                </div>
+                <div className="col">
+                    <label></label>
+                    <button
+                        className="form-control"
+                        style={{ 
+                            backgroundColor: isFullscreen ? '#dc3545' : '#28a745', 
+                            color: '#ffffff' 
+                        }}
+                        onClick={toggleFullscreen}
+                        title={isFullscreen ? "Exit Fullscreen (Press Esc)" : "Enter Fullscreen"}
+                    >
+                        {isFullscreen ? '⛶ Exit Fullscreen' : '⛶ Fullscreen'}
+                    </button>
                 </div>
             </div>
 
             {/* table with sticky headers */}
-            <div className="table-responsive" style={{ height: '600px', overflowY: 'auto' }}>
-                <table className="table table-bordered table-striped">
-                    <thead className="thead-dark sticky-top">
+            <div className="table-responsive" style={tableContainerStyles}>
+                <table className="table table-bordered table-striped" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
+                    <thead className="thead-dark sticky-top" style={{ zIndex: 10 }}>
                         <tr>
                             <th style={{ backgroundColor: 'lightblue', minWidth: '375px' }}>Group Actions</th>
                             <th style={{ backgroundColor: 'lightblue', minWidth: '190px' }}>Single Actions</th>
