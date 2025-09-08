@@ -6,7 +6,7 @@ import { Builder } from './Builder';
 
 export const ListViewDescriptor: IViewDescriptor = {
     id: ViewKeys.list,
-    title: 'List of Events',
+    title: 'New Requests',
     renderer: (props) => <EventDetailsList {...props} />,
     dateRotatorController: {
         previousIconProps: { iconName: 'ChevronLeft' },

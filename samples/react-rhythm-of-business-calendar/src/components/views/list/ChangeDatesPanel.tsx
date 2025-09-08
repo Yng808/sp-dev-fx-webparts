@@ -19,9 +19,10 @@ interface ChangeDatesPanelProps {
     setGroupIDToDisplay: React.Dispatch<React.SetStateAction<number>>;
     onReplaceGroupEvents: (groupId: number, updated: EventOccurrence[]) => void;
     parkingMap: { [id: number]: string };
+    setFilteredEvents: React.Dispatch<React.SetStateAction<EventOccurrence[]>>;
 }
 
-export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanelOpen, setIsChangeDatesPanelOpen, groupToChangeDates, setGroupToChangeDates, filteredEvents, siteTimeZone, setDateChangeNotice, setIsPanelOpen, setGroupIDToDisplay, onReplaceGroupEvents }) => {
+export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanelOpen, setIsChangeDatesPanelOpen, groupToChangeDates, setGroupToChangeDates, filteredEvents, siteTimeZone, setDateChangeNotice, setIsPanelOpen, setGroupIDToDisplay, onReplaceGroupEvents, setFilteredEvents }) => {
     const [changeStartDate, setChangeStartDate] = useState('');
     const [changeEndDate, setChangeEndDate] = useState('');
 
@@ -118,6 +119,10 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
         );
         const json = await resp.json();
         const updatedGroup = (json.d.results as any[]).map(mapSharePointItemToEventOccurrence);
+
+        setFilteredEvents(prev =>
+            prev.filter(ev => ev.groupID !== templateEvent.groupID).concat(updatedGroup)
+        );
 
         onReplaceGroupEvents(templateEvent.groupID, updatedGroup);
         const oldStart = groupEvents[0].start.clone();

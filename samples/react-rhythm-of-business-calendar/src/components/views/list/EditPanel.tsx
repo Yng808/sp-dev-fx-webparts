@@ -12,10 +12,11 @@ interface EditPanelProps {
     editGroupID: number | undefined;
     setEditGroupID: React.Dispatch<React.SetStateAction<number | undefined>>;
     filteredEvents: EventOccurrence[];
+    setFilteredEvents: React.Dispatch<React.SetStateAction<EventOccurrence[]>>;
     eventToEdit: EventOccurrence | undefined;
 }
 
-export const EditPanel: FC<EditPanelProps> = ({ isEditPanelOpen, setIsEditPanelOpen, editGroupID, setEditGroupID, filteredEvents, eventToEdit }) => {
+export const EditPanel: FC<EditPanelProps> = ({ isEditPanelOpen, setIsEditPanelOpen, editGroupID, setEditGroupID, filteredEvents, setFilteredEvents, eventToEdit }) => {
     const [editFields, setEditFields] = useState({ dvPayGrade: '', dvRank: '', dvFirstName: '', dvSurname: '', jdirVisiting: '', dvVisiting: '', requestorRank: '', requestorFirstName: '', requestorLastName: '', requestorOffice: '', requestorDutyPhone: '', requestorCellPhone: '', requestorEmail: '' });
 
     useEffect(() => {
@@ -57,6 +58,24 @@ export const EditPanel: FC<EditPanelProps> = ({ isEditPanelOpen, setIsEditPanelO
                 composeEmailInBrowser(email.to, email.subject, email.body);
             }
         }
+        
+       setFilteredEvents(prev => 
+            prev.map(ev => {
+                if (ev.groupID !== editGroupID) return ev;
+
+                // Shallow clone while preserving prototype
+                const updatedEvent = Object.assign(Object.create(Object.getPrototypeOf(ev.event)), ev.event);
+
+                Object.entries(editFields).forEach(([key, value]) => {
+                    if (value && value.trim() !== '') {
+                        (updatedEvent as any)[key] = value;
+                    }
+                });
+
+                return new EventOccurrence(updatedEvent, ev.start, ev.end);
+            })
+        );
+
         showAlert('Successfully updated fields!', 'success');
         setIsEditPanelOpen(false);
         setEditFields({ dvPayGrade: '', dvRank: '', dvFirstName: '', dvSurname: '', jdirVisiting: '', dvVisiting: '', requestorRank: '', requestorFirstName: '', requestorLastName: '', requestorOffice: '', requestorDutyPhone: '', requestorCellPhone: '', requestorEmail: ''});

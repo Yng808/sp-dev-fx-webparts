@@ -270,6 +270,17 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(id).update({
                     RequestStatus: 'Cancelled',
                 });
+
+                setFilteredEvents(prev =>
+                    prev.map(ev =>
+                        ev.groupID === groupId
+                        ? new EventOccurrence((() => {
+                            ev.event.requestStatus = 'Cancelled';
+                            return ev.event;
+                            })(), ev.start, ev.end)
+                        : ev
+                    )
+                );
             }
             showAlert(`All events in group ${groupId} for ${event.dvRank} ${event.dvFirstName} ${event.dvSurname} cancelled successfully!`, 'success');
 
@@ -294,6 +305,15 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(event.id).update({
                 RequestStatus: 'Cancelled',
             });
+
+            setFilteredEvents(prev => 
+                prev.map(ev => 
+                    ev.id === event.id ? new EventOccurrence((() => {
+                    ev.event.requestStatus = 'Cancelled';
+                    return ev.event;
+                })(), ev.start, ev.end) : ev)
+            );
+
             showAlert(`Event for ${event.dvRank} ${event.dvFirstName} ${event.dvSurname} cancelled successfully!`,'success');
 
             const { to, subject, body } = cancelEventEmail(event);
@@ -524,6 +544,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 setTimeChangeNotice={setTimeChangeNotice}
                 dateChangeNotice={dateChangeNotice}
                 setDateChangeNotice={setDateChangeNotice}   
+                setFilteredEvents={setFilteredEvents}
+                onReplaceGroupEvents={replaceGroupEvents}
             />
             <EditPanel
                 isEditPanelOpen={isEditPanelOpen}
@@ -532,6 +554,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 setEditGroupID={setEditGroupID}
                 filteredEvents={filteredEvents}
                 eventToEdit={eventToEdit}
+                setFilteredEvents={setFilteredEvents}
             />
             <ChangeDatesPanel
                 isChangeDatesPanelOpen={isChangeDatesPanelOpen}
@@ -545,6 +568,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 setGroupIDToDisplay={setGroupIDToDisplay}
                 onReplaceGroupEvents={replaceGroupEvents}
                 parkingMap={parkingMap}
+                setFilteredEvents={setFilteredEvents}
             />
             <ReassignPanel
                 isReassignPanelOpen={isReassignPanelOpen}
@@ -556,6 +580,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 setEventIdToDisplay={setEventIdToDisplay} 
                 parkingMap={parkingMap}
                 setTimeChangeNotice={setTimeChangeNotice}
+                setFilteredEvents={setFilteredEvents}
             /> 
             <CurrentParkingPanel
                 isPanelOpen={isCurrentPanelOpen}

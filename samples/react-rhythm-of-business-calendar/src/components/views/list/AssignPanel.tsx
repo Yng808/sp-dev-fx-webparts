@@ -5,7 +5,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from './EventDetailsList.module.scss';
 import { sp } from '@pnp/sp';
 import { IDropdownOption } from '@fluentui/react';
-import { fetchParkingStalls, fetchBookedParkingForEvent, filterAvailableParking, formatParkingOptions, fetchOccupiedParkingDetails, composeEmailInBrowser, OccupiedStall} from './spEventDetailsList';
+import { fetchParkingStalls, fetchBookedParkingForEvent, filterAvailableParking, formatParkingOptions, fetchOccupiedParkingDetails, composeEmailInBrowser, OccupiedStall, mapSharePointItemToEventOccurrence} from './spEventDetailsList';
 import { ConfirmDialog, showAlert } from './AlertHost';
 import { assignGroupEmail, noParkingAvailableEmail } from './EmailTemplate';
 
@@ -23,9 +23,11 @@ interface AssignPanelProps {
     setTimeChangeNotice?: (notice: string | undefined) => void;
     dateChangeNotice?: string | undefined;
     setDateChangeNotice?: (notice: string | undefined) => void;
+    setFilteredEvents: React.Dispatch<React.SetStateAction<EventOccurrence[]>>;
+    onReplaceGroupEvents: (groupId: number, updated: EventOccurrence[]) => void;
 }
 
-export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen, groupIDToDisplay, setGroupIDToDisplay, eventIdToDisplay, setEventIdToDisplay, filteredEvents, setLoadingSpots, onOpenPreview, timeChangeNotice, setTimeChangeNotice, dateChangeNotice, setDateChangeNotice }) => {
+export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen, groupIDToDisplay, setGroupIDToDisplay, eventIdToDisplay, setEventIdToDisplay, filteredEvents, setLoadingSpots, onOpenPreview, timeChangeNotice, setTimeChangeNotice, dateChangeNotice, setDateChangeNotice, setFilteredEvents, onReplaceGroupEvents }) => {
     const [parkingStallsOptionsEach, setParkingStallsOptionsEach] = useState<{ [key: number]: IDropdownOption[] }>({});
     const [parkingMap, setParkingMap] = useState<{ [id: number]: string }>({});
     const [individualSelections, setIndividualSelections] = useState<{ [key: string]: number }>({});
@@ -284,25 +286,73 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                                 );
                             })}
                             <button className="btn btn-success mt-3 w-100" onClick={async () => {
+                                const groupId = targetEvents[0]?.groupID;
                                 const unselected = targetEvents.filter(ev => individualSelections[ev.id] === undefined || isNaN(individualSelections[ev.id]) || individualSelections[ev.id] === 0);
                                 if (unselected.length > 0) {
                                 showAlert(`Please select parking for all events before assigning.`, 'warning');
                                 return;
                                 }
-                                await Promise.all(targetEvents.map(ev =>
-                                    updateEventInDatabase(ev.id, individualSelections[ev.id])
-                                ));
-                                const updatedEvents = targetEvents.map(ev => ({
-                                    ...ev,
-                                    dvRank: ev.dvRank,
-                                    dvSurname: ev.dvSurname,
-                                    requestorEmail: ev.requestorEmail, 
-                                    requestorRank: ev.requestorRank,   
-                                    requestorLastName: ev.requestorLastName,
-                                    parkingStalls: individualSelections[ev.id],
-                                    start: ev.start.clone(),
-                                    end: ev.end.clone()
-                                })) as unknown as EventOccurrence[];
+                                const idsInScope = new Set(targetEvents.map(e => e.id)); // Update local state
+                                setFilteredEvents(prev =>
+                                prev.map(ev => {
+                                    if (ev.groupID !== groupId) return ev;
+                                    if (!idsInScope.has(ev.id)) return ev;
+
+                                    const updatedEvent = Object.assign(
+                                    Object.create(Object.getPrototypeOf(ev.event)),
+                                    ev.event
+                                    );
+                                    updatedEvent.parkingStalls = individualSelections[ev.id];
+                                    updatedEvent.requestStatus = 'Approved';
+                                    return new EventOccurrence(updatedEvent, ev.start.clone(), ev.end.clone());
+                                })
+                                );
+
+                                try { //update event
+                                await Promise.all(
+                                    targetEvents.map(ev =>
+                                    sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(ev.id).update({
+                                        ParkingStallsId: individualSelections[ev.id],
+                                        RequestStatus: 'Approved',
+                                    })
+                                    )
+                                );
+                                } catch (error) {
+                                console.error('Error updating the event(s) in SharePoint:', error);
+                                showAlert('There was an error updating one or more events in SharePoint.', 'danger');
+                                }
+
+                                try {
+                                    const web = await sp.web.get();
+                                    const siteUrl = web.Url;
+                                    const resp = await fetch(
+                                        `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items?$select=*` +
+                                        `&$filter=GroupID eq ${groupId}`,
+                                        { headers: { Accept: 'application/json;odata=verbose' } }
+                                    );
+                                    const json = await resp.json();
+                                    const updatedGroup: EventOccurrence[] = (json.d.results as any[]).map(
+                                        mapSharePointItemToEventOccurrence
+                                    );
+                                onReplaceGroupEvents(groupId, updatedGroup);
+                                } catch (e) {
+                                    console.error('Failed to refresh group from SharePoint:', e);
+                                }
+
+                                // 5) Emails + close
+                                const updatedEvents: EventOccurrence[] = targetEvents.map(ev => {
+                                const updatedEvent = Object.assign(
+                                    Object.create(Object.getPrototypeOf(ev.event)),
+                                    ev.event
+                                );
+                                updatedEvent.parkingStalls = individualSelections[ev.id];
+
+                                return new EventOccurrence(
+                                    updatedEvent,
+                                    ev.start.clone(),
+                                    ev.end.clone()
+                                );
+                            });
 
                                 const allUnavailable = updatedEvents.every(ev => ev.parkingStalls === -1);
 
@@ -316,12 +366,8 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                                 composeEmailInBrowser(email.to, email.subject, email.body);
                                 }
 
-                                if (setTimeChangeNotice) {
-                                    setTimeChangeNotice(null);
-                                }
-                                if (setDateChangeNotice) {
-                                    setDateChangeNotice(null);
-                                }
+                                setTimeChangeNotice?.(null);
+                                setDateChangeNotice?.(null);
 
                                 showAlert("All assignments completed.", 'success');
                                 setIsPanelOpen(false);

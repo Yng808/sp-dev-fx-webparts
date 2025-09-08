@@ -16,9 +16,10 @@ interface Props {
     setEventIdToDisplay: (id: number | undefined) => void;
     parkingMap: { [id: number]: string };
     setTimeChangeNotice: (notice: string | undefined) => void;
+    setFilteredEvents: React.Dispatch<React.SetStateAction<EventOccurrence[]>>;
 }
 
-export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReassignPanelOpen, eventToReassign, siteTimeZone, setIsPanelOpen, setGroupIDToDisplay, setEventIdToDisplay, setTimeChangeNotice }) => {
+export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReassignPanelOpen, eventToReassign, siteTimeZone, setIsPanelOpen, setGroupIDToDisplay, setEventIdToDisplay, setTimeChangeNotice, setFilteredEvents }) => {
     const [reassignStart, setReassignStart] = useState('');
     const [reassignEnd, setReassignEnd] = useState('');
 
@@ -51,14 +52,19 @@ export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReass
                 RequestStatus: 'New',
                 ParkingStallsId: null
             });
+
+            setFilteredEvents(prev =>
+                prev.map(ev => {
+                    if (ev.id !== eventToReassign.id) return ev;
+
+                    const updatedEvent = Object.assign(Object.create(Object.getPrototypeOf(ev.event)), ev.event);
+                    return new EventOccurrence(updatedEvent, newStart, newEnd);
+                })
+            );
+
             showAlert('Event time updated. Please reassign parking.', 'success');
             setIsReassignPanelOpen(false);
-            setTimeChangeNotice(
-            buildTimeChangeNotice(eventToReassign, newStart, newEnd));
-
-            (eventToReassign as any).start = newStart;
-            (eventToReassign as any).end = newEnd;
-            
+            setTimeChangeNotice(buildTimeChangeNotice(eventToReassign, newStart, newEnd));
             setGroupIDToDisplay(eventToReassign.groupID);
             setEventIdToDisplay(eventToReassign.id); 
             setIsPanelOpen(true);
