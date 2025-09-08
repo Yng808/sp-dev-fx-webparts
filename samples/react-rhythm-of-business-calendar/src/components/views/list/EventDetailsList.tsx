@@ -62,8 +62,60 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     // Cancel Panel
     const [showConfirm, setShowConfirm] = useState(false);
     const [confirmConfig, setConfirmConfig] = useState<{message: string; onConfirm: () => void;} | null>(null);
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 50; 
 
+    const pagedEvents = filteredEvents.slice(
+        (currentPage - 1) * pageSize,
+        currentPage * pageSize
+    );
 
+    const totalPages = Math.ceil(filteredEvents.length / pageSize);
+
+    const getPageNumbers = () => {
+        const totalNumbersToShow = 3; // 3 middle pages
+        const pages: (number | string)[] = [];
+
+        const firstPage = 1;
+        const lastPage = totalPages;
+
+        pages.push(firstPage); // Always include the first page
+        
+        let start = currentPage - 1; // Calculate sliding window
+        let end = currentPage + 1;
+
+        if (start < 2) { // Clamp bounds
+            start = 2;
+            end = start + totalNumbersToShow - 1;
+        }
+
+        if (end > totalPages - 1) {
+            end = totalPages - 1;
+            start = end - totalNumbersToShow + 1;
+            if (start < 2) start = 2;
+        }
+
+        if (start > 2) { // Ellipsis after first page
+            pages.push("…");
+        }
+
+        for (let i = start; i <= end; i++) { // Middle page numbers
+            pages.push(i);
+        }
+   
+        if (end < totalPages - 1) { // Ellipsis before last page
+            pages.push("…");
+        }
+
+        if (totalPages > 1) { // Always include the last page
+            pages.push(lastPage);
+        }
+
+        return pages;
+    };
+
+    const pageNumbers = getPageNumbers(); 
 
     const replaceGroupEvents = (groupId: number, updated: EventOccurrence[]) => {
     setFilteredEvents(prev => {
@@ -378,7 +430,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredEvents.map((event, index) => {
+                        {pagedEvents.map((event, index) => {
                             let eventDateFormatted;
                             
                             // all day and in one day. Example output: 1/1/2024 
@@ -446,6 +498,17 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                         })}
                     </tbody>
                 </table>
+            </div>
+            <div className="d-flex justify-content-center align-items-center mt-3">
+                <button className="btn btn-sm btn-secondary me-2" disabled={currentPage === 1} onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}>Prev</button>
+                {pageNumbers.map((num, idx) =>
+                    num === "…" ? (
+                    <span key={`ellipsis-${idx}`} className="me-2">…</span>
+                    ) : (
+                    <button key={`page-${num}`} className={`btn btn-sm me-2 ${num === currentPage ? "btn-primary" : "btn-outline-secondary"}`} onClick={() => setCurrentPage(num as number)}>{num}</button>
+                    )
+                )}
+                <button className="btn btn-sm btn-secondary" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}>Next</button>
             </div>
             <AssignPanel
                 isPanelOpen={isPanelOpen}
