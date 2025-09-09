@@ -18,7 +18,7 @@ interface AssignPanelProps {
     setEventIdToDisplay?: React.Dispatch<React.SetStateAction<number | undefined>>;
     filteredEvents: EventOccurrence[];
     setLoadingSpots: React.Dispatch<React.SetStateAction<boolean>>;
-    onOpenPreview: () => void;
+    onOpenPreview: (events: EventOccurrence[]) => void;
     timeChangeNotice?: string | undefined; 
     setTimeChangeNotice?: (notice: string | undefined) => void;
     dateChangeNotice?: string | undefined;
@@ -372,7 +372,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                                 showAlert("All assignments completed.", 'success');
                                 setIsPanelOpen(false);
                                 setEventIdToDisplay?.(null);
-                                onOpenPreview();
+                                onOpenPreview(updatedEvents);
                             }}
                             >Assign and send email</button>
                         </>

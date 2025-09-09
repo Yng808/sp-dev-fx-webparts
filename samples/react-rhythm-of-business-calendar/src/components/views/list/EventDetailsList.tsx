@@ -59,6 +59,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     const [timeChangeNotice, setTimeChangeNotice] = useState<string | null>(null);
     // Preview Panel
     const [isCurrentPanelOpen, setIsCurrentPanelOpen] = useState(false);
+    const [previewGroupEvents, setPreviewGroupEvents] = useState<EventOccurrence[] | null>(null);
     // Cancel Panel
     const [showConfirm, setShowConfirm] = useState(false);
     const [confirmConfig, setConfirmConfig] = useState<{message: string; onConfirm: () => void;} | null>(null);
@@ -539,7 +540,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 setEventIdToDisplay={setEventIdToDisplay}  
                 filteredEvents={filteredEvents}
                 setLoadingSpots={setLoadingSpots}
-                onOpenPreview={() => setIsCurrentPanelOpen(true)} 
+                onOpenPreview={(events) => {setPreviewGroupEvents(events); setIsCurrentPanelOpen(true);}}
                 timeChangeNotice={timeChangeNotice}
                 setTimeChangeNotice={setTimeChangeNotice}
                 dateChangeNotice={dateChangeNotice}
@@ -584,9 +585,10 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             /> 
             <CurrentParkingPanel
                 isPanelOpen={isCurrentPanelOpen}
-                setIsPanelOpen={setIsCurrentPanelOpen}
+                setIsPanelOpen={(isOpen) => { setIsCurrentPanelOpen(isOpen); if (!isOpen) setPreviewGroupEvents(null); }}
                 groupIDToDisplay={groupIDToDisplay}
-                filteredEvents={filteredEvents}
+                eventIdToDisplay={eventIdToDisplay}
+                filteredEvents={previewGroupEvents ?? filteredEvents}
             /> 
             <ConfirmDialog
                 show={showConfirm}
