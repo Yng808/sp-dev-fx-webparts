@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC } from 'react';
 import { FocusZone, IStackItemStyles, Separator, Stack, StackItem, Text } from '@fluentui/react';
 import { EventOccurrence, ViewKeys } from 'model';
 import { useEventCommandActionButtons, useWindowSize } from '../../hooks';
@@ -6,9 +6,7 @@ import { EventOverview, IEventCommands } from '../../events';
 import { IViewDescriptor } from '../IViewDescriptor';
 import { IViewProps } from '../IViewProps';
 import { Builder } from './Builder';
-import { fetchParkingStalls } from '../list/spEventDetailsList';
 import * as strings from 'ComponentStrings';
-import { sp } from "@pnp/sp";
 import styles from './DayView.module.scss';
 
 const CommandOrientationBreakpoint = 1024;
@@ -24,10 +22,9 @@ const eventCommandsStackItemStyles: IStackItemStyles = {
 interface IEventCardProps {
     occurrence: EventOccurrence;
     commands: IEventCommands;
-    parkingMap: { [id: number]: string };
 }
 
-const EventCard: FC<IEventCardProps> = ({ occurrence, commands, parkingMap }) => {
+const EventCard: FC<IEventCardProps> = ({ occurrence, commands }) => {
     const [
         viewCommand,
         addToOutlookCommand
@@ -39,7 +36,7 @@ const EventCard: FC<IEventCardProps> = ({ occurrence, commands, parkingMap }) =>
     return (
         <Stack horizontal={!layoutCommandsHorizontally} data-is-focusable className={styles.event}>
             <StackItem grow styles={eventOverviewStackItemStyles}>
-                <EventOverview event={occurrence}  parkingMap={parkingMap}/>
+                <EventOverview event={occurrence}/>
             </StackItem>
             <Separator vertical={!layoutCommandsHorizontally} />
             <StackItem styles={eventCommandsStackItemStyles}>
@@ -57,27 +54,6 @@ const DayView: FC<IViewProps> = ({
     cccurrences,
     eventCommands
 }) => {
-    const [parkingMap, setParkingMap] = useState<{ [id: number]: string }>({});
-
-    useEffect(() => {
-        const fetchMap = async () => {
-            try {
-                const web = await sp.web.get();
-                const siteUrl = web.Url;
-                const stalls = await fetchParkingStalls(siteUrl);
-                const map: { [id: number]: string } = {};
-                stalls.forEach(stall => {
-                    map[stall.id] = stall.parking;
-                });
-                setParkingMap(map);
-            } catch (error) {
-                console.error("Failed to load parking map:", error);
-            }
-        };
-
-        fetchMap();
-    }, []);
-
     const dayInfo = Builder.build(cccurrences, anchorDate);
 
     if (dayInfo.occurrences.length === 0) {
@@ -91,7 +67,6 @@ const DayView: FC<IViewProps> = ({
                     key={`${occurrence.event.id}-${occurrence.start.format('L')}`}
                     occurrence={occurrence}
                     commands={eventCommands}
-                    parkingMap={parkingMap}
                 />
             ))}
         </FocusZone>

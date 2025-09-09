@@ -15,8 +15,6 @@ import { PersistConcurrencyFailureMessage, Validation as validationStrings, Even
 
 import styles from './EventPanel.module.scss';
 import EventAttachments from './EventAttachments';
-import { sp } from "@pnp/sp";
-import { fetchParkingStalls } from 'components/views/list/spEventDetailsList';
 
 export class RefinerValueValidationRule extends ValidationRule<Event> {
     constructor(
@@ -41,7 +39,6 @@ type IProps = IOwnProps & IEntityPanelProps<Event> & ServicesProp<DirectoryServi
 interface IOwnState {
     refinerValueOptionsByRefiner: Map<Refiner, IDropdownOption[]>;
     refiners: readonly Refiner[];
-    parkingMap: { [id: number]: string };
 }
 type IState = IOwnState & IDataPanelBaseState<Event>;
 
@@ -59,8 +56,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         return {
             ...super.resetState(),
             refinerValueOptionsByRefiner: new Map(),
-            refiners: [],
-            parkingMap: this.state?.parkingMap ?? {},
+            refiners: []
         };
     }
 
@@ -76,8 +72,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
     }
 
     public componentDidMount(): void {
-        super.componentDidMount?.(); 
-        this.loadParkingStalls();
+        super.componentDidMount?.();
     }
 
     private async _buildRefinerValueOptions() {
@@ -167,22 +162,6 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         }
     }
 
-    private async loadParkingStalls(): Promise<void> {
-        const web = await sp.web.get();
-        const siteUrl = web.Url;
-
-        try {
-            const stalls = await fetchParkingStalls(siteUrl);
-            const parkingMap: { [id: number]: string } = {};
-            stalls.forEach(stall => {
-                parkingMap[stall.id] = stall.parking;
-            });
-
-            this.setState({ parkingMap });
-        } catch (error) {
-            console.error("Failed to fetch parking stalls", error);
-        }
-    }
     // private _renderModerationStatus() {
     //     const {
     //         [DirectoryService]: { currentUserIsSiteAdmin, currentUser },
@@ -1081,7 +1060,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
     }
 
     protected renderDisplayHeader(): JSX.Element {
-        return <EventOverview className={styles.header} event={this.entity} parkingMap={this.state.parkingMap} />;
+        return <EventOverview className={styles.header} event={this.entity}/>;
     }
 
     protected renderEditHeader(): JSX.Element {

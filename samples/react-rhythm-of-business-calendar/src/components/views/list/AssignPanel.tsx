@@ -303,6 +303,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                                     targetEvents.map(ev =>
                                     sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(ev.id).update({
                                         ParkingStallsId: individualSelections[ev.id],
+                                        ParkingStallName: parkingMap[individualSelections[ev.id]] || '',
                                         RequestStatus: 'Approved',
                                     })
                                     )

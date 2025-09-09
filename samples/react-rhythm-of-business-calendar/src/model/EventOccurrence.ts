@@ -42,6 +42,7 @@ export class EventOccurrence implements IEvent {
     public get readAheadDueDate() { return this.event.readAheadDueDate; }
 
     public get parkingStalls() { return this.event.parkingStalls; }
+    public get parkingStallName() { return this.event.parkingStallName; }
     public get requestStatus() { return this.event.requestStatus; }
     public get dvPayGrade() { return this.event.dvPayGrade; }
     public get dvRank() { return this.event.dvRank; }

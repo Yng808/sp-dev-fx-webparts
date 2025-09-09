@@ -45,6 +45,7 @@ interface IEventListItemResult extends IListItemResult {
     RequestorCellPhone: SPField.Query_Text;
     RequestorEmail: SPField.Query_Text;
     ParkingStalls: SPField.Query_Lookup;
+    ParkingStallName: SPField.Query_Text;
     GroupID: SPField.Query_Text;
     Editor: SPField.Query_User;
 }
@@ -87,6 +88,7 @@ interface IEventUpdateListItem extends IUpdateListItem {
     RequestorCellPhone: SPField.Update_Text;
     RequestorEmail: SPField.Update_Text;
     ParkingStallsId: SPField.Update_LookupId;
+    ParkingStallName: SPField.Update_Text;
     GroupID: SPField.Update_Text;
 }
 
@@ -152,6 +154,7 @@ const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: IT
     event.requestorCellPhone = decode(row.RequestorCellPhone); 
     event.requestorEmail = row.RequestorEmail.replace(/<[^>]+>/g, '').trim();
     event.parkingStalls = row.ParkingStalls?.[0]?.lookupId ?? undefined;
+    event.parkingStallName = decode(row.ParkingStallName);
     event.groupID = Number(row.GroupID); 
     event.editor = SPField.toUser(row.Editor);
 };
@@ -204,6 +207,7 @@ const toUpdateListItem = (event: Event, siteTimeZone: ITimeZone): IEventUpdateLi
         RequestorCellPhone: event.requestorCellPhone, 
         RequestorEmail: event.requestorEmail, 
         ParkingStallsId: event.parkingStalls,
+        ParkingStallName: event.parkingStallName,
         GroupID: event.groupID.toString()
     };
 };

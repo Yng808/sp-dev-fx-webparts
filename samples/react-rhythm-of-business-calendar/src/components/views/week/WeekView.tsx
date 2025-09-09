@@ -1,4 +1,4 @@
-import React, { CSSProperties, FC, useEffect, useState } from 'react';
+import React, { CSSProperties, FC } from 'react';
 import { FocusZone, useTheme } from '@fluentui/react';
 import { ViewKeys } from 'model';
 import { IViewDescriptor } from '../IViewDescriptor';
@@ -7,11 +7,9 @@ import { Builder } from './Builder';
 import { Background } from './Background';
 import { ContentRow } from './ContentRow';
 import { Header } from './Header';
-import { sp } from '@pnp/sp';
 import { ViewNames as strings } from 'ComponentStrings';
 
 import styles from './WeekView.module.scss';
-import { fetchParkingStalls } from '../list/spEventDetailsList'; 
 
 const WeekView: FC<IViewProps> = ({ anchorDate, viewCommands, cccurrences }) => {
     const range = Builder.dateRange(anchorDate);
@@ -23,34 +21,13 @@ const WeekView: FC<IViewProps> = ({ anchorDate, viewCommands, cccurrences }) => 
         borderBottom: '1px solid ' + neutralTertiary
     };
 
-    const [parkingMap, setParkingMap] = useState<{ [id: number]: string }>({});
-
-    useEffect(() => {
-        const fetchMap = async () => {
-            try {
-                const web = await sp.web.get();
-                const siteUrl = web.Url;
-                const stalls = await fetchParkingStalls(siteUrl);
-                const map: { [id: number]: string } = {};
-                stalls.forEach(stall => {
-                    map[stall.id] = stall.parking;
-                });
-                setParkingMap(map);
-            } catch (error) {
-                console.error("Failed to load parking map:", error);
-            }
-        };
-
-        fetchMap();
-    }, []);
-
     return (
         <FocusZone>
             <Header />
             <div className={styles.week} style={style}>
                 <Background anchorDate={anchorDate} commands={viewCommands} range={range} />
                 {contentRows.map((row, idx) =>
-                    <ContentRow key={idx} row={row} commands={viewCommands} parkingMap={parkingMap} />
+                    <ContentRow key={idx} row={row} commands={viewCommands}/>
                 )}
             </div>
         </FocusZone>

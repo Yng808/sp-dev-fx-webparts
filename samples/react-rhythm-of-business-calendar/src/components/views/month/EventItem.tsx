@@ -6,10 +6,9 @@ import { EventItemInfo } from "./Builder";
 interface IProps {
     eventInfo: EventItemInfo;
     onActivate: (cccurrence: EventOccurrence, target: HTMLElement) => void;
-    parkingMap: { [id: number]: string };
 }
 
-export const EventItem: FC<IProps> = ({ eventInfo, onActivate, parkingMap }) => {
+export const EventItem: FC<IProps> = ({ eventInfo, onActivate }) => {
     const { cccurrence, startsInWeek, endsInWeek } = eventInfo;
 
     const root = useRef<HTMLDivElement>();
@@ -25,7 +24,6 @@ export const EventItem: FC<IProps> = ({ eventInfo, onActivate, parkingMap }) => 
                 startsIn={startsInWeek}
                 endsIn={endsInWeek}
                 size={EventBarSize.Compact}
-                parkingMap={parkingMap}
             />
         </div>
     );

@@ -245,6 +245,11 @@ const Field_ParkingStalls: ILookupFieldDefinition = {
     showField: 'ID'
 };
 
+const Field_ParkingStallName: ITextFieldDefinition = {
+    type: FieldType.Text,
+    name: 'ParkingStallName'
+};
+
 const Field_GroupID: ITextFieldDefinition = {
     type: FieldType.Text,
     name: 'GroupID'
@@ -293,6 +298,7 @@ const View_AllEvents: IViewDefinition = {
         Field_RequestorCellPhone,
         Field_RequestorEmail,
         Field_ParkingStalls,
+        Field_ParkingStallName,
         Field_GroupID
     ),
     // need to sort by ID ascending in order to ensure the series master is loaded before any exceptions to the series
@@ -359,6 +365,7 @@ export const EventsList: IEventsListDefinition = {
         Field_RequestorCellPhone,
         Field_RequestorEmail,
         Field_ParkingStalls,
+        Field_ParkingStallName,
         Field_GroupID
     ],
     views: [

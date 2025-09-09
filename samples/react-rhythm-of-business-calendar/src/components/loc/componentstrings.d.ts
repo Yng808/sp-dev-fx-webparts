@@ -158,6 +158,7 @@ declare module 'ComponentStrings' {
         Field_RequestorEmail: IFieldStrings;
         Field_RequestStatus: IFieldStrings;
         Field_ParkingStall: IFieldStrings;
+        Field_ParkingStallName: IFieldStrings;
         Recurrence: {
             Daily: string;
             Weekly: string;

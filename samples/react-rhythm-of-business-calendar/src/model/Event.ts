@@ -48,6 +48,7 @@ interface IState {
     requestorCellPhone: string;
     requestorEmail: string;
     parkingStalls: number;
+    parkingStallName: string;  
     groupID: number;
     editor: User;
 }
@@ -139,6 +140,7 @@ export class Event extends ListItemEntity<IState> implements IEvent {
         this.state.requestorCellPhone = "";
         this.state.requestorEmail = "";
         this.state.parkingStalls = undefined;
+        this.state.parkingStallName = "";
         this.state.groupID = undefined;
         this.state.editor = undefined;
         //this.state.readAheadDueDate = null;
@@ -520,6 +522,9 @@ export class Event extends ListItemEntity<IState> implements IEvent {
 
     public get parkingStalls(): number { return this.state.parkingStalls; }
     public set parkingStalls(val: number) { this.state.parkingStalls = val; }
+
+    public get parkingStallName(): string { return this.state.parkingStallName; }
+    public set parkingStallName(val: string) { this.state.parkingStallName = val; }
 
     public get groupID(): number { return this.state.groupID; }
     public set groupID(val: number) { this.state.groupID = val; }

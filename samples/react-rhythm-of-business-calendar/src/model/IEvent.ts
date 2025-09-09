@@ -23,6 +23,7 @@ export interface IEvent {
     readonly comDecision: string;
     readonly readAheadDueDate: Moment;
     readonly parkingStalls: number;
+    readonly parkingStallName: string;
     readonly requestStatus: string;
     readonly dvFirstName: string;
     readonly dvSurname: string;

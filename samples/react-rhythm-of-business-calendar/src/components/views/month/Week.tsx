@@ -14,10 +14,9 @@ interface IProps {
     week: WeekInfo;
     onActivate: (cccurrence: EventOccurrence, target: HTMLElement) => void;
     viewCommands: IViewCommands;
-    parkingMap: { [id: number]: string };
 }
 
-export const Week: FC<IProps> = ({ anchorDate, week, onActivate, viewCommands, parkingMap }) => {
+export const Week: FC<IProps> = ({ anchorDate, week, onActivate, viewCommands }) => {
     const { palette: { neutralTertiary } } = useTheme();
     // console.log("week:", week);
     const style: CSSProperties = {
@@ -28,7 +27,7 @@ export const Week: FC<IProps> = ({ anchorDate, week, onActivate, viewCommands, p
         <div className={styles.week} style={style}>
             <WeekBackground anchorDate={anchorDate} commands={viewCommands} range={week} />
             {week.contentRows.map((row, idx) =>
-                <ContentRow key={idx} row={row} onActivate={onActivate} parkingMap={parkingMap} />
+                <ContentRow key={idx} row={row} onActivate={onActivate} />
             )}
         </div>
     );

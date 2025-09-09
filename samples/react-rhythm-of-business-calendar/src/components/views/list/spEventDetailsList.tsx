@@ -120,7 +120,7 @@ export const mapSharePointItemToEventOccurrence = (item: any): EventOccurrence =
     const event = new Event(undefined, undefined, undefined, undefined, item.ID);
 
     const mapping: Record<string, keyof Event> = {
-        ParkingStallsId: "parkingStalls", RequestStatus: "requestStatus", DVPayGrade: "dvPayGrade", DVRank: "dvRank", DVFirstName: "dvFirstName", DVSurname: "dvSurname", JDIRVisiting: "jdirVisiting", DVVisiting: "dvVisiting", RequestorRank: "requestorRank", RequestorFirstName: "requestorFirstName", RequestorLastName: "requestorLastName", RequestorOffice: "requestorOffice", RequestorDutyPhone: "requestorDutyPhone", RequestorCellPhone: "requestorCellPhone", RequestorEmail: "requestorEmail", GroupID: "groupID", Editor: "editor"
+        ParkingStallsId: "parkingStalls", ParkingStallName: "parkingStallName", RequestStatus: "requestStatus", DVPayGrade: "dvPayGrade", DVRank: "dvRank", DVFirstName: "dvFirstName", DVSurname: "dvSurname", JDIRVisiting: "jdirVisiting", DVVisiting: "dvVisiting", RequestorRank: "requestorRank", RequestorFirstName: "requestorFirstName", RequestorLastName: "requestorLastName", RequestorOffice: "requestorOffice", RequestorDutyPhone: "requestorDutyPhone", RequestorCellPhone: "requestorCellPhone", RequestorEmail: "requestorEmail", GroupID: "groupID", Editor: "editor"
     };
 
     for (const [spKey, eventProp] of Object.entries(mapping)) {
