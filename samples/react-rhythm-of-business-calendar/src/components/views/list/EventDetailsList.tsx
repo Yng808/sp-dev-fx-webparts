@@ -356,7 +356,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         transform: 'translateZ(0)', // Force hardware acceleration
         willChange: 'scroll-position' as const
     } : {
-        height: '600px',
+        maxHeight: '70vh',
+        minHeight: '300px',
         overflowY: 'auto' as const,
         position: 'relative' as const,
         transform: 'translateZ(0)', // Force hardware acceleration
@@ -412,11 +413,11 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     />
                 </div>
                 <div className="col">
-                    <label></label>
+                    <label/>
                     <button onClick={resetFilters} className='form-control' style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)", border: "1px solid #000" }}>Reset Filters</button>
                 </div>
                 <div className="col">
-                    <label></label>
+                    <label/>
                     <button
                         className="form-control"
                         style={{ 

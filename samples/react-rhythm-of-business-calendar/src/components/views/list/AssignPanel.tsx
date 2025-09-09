@@ -143,28 +143,6 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
         }));
     };
 
-    const updateEventInDatabase = async (eventId: number, selectedStall: number) => {
-        try {
-        const event = filteredEvents.find(event => event.id === eventId);
-        if (!event) {
-            showAlert('No valid event found to update.', 'warning');
-            return;
-        }
-        const itemId = event.id;
-        if (!itemId) {
-            showAlert('No valid event ID found to update.', 'warning');
-            return;
-        }
-        await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(itemId).update({
-            ParkingStallsId: selectedStall,
-            RequestStatus: 'Approved',
-        });
-        } catch (error) {
-            console.error('Error updating the event in database:', error);
-            showAlert('There was an error updating the event.', 'danger');
-        }
-    };
-
     return (
         <>
         {isPanelOpen && (
