@@ -37,7 +37,18 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
     const [panelParkingOccupiedLoading, setPanelParkingOccupiedLoading] = useState(true);
     const [showConfirm, setShowConfirm] = useState(false);
 
-    const targetEvents = eventIdToDisplay ? filteredEvents.filter(ev => ev.id === eventIdToDisplay) : filteredEvents.filter(ev => ev.groupID === groupIDToDisplay && ev.requestStatus !== "Cancelled");
+    const candidateEvents = eventIdToDisplay ? filteredEvents.filter(ev => ev.id === eventIdToDisplay) : filteredEvents.filter(ev => ev.groupID === groupIDToDisplay && ev.requestStatus !== "Cancelled");
+    const byDay = new Map<string, EventOccurrence>();
+    for (const ev of candidateEvents) {
+        const key = ev.start.format('YYYY-MM-DD');
+        const prev = byDay.get(key);
+        if (!prev) {
+            byDay.set(key, ev);
+        } else {
+            byDay.set(key, ev.id > prev.id ? ev : prev);
+        }
+    }
+    const targetEvents = Array.from(byDay.values()).sort((a, b) => a.start.diff(b.start));
 
     const loadAvailableParking = async (event: EventOccurrence) => {
         setLoadingSpots(true);
@@ -66,14 +77,15 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
     };
 
     const getEventDateRange = () => {
-        if (targetEvents.length === 0) return [];
-        const startDate = moment.min(targetEvents.map((event) => moment(event.start)));
-        const endDate = moment.max(targetEvents.map((event) => moment(event.end)));
-        const currentDate = startDate.clone();
-        const dateRange = [];
-        while (currentDate.isBefore(endDate) || currentDate.isSame(endDate, 'day')) {
-            dateRange.push(currentDate.clone());
-            currentDate.add(1, 'days');
+        const validEvents = targetEvents.filter(ev => ev.requestStatus !== "Cancelled");
+        if (validEvents.length === 0) return [];
+        const startDate = moment.min(validEvents.map(ev => ev.start.clone().startOf("day")));
+        const endDate = moment.max(validEvents.map(ev => ev.start.clone().startOf("day")));
+        const dateRange: moment.Moment[] = [];
+        const current = startDate.clone();
+        while (current.isSameOrBefore(endDate, "day")) {
+            dateRange.push(current.clone());
+            current.add(1, "day");
         }
         return dateRange;
     };

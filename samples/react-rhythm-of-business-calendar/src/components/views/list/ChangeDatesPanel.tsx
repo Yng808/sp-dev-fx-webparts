@@ -51,9 +51,9 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
         const web = await sp.web.get();
         const siteUrl = web.Url;
 
-        // group events (from props) in date order
+        // Only pull active (not cancelled) events as the base
         const groupEvents = filteredEvents
-            .filter(ev => ev.groupID === groupToChangeDates)
+            .filter(ev => ev.groupID === groupToChangeDates && ev.requestStatus !== "Cancelled")
             .sort((a, b) => a.start.diff(b.start));
 
         if (!groupEvents.length) {
@@ -63,27 +63,26 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
 
         // build full date list
         const newDates: string[] = [];
-        for (let cur = moment(changeStartDate); cur.isSameOrBefore(moment(changeEndDate), 'day'); cur.add(1, 'day')) {
+        for (let cur = startDateMoment.clone(); cur.isSameOrBefore(endDateMoment, 'day'); cur.add(1, 'day')) {
             newDates.push(cur.format('YYYY-MM-DD'));
         }
 
-        // map existing events by date
+        // Map current events by date (just non-cancelled ones)
         const eventMap = new Map<string, EventOccurrence>();
         groupEvents.forEach(ev => eventMap.set(ev.start.format('YYYY-MM-DD'), ev));
 
         const templateEvent = groupEvents[0];
+        const origStartTime = templateEvent.start.format('HH:mm:ss');
+        const origEndTime = templateEvent.end.format('HH:mm:ss');
 
         // Update or add events for new range
         for (const newDate of newDates) {
-            const origEvent = eventMap.get(newDate);
-            const origStartTime = templateEvent.start.format('HH:mm:ss');
-            const origEndTime = templateEvent.end.format('HH:mm:ss');
+            const existing = eventMap.get(newDate);
             const newStart = moment.tz(`${newDate}T${origStartTime}`, siteTimeZone.momentId);
             const newEnd = moment.tz(`${newDate}T${origEndTime}`, siteTimeZone.momentId);
 
-            if (origEvent) {
-                // Always reset to New and clear parking
-                await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(origEvent.id).update({
+            if (existing) {
+                await sp.web.lists.getByTitle('Rob Calendar Events2').items.getById(existing.id).update({
                     EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
                     EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
                     ParkingStallsId: null,

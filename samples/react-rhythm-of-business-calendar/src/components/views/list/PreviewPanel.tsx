@@ -21,14 +21,17 @@ export const CurrentParkingPanel: FC<CurrentParkingPanelProps> = ({ isPanelOpen,
     const targetEvents = eventIdToDisplay ? filteredEvents.filter(ev => ev.id === eventIdToDisplay) : filteredEvents.filter(ev => ev.groupID === groupIDToDisplay && ev.requestStatus !== "Cancelled");
 
     const getEventDateRange = () => {
-        if (targetEvents.length === 0) return [];
-        const startDate = moment.min(targetEvents.map((event) => moment(event.start)));
-        const endDate = moment.max(targetEvents.map((event) => moment(event.end)));
-        const range = [];
+        const validEvents = targetEvents.filter(ev => ev.requestStatus !== "Cancelled");
+        if (validEvents.length === 0) return [];
+
+        const startDate = moment.min(validEvents.map(ev => ev.start.clone().startOf("day")));
+        const endDate = moment.max(validEvents.map(ev => ev.start.clone().startOf("day")));
+
+        const range: moment.Moment[] = [];
         const current = startDate.clone();
-        while (current.isSameOrBefore(endDate, 'day')) {
+        while (current.isSameOrBefore(endDate, "day")) {
             range.push(current.clone());
-            current.add(1, 'day');
+            current.add(1, "day");
         }
         return range;
     };
