@@ -1,30 +1,32 @@
 import { Moment } from 'moment-timezone';
-import React, { FC, useMemo } from 'react';
+// import React, { FC, useMemo } from 'react';
+import React, { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ActionButton, css, FontSizes, FontWeights, IButtonProps, IButtonStyles, IconButton, IStackItemStyles, mergeStyleSets, Stack, StackItem, useTheme } from '@fluentui/react';
+// import { ActionButton, css, FontSizes, FontWeights, IButtonProps, IButtonStyles, IconButton, IStackItemStyles, mergeStyleSets, Stack, StackItem, useTheme } from '@fluentui/react';
+import { ActionButton, FontSizes, FontWeights, IButtonStyles, IStackItemStyles, mergeStyleSets, Stack, StackItem, useTheme } from '@fluentui/react';
 import { MomentRange, now } from 'common';
 import { ViewKeys } from 'model';
-import { useWindowSize } from '../../hooks';
+//import { useWindowSize } from '../../hooks';
 import { IViewCommands } from '../IViewCommands';
 import { blockStyles } from './blockStyles';
 
-import { WeekView as strings } from 'ComponentStrings';
+//import { WeekView as strings } from 'ComponentStrings';
 
 import styles from './WeekView.module.scss';
 
-const newEventButtonStyles: IButtonStyles = {
-    root: {
-        fontSize: 12,
-        height: 'unset'
-    },
-    icon: {
-        fontSize: 12,
-        margin: '0 2px'
-    },
-    label: {
-        margin: 0
-    }
-};
+// const newEventButtonStyles: IButtonStyles = {
+//     root: {
+//         fontSize: 12,
+//         height: 'unset'
+//     },
+//     icon: {
+//         fontSize: 12,
+//         margin: '0 2px'
+//     },
+//     label: {
+//         margin: 0
+//     }
+// };
 
 const enumerateDates = (startDate: Moment, endDate: Moment): Moment[] => {
     const dates: Moment[] = [];
@@ -82,21 +84,21 @@ export const Background: FC<IProps> = ({ anchorDate, commands: { newEvent, setAn
                     navigate(`/${ViewKeys.daily}`);
                 };
 
-                const onClickNewEvent = () => {
-                    setAnchorDate(date);
-                    newEvent(date);
-                };
+                // const onClickNewEvent = () => {
+                //     setAnchorDate(date);
+                //     newEvent(date);
+                // };
 
-                const { width } = useWindowSize();
+                //const { width } = useWindowSize();
 
-                const newEventButtonProps: IButtonProps = useMemo(() => {
-                    return {
-                        className: css(styles.newEventButton, 'ms-motion-fadeIn'),
-                        iconProps: { iconName: 'Add' },
-                        styles: newEventButtonStyles,
-                        onClick: onClickNewEvent
-                    };
-                }, [onClickNewEvent]);
+                // const newEventButtonProps: IButtonProps = useMemo(() => {
+                //     return {
+                //         className: css(styles.newEventButton, 'ms-motion-fadeIn'),
+                //         iconProps: { iconName: 'Add' },
+                //         styles: newEventButtonStyles,
+                //         onClick: onClickNewEvent
+                //     };
+                // }, [onClickNewEvent]);
 
                 return (
                     <StackItem key={date.format('L')} className={styles.date} styles={stackItemStyles}>
@@ -107,10 +109,10 @@ export const Background: FC<IProps> = ({ anchorDate, commands: { newEvent, setAn
                                     {date.date()}
                                 </ActionButton>
                             </StackItem>
-                            {width >= 640
+                            {/* {width >= 640
                                 ? <ActionButton {...newEventButtonProps}>{strings.Command_NewEvent.Text}</ActionButton>
                                 : <IconButton {...newEventButtonProps} />
-                            }
+                            } */}
                         </Stack>
                     </StackItem>
                 );
