@@ -6,7 +6,8 @@ import { ViewRoute } from './views';
 
 const Root: FC = () => {
     const { active: config } = useConfigurationService();
-    const defaultView = config?.defaultView || DefaultViewKey;
+    //const defaultView = config?.defaultView || DefaultViewKey;
+    const defaultView = "list";
 
     return (
         <Routes>
