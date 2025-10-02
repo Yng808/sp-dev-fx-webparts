@@ -186,31 +186,31 @@ th {
 }
 
 // Group & Single Action Buttons
-.emailButton {
+.emailButton, .emailButton:hover {
   color: #000;
   border: 1px solid #000;
   background: rgb(255, 203, 123);
 }
 
-.assignButton {
+.assignButton, .assignButton:hover {
   color: #000;
   border: 1px solid #000;
   background: rgb(123, 218, 255);
 }
 
-.editButton {
+.editButton, .editButton:hover {
   color: #000;
   border: 1px solid #000;
   background: rgb(197, 197, 183);
 }
 
-.changeButton {
+.changeButton, .changeButton:hover {
   color: #000;
   border: 1px solid #000;
   background: rgb(226, 233, 127);
 }
 
-.cancelButton {
+.cancelButton, .cancelButton:hover {
   color: #000;
   border: 1px solid #000;
   background: rgb(255, 123, 134);
