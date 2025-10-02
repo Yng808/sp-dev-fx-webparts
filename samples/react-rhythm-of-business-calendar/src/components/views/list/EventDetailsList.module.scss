@@ -142,3 +142,76 @@
   border: 2px solid #000;
   color: #000;
 }
+
+// Table Header & Rows
+th {
+  background-color: lightblue !important; 
+  min-width: max-content;
+  white-space: nowrap;
+}
+
+/* wide column - Group Actions */
+.tdWide {
+  min-width: 375px;
+  white-space: nowrap;
+}
+
+/* large column - Single Actions */
+.tdLarge {
+  min-width: 195px;
+  white-space: nowrap;
+}
+
+/* medium coumn - DV Info, Requestor Name */
+.tdWrap {
+  max-width: 120px;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+/* Cells that should truncate long text with ellipsis */
+.tdEllipsis {
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Very narrow cells (e.g. JDIR) */
+.tdTiny {
+  max-width: 40px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Group & Single Action Buttons
+.emailButton {
+  color: #000;
+  border: 1px solid #000;
+  background: rgb(255, 203, 123);
+}
+
+.assignButton {
+  color: #000;
+  border: 1px solid #000;
+  background: rgb(123, 218, 255);
+}
+
+.editButton {
+  color: #000;
+  border: 1px solid #000;
+  background: rgb(197, 197, 183);
+}
+
+.changeButton {
+  color: #000;
+  border: 1px solid #000;
+  background: rgb(226, 233, 127);
+}
+
+.cancelButton {
+  color: #000;
+  border: 1px solid #000;
+  background: rgb(255, 123, 134);
+}

@@ -2,6 +2,7 @@ import moment from "moment";
 import { IDropdownOption } from '@fluentui/react';
 import { EventOccurrence } from 'model';
 import { Event } from 'model';
+import { User } from "common";
 
 export interface ParkingSpot {
     id: number;
@@ -120,11 +121,23 @@ export const mapSharePointItemToEventOccurrence = (item: any): EventOccurrence =
     const event = new Event(undefined, undefined, undefined, undefined, item.ID);
 
     const mapping: Record<string, keyof Event> = {
-        ParkingStallsId: "parkingStalls", ParkingStallName: "parkingStallName", RequestStatus: "requestStatus", DVPayGrade: "dvPayGrade", DVRank: "dvRank", DVFirstName: "dvFirstName", DVSurname: "dvSurname", JDIRVisiting: "jdirVisiting", DVVisiting: "dvVisiting", RequestorRank: "requestorRank", RequestorFirstName: "requestorFirstName", RequestorLastName: "requestorLastName", RequestorOffice: "requestorOffice", RequestorDutyPhone: "requestorDutyPhone", RequestorCellPhone: "requestorCellPhone", RequestorEmail: "requestorEmail", GroupID: "groupID", Editor: "editor"
+        ParkingStallsId: "parkingStalls", ParkingStallName: "parkingStallName", RequestStatus: "requestStatus", DVPayGrade: "dvPayGrade", DVRank: "dvRank", DVFirstName: "dvFirstName", DVSurname: "dvSurname", JDIRVisiting: "jdirVisiting", DVVisiting: "dvVisiting", RequestorRank: "requestorRank", RequestorFirstName: "requestorFirstName", RequestorLastName: "requestorLastName", RequestorOffice: "requestorOffice", RequestorDutyPhone: "requestorDutyPhone", RequestorCellPhone: "requestorCellPhone", RequestorEmail: "requestorEmail", GroupID: "groupID"
     };
 
     for (const [spKey, eventProp] of Object.entries(mapping)) {
-        (event as any)[eventProp] = item[spKey] ?? '';
+        (event as any)[eventProp] = item[spKey] ?? "";
+    } 
+
+    if (item.Editor) {
+        event.editor = new User(
+            item.Editor.Id,
+            item.Editor.Title,
+            item.Editor.EMail ?? "",
+            item.Editor.LoginName ?? item.Editor.EMail ?? "",
+            item.Editor.Picture ?? undefined
+        );
+    } else {
+        event.editor = null;
     }
 
     const start = moment(item.EventDate);
@@ -136,7 +149,8 @@ export const mapSharePointItemToEventOccurrence = (item: any): EventOccurrence =
 // Fetches a single event by ID
 export const fetchEventOccurrenceById = async (siteUrl: string, eventId: number): Promise<EventOccurrence> => {
     const res = await fetch(
-        `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items(${eventId})`,
+        `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items(${eventId})` +
+        `?$select=ID,ParkingStallsId,RequestStatus,DVPayGrade,DVRank,DVFirstName,DVSurname,JDIRVisiting,DVVisiting,RequestorRank,RequestorFirstName,RequestorLastName,RequestorOffice,RequestorDutyPhone,RequestorCellPhone,RequestorEmail,GroupID,Editor/Id,Editor/Title,Editor/EMail&$expand=Editor`,
         {
             method: "GET",
             headers: { Accept: "application/json;odata=verbose" }

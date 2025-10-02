@@ -1,8 +1,9 @@
-import React, { FC, useState, useEffect } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { EventOccurrence } from 'model';
 import { useTimeZoneService } from 'services';
 import moment from 'moment';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import styles from './EventDetailsList.module.scss'
 import { sp } from '@pnp/sp';
 import { fetchParkingStalls, fetchEventOccurrenceById, composeEmailInBrowser } from './spEventDetailsList';
 import { AssignPanel } from './AssignPanel';
@@ -414,7 +415,16 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 </div>
                 <div className="col">
                     <label/>
-                    <button onClick={resetFilters} className='form-control' style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)", border: "1px solid #000" }}>Reset Filters</button>
+                    <button
+                        className='form-control' 
+                        style={{ 
+                            color: "rgb(0, 0, 0)", 
+                            background: "rgb(197, 197, 183)"
+                        }} 
+                        onClick={resetFilters}
+                    >
+                        Reset Filters
+                    </button>
                 </div>
                 <div className="col">
                     <label/>
@@ -437,18 +447,18 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                 <table className="table table-bordered table-striped" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
                     <thead className="thead-dark sticky-top" style={{ zIndex: 10 }}>
                         <tr>
-                            <th style={{ backgroundColor: 'lightblue', minWidth: '375px' }}>Group Actions</th>
-                            <th style={{ backgroundColor: 'lightblue', minWidth: '190px' }}>Single Actions</th>
-                            <th style={{ backgroundColor: 'lightblue' }}>ID</th>
-                            <th style={{ backgroundColor: 'lightblue' }}>Status</th>
-                            <th style={{ backgroundColor: 'lightblue' }}>DV Pay Grade</th>
-                            <th style={{ backgroundColor: 'lightblue', minWidth: '120px'}}>DV Info</th>
-                            <th style={{ backgroundColor: 'lightblue' }}>Parking Assignment</th>
-                            <th style={{ backgroundColor: 'lightblue', minWidth: '100px' }}>Request Date</th>
-                            <th style={{ backgroundColor: 'lightblue' }}>JDIR</th>
-                            <th style={{ backgroundColor: 'lightblue', minWidth: '120px' }}>Requestor Info</th>
-                            <th style={{ backgroundColor: 'lightblue' }}>Bridge</th>
-                            <th style={{ backgroundColor: 'lightblue', minWidth: '150px' }}>Last Modified By</th>
+                            <th>Group Actions</th>
+                            <th>Single Actions</th>
+                            <th>ID</th>
+                            <th>Status</th>
+                            <th>DV Pay Grade</th>
+                            <th>DV Info</th>
+                            <th>Parking Assignment</th>
+                            <th>Request Date</th>
+                            <th>JDIR</th>
+                            <th>Requestor Info</th>
+                            <th>Bridge</th>
+                            <th>Last Modified By</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -457,61 +467,60 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             
                             // all day and in one day. Example output: 1/1/2024 
                             if (event.isAllDay && event.start.format('MM/DD/YYYY') === event.end.format('MM/DD/YYYY')) {
-                                eventDateFormatted = event.start.format('DD MMM, YYYY');
+                                eventDateFormatted = event.start.format('MM/DD/YYYY');
                             // all day and more than one day. Example output: 1/1/2024 - 1/3/2024
                             } else if(event.isAllDay && event.start.format('MM/DD/YYYY') !== event.end.format('MM/DD/YYYY')) { 
-                                eventDateFormatted = event.start.format('DD MMM, YYYY') + " - " + event.end.format('DD MMM, YYYY');
+                                eventDateFormatted = event.start.format('MM/DD/YYYY') + " - " + event.end.format('MM/DD/YYYY');
                             // not all day and in one day. Example output: 1/1/2024 0600-0800
                             } else if (!event.isAllDay && event.start.format('MM/DD/YYYY') === event.end.format('MM/DD/YYYY')) {
-                                eventDateFormatted = event.start.format('DD MMM, YYYY HHmm') + "-" + event.end.format('HHmm');
+                                eventDateFormatted = event.start.format('MM/DD/YYYY HHmm') + "-" + event.end.format('HHmm');
                             // not all day and more than one day. Example output: 1/1/2024 0600 - 1/3/2024 1400
                             } else if (!event.isAllDay && event.start.format('MM/DD/YYYY') !== event.end.format('MM/DD/YYYY')) {
-                                eventDateFormatted = event.start.format('DD MMM, YYYY HHmm') + " - " + event.end.format('DD MMM, YYYY HHmm');    
+                                eventDateFormatted = event.start.format('MM/DD/YYYY HHmm') + " - " + event.end.format('MM/DD/YYYY HHmm');    
                             } else {
                                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                                eventDateFormatted = event.start.format('DD MMM, YYYY HHmm') + " - " + event.end.format('DD MMM, YYYY HHmm');
-                            }                         
+                                eventDateFormatted = event.start.format('MM/DD/YYYY HHmm') + " - " + event.end.format('MM/DD/YYYY HHmm');
+                            }
 
                             return (
                                 <tr key={index}>
-                                    <td>
+                                    <td className={styles.tdWide}>
                                         <div>
-                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 203, 123)", border: "1px solid #000" }} onClick={() => handleSendGroupEmail(event.groupID)}>Email</button>   
+                                            <button className={`btn btn-sm me-2 ${styles.emailButton}`} onClick={() => handleSendGroupEmail(event.groupID)}>Email</button>   
                                             {event.requestStatus !== 'Cancelled' && (
                                                 <>
-                                                    <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(123, 218, 255)", border: "1px solid #000" }} onClick={() => { setGroupIDToDisplay(event.groupID); setIsPanelOpen(true); }}>Assign</button>
-                                                    <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(197, 197, 183)", border: "1px solid #000" }} onClick={() => openEditPanel(event.groupID, event.id)}>Edit</button> 
-                                                    <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(226, 233, 127)", border: "1px solid #000" }} onClick={() => openChangeDatesPanel(event.groupID)}>Change Dates</button>
-                                                    <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 123, 134)", border: "1px solid #000" }} onClick={() => handleCancelGroup(event.groupID, event)}>Cancel</button>
-                                                
+                                                    <button className={`btn btn-sm me-2 ${styles.assignButton}`} onClick={() => { setGroupIDToDisplay(event.groupID); setIsPanelOpen(true); }}>Assign</button>
+                                                    <button className={`btn btn-sm me-2 ${styles.editButton}`} onClick={() => openEditPanel(event.groupID, event.id)}>Edit</button>
+                                                    <button className={`btn btn-sm me-2 ${styles.changeButton}`} onClick={() => openChangeDatesPanel(event.groupID)}>Change Dates</button>
+                                                    <button className={`btn btn-sm me-2 ${styles.cancelButton}`} onClick={() => handleCancelGroup(event.groupID, event)}>Cancel</button>
                                                 </>
                                             )}
                                     </div>
                                 
                                     </td>
-                                    <td>
+                                    <td className={styles.tdLarge}>
                                     {event.requestStatus !== 'Cancelled' && (
                                         <div>
-                                            <button className="btn btn-sm me-2" style={{ color: "rgb(0, 0, 0)", background: "rgb(226, 233, 127)", border: "1px solid #000" }} onClick={() => openReassignPanel(event)}>Change Time</button>
-                                            <button className="btn btn-sm" style={{ color: "rgb(0, 0, 0)", background: "rgb(255, 123, 134)", border: "1px solid #000" }} onClick={() => handleCancel(event)}>Cancel</button>
+                                            <button className={`btn btn-sm me-2 ${styles.changeButton}`} onClick={() => openReassignPanel(event)}>Change Time</button>
+                                            <button className={`btn btn-sm me-2 ${styles.cancelButton}`} onClick={() => handleCancel(event)}>Cancel</button>
                                         </div>
                                     )}
                                     </td>
                                     <td>{event.groupID}</td>
                                     <td>{event.requestStatus}</td>
                                     <td>{event.dvPayGrade}</td>
-                                    <td style={{maxWidth: '120px', whiteSpace: 'normal', wordWrap: 'break-word'}}>{`${event.dvRank} ${event.dvFirstName} ${event.dvSurname}`}</td>
-                                    <td>{event.parkingStalls === -1 ? 'Unavailable' : (parkingMap[event.parkingStalls] || event.parkingStalls)}</td>
+                                    <td className={styles.tdWrap}>{`${event.dvRank} ${event.dvFirstName} ${event.dvSurname}`}</td>
+                                    <td>{event.parkingStallName ?? 'Unavailable'}</td>
                                     <td>
                                         <div>{event.start.format('DD MMM, YYYY')}</div>
                                         <div>{event.start.format('HHmm')}-{event.end.format('HHmm')}</div>
                                     </td>
                                     <td>
-                                        <div style={{maxWidth: '40px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{event.jdirVisiting}</div>
+                                        <div className={styles.tdTiny}>{event.jdirVisiting}</div>
                                     </td>
                                     <td>
-                                        <div style={{maxWidth: '120px', whiteSpace: 'normal', wordWrap: 'break-word'}}>{`${event.requestorRank} ${event.requestorFirstName} ${event.requestorLastName}`}</div>
-                                        <div style={{maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{`${event.requestorOffice} ${event.requestorCellPhone?.replace(/^(\(\d{3}\))(\d{3}-\d{4})$/, '$1 $2') || ''}`}</div>
+                                        <div className={styles.tdWrap}>{`${event.requestorRank} ${event.requestorFirstName} ${event.requestorLastName}`}</div>
+                                        <div className={styles.tdEllipsis}>{`${event.requestorOffice} ${event.requestorCellPhone?.replace(/^(\(\d{3}\))(\d{3}-\d{4})$/, '$1 $2') || ''}`}</div>
                                     </td>
                                     <td>{event.dvVisiting}</td>
                                     <td>{event.editor?.title}</td>
@@ -521,6 +530,8 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Pagination section */}
             <div className="d-flex justify-content-center align-items-center mt-3">
                 <button className="btn btn-sm btn-secondary me-2" disabled={currentPage === 1} onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}>Prev</button>
                 {pageNumbers.map((num, idx) =>
