@@ -46,7 +46,7 @@ interface IEventListItemResult extends IListItemResult {
     RequestorEmail: SPField.Query_Text;
     ParkingStalls: SPField.Query_Lookup;
     ParkingStallName: SPField.Query_Text;
-    GroupID: SPField.Query_Text;
+    GroupID: SPField.Query_Integer;
     Editor: SPField.Query_User;
 }
 
@@ -89,7 +89,7 @@ interface IEventUpdateListItem extends IUpdateListItem {
     RequestorEmail: SPField.Update_Text;
     ParkingStallsId: SPField.Update_LookupId;
     ParkingStallName: SPField.Update_Text;
-    GroupID: SPField.Update_Text;
+    GroupID: SPField.Update_Integer;
 }
 
 const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: ITimeZone, refinerValueLoader: RefinerValueLoader, eventsById: ReadonlyEventMap): Promise<void> => {
@@ -155,7 +155,7 @@ const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: IT
     event.requestorEmail = row.RequestorEmail.replace(/<[^>]+>/g, '').trim();
     event.parkingStalls = row.ParkingStalls?.[0]?.lookupId ?? undefined;
     event.parkingStallName = decode(row.ParkingStallName);
-    event.groupID = Number(row.GroupID); 
+    event.groupID = SPField.fromInteger(row, 'GroupID');
     event.editor = SPField.toUser(row.Editor);
 };
 
@@ -208,7 +208,7 @@ const toUpdateListItem = (event: Event, siteTimeZone: ITimeZone): IEventUpdateLi
         RequestorEmail: event.requestorEmail, 
         ParkingStallsId: event.parkingStalls,
         ParkingStallName: event.parkingStallName,
-        GroupID: event.groupID.toString()
+        GroupID: event.groupID
     };
 };
 

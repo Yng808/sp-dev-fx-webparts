@@ -220,7 +220,7 @@ export interface IGuidFieldDefinition extends ICommonFieldDefinition {
     type: FieldType.Guid;
 }
 
-export type AllowedIntegerFieldNames = 'ID' | 'EventType' | 'MasterSeriesItemID' | 'Duration';
+export type AllowedIntegerFieldNames = 'ID' | 'EventType' | 'MasterSeriesItemID' | 'Duration' | 'GroupID';
 export interface IIntegerFieldDefinition extends ICommonFieldDefinition {
     type: FieldType.Integer;
     name: AllowedIntegerFieldNames;

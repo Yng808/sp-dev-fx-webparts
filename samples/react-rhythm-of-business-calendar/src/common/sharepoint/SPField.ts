@@ -116,8 +116,14 @@ export const fromYesNo = <T>(row: T, fieldName: PropsOfType<T, Query_Boolean>, d
 };
 
 export const fromInteger = <T>(row: T, fieldName: PropsOfType<T, Query_Integer> & AllowedIntegerFieldNames): number => {
-    const value: string = (row as any)[fieldName];
-    return parseIntOrDefault(value, undefined, 10);
+    const value = (row as any)[fieldName];
+
+    if (value === null || value === undefined || value === '') return undefined;
+
+    const cleaned = value.toString().replace(/,/g, '').trim();
+    const parsed = Number(cleaned);
+
+    return isNaN(parsed) ? undefined : parsed;
 };
 
 export const fromInt = <T>(row: T, fieldName: PropsOfType<T, Query_Number>, defaultValue: number = Number.NaN, radix: number = 10): number => {
