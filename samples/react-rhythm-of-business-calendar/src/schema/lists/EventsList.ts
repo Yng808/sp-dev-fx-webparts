@@ -167,8 +167,8 @@ const Field_ReadAheadDueDate: IDateTimeFieldDefinition = {
 const Field_RequestStatus: IChoiceFieldDefinition = {
     type: FieldType.Choice,
     name: 'RequestStatus',
-    choices: ['New Request', 'Approve Request', 'Cancel Request', 'Reject Request'],
-    default: ''
+    choices: ['New', 'Approved', 'Cancelled'],
+    default: 'New'
 };
 
 const Field_DVPayGrade: IChoiceFieldDefinition = {
@@ -250,8 +250,8 @@ const Field_ParkingStallName: ITextFieldDefinition = {
     name: 'ParkingStallName'
 };
 
-const Field_GroupID: ITextFieldDefinition = {
-    type: FieldType.Text,
+const Field_GroupID: IIntegerFieldDefinition = {
+    type: FieldType.Integer,
     name: 'GroupID'
 };
 

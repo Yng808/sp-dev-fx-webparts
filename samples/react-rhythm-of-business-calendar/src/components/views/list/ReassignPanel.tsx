@@ -50,7 +50,8 @@ export const ReassignPanel: React.FC<Props> = ({ isReassignPanelOpen, setIsReass
                 EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
                 EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
                 RequestStatus: 'New',
-                ParkingStallsId: null
+                ParkingStallsId: null,
+                ParkingStallName: ""
             });
 
             setFilteredEvents(prev =>
