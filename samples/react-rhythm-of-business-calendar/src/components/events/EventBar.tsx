@@ -1,9 +1,10 @@
-import React, { CSSProperties, FC, useMemo } from 'react';
+import React, { CSSProperties, FC, useContext, useMemo } from 'react';
 import { css, Stack, StackItem, useTheme } from '@fluentui/react';
 import { useConst } from '@fluentui/react-hooks';
 import { LockIcon, POIIcon, RecentIcon, RepeatAllIcon } from '@fluentui/react-icons-mdl2';
 import { IEvent } from 'model';
 import { useConfigurationService } from 'services';
+import { FilterConfigContext } from 'components/shared/FilterConfigContext';
 
 import { Humanize as strings } from 'ComponentStrings';
 
@@ -60,6 +61,7 @@ interface IProps {
 export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverride, size = EventBarSize.Compact }) => {
     const { palette: { themePrimary } } = useTheme();
     const { active: { useApprovals } } = useConfigurationService();
+    const { showCOMDecision } = useContext(FilterConfigContext);
 
     const { isPendingApproval, isRejected, title, start, end, isAllDay, location, tag, color, isConfidential, isRecurring, comDecision } = event;
 
@@ -77,11 +79,11 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
     );
 
     const style: CSSProperties = useMemo(() => {
-        
+
         const bgColor = color?.toCssString() || themePrimary;
         const textColor = isDarkColor(bgColor) ? 'white' : 'black';
 
-        
+
 
         return {
             backgroundColor: bgColor,
@@ -95,8 +97,8 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
             : isAllDay ? strings.AllDay : `${start?.format('HHmm')}-${end?.format('HHmm')}`
         );
 
-    // Prepend the first character of comDecision to the title if it exists
-    const modifiedTitle = comDecision ? `(${comDecision.charAt(0)}) ${title}` : title;
+    // Prepend the first character of comDecision to the title if it exists (only if showCOMDecision is true)
+    const modifiedTitle = (showCOMDecision && comDecision) ? `(${comDecision.charAt(0)}) ${title}` : title;
 
 
     return (

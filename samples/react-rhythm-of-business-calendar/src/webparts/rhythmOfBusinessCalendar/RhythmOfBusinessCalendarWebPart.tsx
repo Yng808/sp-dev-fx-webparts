@@ -22,6 +22,9 @@ export interface IWebPartProps {
     showReadAheadDueDate: boolean;
     showDecisionBrief: boolean;
     showLocation: boolean;
+    showCOMDecision: boolean;
+    comDecisionLabel: string;
+    comDecisionChoices: string;
 }
 
 export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPart<IWebPartProps> {
@@ -39,6 +42,9 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
         let showReadAheadDueDate = this.properties.showReadAheadDueDate !== undefined ? this.properties.showReadAheadDueDate : true;
         let showDecisionBrief = this.properties.showDecisionBrief !== undefined ? this.properties.showDecisionBrief : true;
         let showLocation = this.properties.showLocation !== undefined ? this.properties.showLocation : true;
+        let showCOMDecision = this.properties.showCOMDecision !== undefined ? this.properties.showCOMDecision : true;
+        let comDecisionLabel = this.properties.comDecisionLabel || 'COM Decision';
+        let comDecisionChoices = this.properties.comDecisionChoices || 'Undecided;Tentative;Hold;Accept';
 
         ReactDom.render(
             <div>
@@ -48,7 +54,7 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
                 >
                     Download as PDF
                 </button>
-                <FilterConfigContext.Provider value={{ filterButtons, showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief, showLocation }}>
+                <FilterConfigContext.Provider value={{ filterButtons, showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief, showLocation, showCOMDecision, comDecisionLabel, comDecisionChoices }}>
                     <RhythmOfBusinessCalendarApp webpart={this} />
                 </FilterConfigContext.Provider>
             </div>,
@@ -124,26 +130,46 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
                           },
                           {
                             groupName: "List View / Tab Settings",
-                            groupFields: [                              
-                              PropertyPaneCheckbox('showOPR', { 
+                            groupFields: [
+                              PropertyPaneCheckbox('showOPR', {
                                 text: "Show OPR column on list view",
-                                checked: true                                
+                                checked: true
                               }),
-                              PropertyPaneCheckbox('showAttendee', { 
+                              PropertyPaneCheckbox('showAttendee', {
                                 text: "Show OPR Attendee column on list view",
-                                checked: true                                
+                                checked: true
                               }),
-                              PropertyPaneCheckbox('showReadAheadDueDate', { 
+                              PropertyPaneCheckbox('showReadAheadDueDate', {
                                 text: "Show Read Ahead Due Date column on list view",
-                                checked: true                                
+                                checked: true
                               }),
-                              PropertyPaneCheckbox('showDecisionBrief', { 
+                              PropertyPaneCheckbox('showDecisionBrief', {
                                 text: "Show Decision Brief column on list view",
-                                checked: true                                
+                                checked: true
                               }),
-                              PropertyPaneCheckbox('showLocation', { 
+                              PropertyPaneCheckbox('showLocation', {
                                 text: "Show Location column on list view",
-                                checked: true                                
+                                checked: true
+                              }),
+                              PropertyPaneCheckbox('showCOMDecision', {
+                                text: "Show COM Decision field",
+                                checked: true
+                              })
+                            ]
+                          },
+                          {
+                            groupName: "COM Decision Field Settings",
+                            groupFields: [
+                              PropertyPaneTextField('comDecisionLabel', {
+                                label: "COM Decision Field Label",
+                                description: "Customize the label for the COM Decision field",
+                                value: "COM Decision"
+                              }),
+                              PropertyPaneTextField('comDecisionChoices', {
+                                label: "COM Decision Choices",
+                                description: "Enter choices separated by semicolons (e.g., Undecided;Tentative;Hold;Accept)",
+                                multiline: true,
+                                value: "Undecided;Tentative;Hold;Accept"
                               })
                             ]
                           }

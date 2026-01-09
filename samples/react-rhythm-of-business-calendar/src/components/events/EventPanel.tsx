@@ -11,6 +11,7 @@ import { RefinerValuePill } from '../refiners';
 import { ListItemTechnicals } from '../shared';
 import { PatternChoiceGroup, DailyEditor, WeeklyEditor, MonthlyEditor, YearlyEditor, UntilEditor } from '../recurrence';
 import { IEventCommands } from './IEventCommands';
+import { FilterConfigContext } from 'components/shared/FilterConfigContext';
 
 import { PersistConcurrencyFailureMessage, Validation as validationStrings, EventPanel as strings } from "ComponentStrings";
 
@@ -44,6 +45,8 @@ interface IOwnState {
 type IState = IOwnState & IDataPanelBaseState<Event>;
 
 class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEventPanel {
+    static contextType = FilterConfigContext;
+    context!: React.ContextType<typeof FilterConfigContext>;
     private readonly _refinerValueValidationRulesByRefiner = new Map<Refiner, RefinerValueValidationRule>();
 
     protected get title() {
@@ -410,43 +413,47 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             </LiveText>
                         </GridCol>
                     </GridRow>
-                    <GridRow>
-                        <GridCol sm={12}>
-                            <LiveText
-                                label="COM Decision"
-                                {...liveProps}
-                                propertyName="comDecision"
-                            >
-                                {(val) => {
-                                    //console.log("Display Mode - COM Decision:", val);
-                                    return (
+                    {this.context.showCOMDecision && (
+                        <GridRow>
+                            <GridCol sm={12}>
+                                <LiveText
+                                    label={this.context.comDecisionLabel}
+                                    {...liveProps}
+                                    propertyName="comDecision"
+                                >
+                                    {(val) => {
+                                        //console.log("Display Mode - COM Decision:", val);
+                                        return (
+                                            <Text data-is-focusable>
+                                                {val || "-"}
+                                            </Text>
+                                        );
+                                    }}
+                                </LiveText>
+                            </GridCol>
+                        </GridRow>
+                    )}
+                    {this.context.showReadAheadDueDate && (
+                        <GridRow>
+                            <GridCol sm={12}>
+                                <LiveText
+                                    label="Read Ahead Due Date"
+                                    {...liveProps}
+                                    propertyName="readAheadDueDate"
+                                >
+                                    {(readAheadDueDate) => (
                                         <Text data-is-focusable>
-                                            {val || "-"}
+                                            {readAheadDueDate
+                                                ? readAheadDueDate.format(
+                                                      "dddd, MMMM DD, YYYY"
+                                                  )
+                                                : "-"}
                                         </Text>
-                                    );
-                                }}
-                            </LiveText>
-                        </GridCol>
-                    </GridRow>
-                    <GridRow>
-                        <GridCol sm={12}>
-                            <LiveText
-                                label="Read Ahead Due Date"
-                                {...liveProps}
-                                propertyName="readAheadDueDate"
-                            >
-                                {(readAheadDueDate) => (
-                                    <Text data-is-focusable>
-                                        {readAheadDueDate
-                                            ? readAheadDueDate.format(
-                                                  "dddd, MMMM DD, YYYY"
-                                              )
-                                            : "-"}
-                                    </Text>
-                                )}
-                            </LiveText>
-                        </GridCol>
-                    </GridRow>
+                                    )}
+                                </LiveText>
+                            </GridCol>
+                        </GridRow>
+                    )}
                     <GridRow>
                         {refiners.map((refiner) => {
                             const transformer = {
@@ -773,33 +780,35 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         />
                     </GridCol>
                 </GridRow>
-                <GridRow>
-                    <GridCol sm={12}>
-                    <LiveDropdown
-                        {...liveProps}
-                        label="COM Decision"
-                        propertyName="comDecision"
-                        options={[
-                            { key: 'Undecided', text: 'Undecided' },
-                            { key: 'Tentative', text: 'Tentative' },
-                            { key: 'Hold', text: 'Hold' },
-                            { key: 'Accept', text: 'Accept' }
-                        ]}
-                        required={false}
-                        getKeyFromValue={(val) => val}  // This assumes that the value is the key itself
-                    />
-                    </GridCol>
-                </GridRow>
-                <GridRow>
-                    <GridCol sm={12}>
-                        <LiveDatePicker
+                {this.context.showCOMDecision && (
+                    <GridRow>
+                        <GridCol sm={12}>
+                        <LiveDropdown
                             {...liveProps}
-                            label="Read Ahead Due Date"
-                            propertyName='readAheadDueDate'                        
-                            allowTextInput
+                            label={this.context.comDecisionLabel}
+                            propertyName="comDecision"
+                            options={this.context.comDecisionChoices.split(';').map(choice => ({
+                                key: choice.trim(),
+                                text: choice.trim()
+                            }))}
+                            required={false}
+                            getKeyFromValue={(val) => val}  // This assumes that the value is the key itself
                         />
-                    </GridCol>
-                </GridRow>
+                        </GridCol>
+                    </GridRow>
+                )}
+                {this.context.showReadAheadDueDate && (
+                    <GridRow>
+                        <GridCol sm={12}>
+                            <LiveDatePicker
+                                {...liveProps}
+                                label="Read Ahead Due Date"
+                                propertyName='readAheadDueDate'
+                                allowTextInput
+                            />
+                        </GridCol>
+                    </GridRow>
+                )}
                 
                 <GridRow>
                     {refiners.filter(Entity.NotDeletedFilter).map(refiner => {

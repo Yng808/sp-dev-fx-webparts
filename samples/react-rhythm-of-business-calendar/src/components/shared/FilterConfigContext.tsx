@@ -13,7 +13,10 @@ export interface IFilterConfigContext {
   showAttendee: boolean;
   showReadAheadDueDate: boolean;
   showDecisionBrief: boolean;
-  showLocation: boolean
+  showLocation: boolean;
+  showCOMDecision: boolean;
+  comDecisionLabel: string;
+  comDecisionChoices: string;
 }
 
 export const FilterConfigContext = React.createContext<IFilterConfigContext>({
@@ -22,5 +25,8 @@ export const FilterConfigContext = React.createContext<IFilterConfigContext>({
   showAttendee: true,
   showReadAheadDueDate: true,
   showDecisionBrief: true,
-  showLocation: true
+  showLocation: true,
+  showCOMDecision: true,
+  comDecisionLabel: 'COM Decision',
+  comDecisionChoices: 'Undecided;Tentative;Hold;Accept'
 });
