@@ -390,7 +390,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                 propertyName="description"
                             >
                                 {(val) => (
-                                    <Text data-is-focusable>{val || "-"}</Text>
+                                    <Text data-is-focusable style={{ whiteSpace: 'pre-wrap' }}>{val || "-"}</Text>
                                 )}
                             </LiveText>
                         </GridCol>

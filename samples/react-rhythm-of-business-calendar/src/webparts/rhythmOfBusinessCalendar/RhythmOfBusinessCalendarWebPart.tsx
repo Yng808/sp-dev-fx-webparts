@@ -43,8 +43,8 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
         let showDecisionBrief = this.properties.showDecisionBrief !== undefined ? this.properties.showDecisionBrief : true;
         let showLocation = this.properties.showLocation !== undefined ? this.properties.showLocation : true;
         let showCOMDecision = this.properties.showCOMDecision !== undefined ? this.properties.showCOMDecision : true;
-        let comDecisionLabel = this.properties.comDecisionLabel || 'COM Decision';
-        let comDecisionChoices = this.properties.comDecisionChoices || 'Undecided;Tentative;Hold;Accept';
+        let comDecisionLabel = this.properties.comDecisionLabel !== undefined ? this.properties.comDecisionLabel : 'COM Decision';
+        let comDecisionChoices = this.properties.comDecisionChoices !== undefined ? this.properties.comDecisionChoices : 'Undecided;Tentative;Hold;Accept';
 
         ReactDom.render(
             <div>
