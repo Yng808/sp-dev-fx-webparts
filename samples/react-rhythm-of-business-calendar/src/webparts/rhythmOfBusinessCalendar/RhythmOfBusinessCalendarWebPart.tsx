@@ -140,7 +140,7 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
                                 checked: true
                               }),
                               PropertyPaneCheckbox('showReadAheadDueDate', {
-                                text: "Show Read Ahead Due Date column on list view",
+                                text: "Show Read Ahead Due Date",
                                 checked: true
                               }),
                               PropertyPaneCheckbox('showDecisionBrief', {
