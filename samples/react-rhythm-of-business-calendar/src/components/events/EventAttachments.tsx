@@ -31,7 +31,7 @@ const EventAttachments: React.FC<EventAttachmentsProps> = ({
                 const web = await sp.web.get();
                 const siteUrl = web.Url;
 
-                console.log("line 28:" + siteUrl);
+                // console.log("line 28:" + siteUrl);
 
                 const response = await fetch(
                     `${siteUrl}/_api/web/lists/getbytitle('RoB Calendar Events')/items(${itemId})/AttachmentFiles`,
