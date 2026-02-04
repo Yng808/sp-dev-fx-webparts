@@ -14,6 +14,9 @@ import { RefinerLoader } from './RefinerLoader';
 import { RefinerValueLoader } from './RefinerValueLoader';
 import { ApproversLoader } from './ApproversLoader';
 import { Defaults } from './Defaults';
+import { ExternalListDataService } from './ExternalListDataService';
+import { ExternalListsLoader } from './ExternalListsLoader'; 
+import { SPHttpClient } from '@microsoft/sp-http';
 
 import { AppName, ApprovalEmails as strings } from 'ComponentStrings';
 
@@ -24,6 +27,10 @@ export class OnlineEventsService implements IEventsService {
     private readonly _directory: IDirectoryService;
     private readonly _spo: ISharePointService;
     private readonly _configurations: IConfigurationService;
+    private readonly _spHttpClient: SPHttpClient;
+    private readonly _webAbsoluteUrl: string;
+    private readonly _externalListDataService: ExternalListDataService;
+    private readonly _externalListsLoader: ExternalListsLoader;
 
     private _eventLoader: EventLoader;
     private _refinerLoader: RefinerLoader;
@@ -45,21 +52,88 @@ export class OnlineEventsService implements IEventsService {
         this._directory = directory;
         this._spo = spo;
         this._configurations = configurations;
-
+        
+        // Get SPHttpClient and webAbsoluteUrl from the _context property of SharePointService
+        // The _context is the SPFx BaseClientSideWebPart context object
+        const context = (this._spo as any)._context;
+        this._spHttpClient = context.spHttpClient as SPHttpClient;
+        this._webAbsoluteUrl = context.pageContext.web.absoluteUrl as string;
+        
+        this._externalListDataService = new ExternalListDataService(
+            this._spHttpClient,
+            this._webAbsoluteUrl
+        );
+        this._externalListsLoader = new ExternalListsLoader(this._spo);
         dev.registerScripts(this._devScripts);
     }
+public async initialize(): Promise<void> {
+    const configuration = this._configurations.active;
 
-    public async initialize(): Promise<void> {
-        const configuration = this._configurations.active;
+    if (configuration && !configuration.isNew) {
+        const schema = configuration.schema;
 
-        if (configuration && !configuration.isNew) {
-            const schema = configuration.schema;
+        this._refinerLoader = new RefinerLoader(schema, this._timezones, this._spo, this._liveUpdate);
+        this._refinerValueLoader = new RefinerValueLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerLoader);
+        this._eventLoader = new EventLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
+        this._approversLoader = new ApproversLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
 
-            this._refinerLoader = new RefinerLoader(schema, this._timezones, this._spo, this._liveUpdate);
-            this._refinerValueLoader = new RefinerValueLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerLoader);
-            this._eventLoader = new EventLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
-            this._approversLoader = new ApproversLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
+        const externalConfigs = await this._externalListsLoader.loadExternalListConfigs();
+        const externalEvents = await this._externalListDataService.loadEventsFromExternalLists(externalConfigs);
+
+        // Process external events
+        externalEvents.forEach(e => {
+            e.snapshot();
+            
+            // **CRITICAL**: Mark external events as approved so they bypass approval checks
+            // External events come from trusted sources and should always display
+            e.moderationStatus = EventModerationStatus.Approved;
+            console.log(` External event "${e.title}" marked as APPROVED (bypassing approval filter)`);
+            
+            this._eventLoader.track(e);
+        });
+
+        // Now that eventLoader has the external events tracked, we can try to add refiner values
+        // This happens asynchronously in the background
+        this._addRefinerValuesToExternalEvents(externalEvents).catch(err => {
+            console.warn(` Could not add refiner values to external events:`, err);
+            // Don't fail initialization if this doesn't work - events are already tracked
+        });
+    }
+}
+
+/**
+ * Asynchronously add "Army Green" refiner value to external events
+ * This runs in the background after initialization
+ */
+private async _addRefinerValuesToExternalEvents(externalEvents: Event[]): Promise<void> {
+    try {
+        // Wait a bit for refiner values to load
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const allRefinerValues = await this._refinerValueLoader.all();
+        const armyGreenRefinerValue = allRefinerValues.find(rv => rv.title === 'Army Green');
+        
+        if (!armyGreenRefinerValue) {
+            console.warn(` "Army Green" RefinerValue not found`);
+            console.log(`   Available RefinerValues:`, allRefinerValues.map(rv => rv.title).join(', '));
+            return;
         }
+
+        console.log(` Found "Army Green" RefinerValue`);
+
+        externalEvents.forEach(e => {
+            if (!e.isDeleted) {
+                e.refinerValues.add(armyGreenRefinerValue);
+                console.log(`Added "Army Green" refiner to external event: "${e.title}"`);
+            }
+        });
+
+    } catch (error) {
+        console.warn(` Error adding refiner values:`, error);
+    }
+}
+    public get externalListsLoader(): ExternalListsLoader {
+        return this._externalListsLoader;
     }
 
     public get eventsAsync(): IAsyncData<readonly Event[]> {

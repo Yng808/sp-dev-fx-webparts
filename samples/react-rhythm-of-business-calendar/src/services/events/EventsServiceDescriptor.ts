@@ -3,6 +3,7 @@ import { IService, IServiceDescriptor, DeveloperService, SharePointService, Time
 import { Approvers, Event, ReadonlyEventMap, Refiner, RefinerValue } from "model";
 import { ConfigurationService } from "../configuration";
 import { OnlineEventsService } from "./OnlineEventsService";
+import { ExternalListsLoader } from "./ExternalListsLoader";
 
 export const EventsService: unique symbol = Symbol("Events Service");
 
@@ -25,6 +26,8 @@ export interface IEventsService extends IService {
     addToOutlook(event: Event): void;
 
     createEventDeepLink(event: Event): string;
+
+    readonly externalListsLoader: ExternalListsLoader;
 }
 
 export type EventsServiceProp = {

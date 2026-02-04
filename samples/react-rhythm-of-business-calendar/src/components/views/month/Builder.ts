@@ -115,9 +115,16 @@ export class WeekInfo {
     }
 
     public include(cccurrence: EventOccurrence) {
-        //console.log('Processing Event:', cccurrence.title, 'Start:', cccurrence.start.format(), 'End:', cccurrence.end.format());
+        console.log('   WeekInfo.include START');
+        console.log('   Event title:', cccurrence.title);
+        console.log('   Event start:', cccurrence.start.format('YYYY-MM-DD HH:mm:ss Z'));
+        console.log('   Event end:', cccurrence.end.format('YYYY-MM-DD HH:mm:ss Z'));
+        console.log('   Event isAllDay:', cccurrence.isAllDay);
+        console.log('   Week start:', this.start.format('YYYY-MM-DD HH:mm:ss Z'));
+        console.log('   Week end:', this.end.format('YYYY-MM-DD HH:mm:ss Z'));
+        
         const cccurrenceTimezone = cccurrence.start.tz();
-        const thisStartUtc = this.start.clone().tz(cccurrenceTimezone, true); // Should retain the exact date and time.
+        const thisStartUtc = this.start.clone().tz(cccurrenceTimezone, true);
         const thisEndUtc = this.end.clone().tz(cccurrenceTimezone, true);
         const range2Utc = new MomentRange();
 
@@ -130,18 +137,14 @@ export class WeekInfo {
             range2Utc.end = this.end;
         }
 
+        console.log('   Range start (adjusted):', range2Utc.start.format('YYYY-MM-DD HH:mm:ss Z'));
+        console.log('   Range end (adjusted):', range2Utc.end.format('YYYY-MM-DD HH:mm:ss Z'));
+        
+        const overlaps = MomentRange.overlaps(cccurrence, range2Utc, 'second');
+        console.log('   Overlaps result:', overlaps);
 
-        console.log('inside weekinfo include');
-        console.log('inside weekinfo include cccurrence', cccurrence);
-        console.log('inside weekinfo this.start:', this.start);
-        console.log('inside weekinfo thisStartUTC:', thisStartUtc);
-        console.log('inside weekinfo this.end:', this.end);
-        console.log('inside weekinfo thisEndUtc:', thisEndUtc);
-        console.log('inside weekinfo momentrange.overlaps:', MomentRange.overlaps(cccurrence, range2Utc, 'second'));
-
-        if (MomentRange.overlaps(cccurrence, range2Utc, 'second')) {
-
-
+        if (overlaps) {
+            console.log(' Event INCLUDED in week');
             let availableRow = this.contentRows.find(row => row.canInclude(cccurrence));
 
             if (!availableRow) {
@@ -150,10 +153,11 @@ export class WeekInfo {
             }
 
             availableRow.include(cccurrence);
-
+        } else {
+            console.log(' Event EXCLUDED - does not overlap with week');
         }
 
-        //console.log('end of weekinfo include');
+        console.log(' WeekInfo.include END\n');
     }
 }
 
@@ -167,11 +171,11 @@ export class Builder {
     }
 
     public static build(cccurrences: readonly EventOccurrence[], anchorDate: Moment): WeekInfo[] {
-        // console.log('inside builder build');
-        // console.log('inside builder cccurrences:', cccurrences);
+        console.log('Builder.build START - processing', cccurrences.length, 'occurrences');
         const weeks = this._createWeeks(anchorDate);
+        console.log('Created', weeks.length, 'weeks');
         this._fillWeeksWithEvents(weeks, cccurrences);
-        //console.log('end builder build');
+        console.log(' Builder.build END\n');
         return weeks;
     }
 
@@ -193,16 +197,10 @@ export class Builder {
 
     private static _fillWeeksWithEvents(weeks: WeekInfo[], cccurrences: readonly EventOccurrence[]) {
         const sortedEventOccurrences = [...cccurrences].sort(EventOccurrence.StartAscComparer);
-        //console.log('sortedEventOccurrences', sortedEventOccurrences);
         for (const week of weeks) {
-            // console.log('inside for loop of fill weeks with events');
-            //console.log('week:',week);
             sortedEventOccurrences.forEach(occurrence => {
-
-                week.include(occurrence)
-                //console.log('fill weeks occurrence:', occurrence);
+                week.include(occurrence);
             });
-            //console.log('end of loop fill weeks with events');
         }
     }
 }
