@@ -1,5 +1,5 @@
 import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
-import { ExternalListConfig } from 'model';
+import { ExternalListConfig, EventModerationStatus } from 'model';
 import { Event } from 'model/Event';
 import moment from 'moment-timezone';
 
@@ -28,17 +28,6 @@ export class ExternalListDataService {
   }
 
   public async loadEventsFromExternalList(config: ExternalListConfig): Promise<Event[]> {
-    console.log(`\n📋 Loading external list: "${config.titleField}"`);
-    console.log(`   Config:`, {
-      listId: config.listId,
-      siteUrl: config.siteUrl,
-      titleField: config.titleField,
-      startDateField: config.startDateField,
-      endDateField: config.endDateField,
-      categoryField: config.categoryField,
-      enabled: config.enabled
-    });
-
     const items = await this._fetchListItems(config);
     console.log(`✅ Fetched ${items.length} items`);
     
@@ -49,19 +38,17 @@ export class ExternalListDataService {
     const siteUrl = this._normalizeSiteUrl(config.siteUrl);
     const selectFields = this._buildSelectFields(config);
 
-    // Build the API URL - only add $orderby if startDateField is defined
     let apiUrl =
       `${siteUrl}/_api/web/lists(guid'${config.listId}')/items` +
       `?$select=${selectFields}`;
 
-    // Only add $orderby if we have a valid startDateField
-    if (config.startDateField) {
-      apiUrl += `&$orderby=${config.startDateField}`;
+    if (config.eventDate) {
+      apiUrl += `&$orderby=${config.eventDate}`;
     }
 
     apiUrl += `&$top=5000`;
 
-    console.log('📡 API URL:', apiUrl);
+    console.log(' API URL:', apiUrl);
 
     const response: SPHttpClientResponse = await this.spHttpClient.get(
       apiUrl,
@@ -69,17 +56,17 @@ export class ExternalListDataService {
     );
 
     if (!response.ok) {
-      console.error('❌ API Error:', response.status, response.statusText);
+      console.error('API Error:', response.status, response.statusText);
       const responseText = await response.text();
       console.error('Response body:', responseText);
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log('✅ Loaded items:', data.value?.length || 0);
+    console.log('Loaded items:', data.value?.length || 0);
     
     if (data.value && data.value.length > 0) {
-      console.log('📦 First item:', data.value[0]);
+      console.log('First item:', data.value[0]);
     }
     
     return data.value || [];
@@ -88,22 +75,22 @@ export class ExternalListDataService {
   private _buildSelectFields(config: ExternalListConfig): string {
     const fields: string[] = ['Id', config.titleField];
 
-    console.log(`🔧 Building select fields:`);
+    console.log(` Building select fields:`);
     console.log(`   titleField: "${config.titleField}" → added`);
 
     // Only add date fields if they're defined
-    if (config.startDateField) {
-      console.log(`   startDateField: "${config.startDateField}" → ADDING`);
-      fields.push(config.startDateField);
+    if (config.eventDate) {
+      console.log(`   eventDate: "${config.eventDate}" → ADDING`);
+      fields.push(config.eventDate);
     } else {
-      console.log(`   startDateField: UNDEFINED (NOT ADDING)`);
+      console.log(`   eventDate: UNDEFINED (NOT ADDING)`);
     }
 
-    if (config.endDateField) {
-      console.log(`   endDateField: "${config.endDateField}" → ADDING`);
-      fields.push(config.endDateField);
+    if (config.endDate) {
+      console.log(`   endDate: "${config.endDate}" → ADDING`);
+      fields.push(config.endDate);
     } else {
-      console.log(`   endDateField: UNDEFINED (NOT ADDING)`);
+      console.log(`   endDate: UNDEFINED (NOT ADDING)`);
     }
 
     if (config.categoryField) {
@@ -121,24 +108,27 @@ export class ExternalListDataService {
 
   private _mapItemToEvent(item: IExternalListItem, config: ExternalListConfig): Event {
     const event = new Event();
-
+    
+    // CRITICAL: Snapshot before setting any properties
+    event.snapshot();
+    
     event.title = this._getValue(item, config.titleField) || '';
 
     // Get start and end values
     let startValue = null;
     let endValue = null;
 
-    if (config.startDateField) {
-      startValue = this._getValue(item, config.startDateField);
-      console.log(`📅 Event "${event.title}": startValue = "${startValue}"`);
+    if (config.eventDate) {
+      startValue = this._getValue(item, config.eventDate);
+      console.log(`Event "${event.title}": startValue = "${startValue}"`);
       if (startValue) {
         event.start = moment(startValue);
       }
     }
 
-    if (config.endDateField) {
-      endValue = this._getValue(item, config.endDateField);
-      console.log(`📅 Event "${event.title}": endValue = "${endValue}"`);
+    if (config.endDate) {
+      endValue = this._getValue(item, config.endDate);
+      console.log(`Event "${event.title}": endValue = "${endValue}"`);
       if (endValue) {
         event.end = moment(endValue);
       }
@@ -161,8 +151,15 @@ export class ExternalListDataService {
       event.start = event.start.startOf('day');
       event.end = event.end.startOf('day');
     }
+    
+    // CRITICAL: Mark as approved and set moderation fields
+    event.moderationStatus = EventModerationStatus.Approved;
+    event.moderationTimestamp = moment();
+    
+    // Set the creator/author to current user (you'll need to pass this in)
+    // For now, we'll set it in the OnlineEventsService
 
-    console.log(`✅ Created event: "${event.title}" (${event.start.format('YYYY-MM-DD')} to ${event.end.format('YYYY-MM-DD')})`);
+    console.log(`Created event: "${event.title}" (${event.start.format('YYYY-MM-DD')} to ${event.end.format('YYYY-MM-DD')})`);
 
     return event;
   }

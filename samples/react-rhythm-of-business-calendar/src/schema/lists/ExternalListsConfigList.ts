@@ -11,8 +11,8 @@ export interface IExternalListsConfig {
   ViewId?: string;
   ViewTitle?: string;
   TitleField: string;
-  StartDateField: string;
-  EndDateField?: string;
+  EventDate: string;
+  EndDate?: string;
   CategoryField?: string;
   LocationField?: string;
   DescriptionField?: string;
@@ -69,13 +69,13 @@ const ExternalListsConfigList: IListDefinition = {
       required: true
     },
     {
-      name: "StartDateField",
+      name: "EventDate",
       displayName: "Start Date Field Internal Name",
       type: FieldType.Text,
       required: true
     },
     {
-      name: "EndDateField",
+      name: "EndDate",
       displayName: "End Date Field Internal Name",
       type: FieldType.Text,
       required: false
@@ -132,7 +132,9 @@ const ExternalListsConfigList: IListDefinition = {
         "SiteUrl",
         "ListTitle",
         "TitleField",
-        "StartDateField",
+        "EventDate",
+        "EndDate",
+        "CategoryField",
         "IsEnabled",
         "SortOrder",
         "Modified"
@@ -149,7 +151,9 @@ const ExternalListsConfigList: IListDefinition = {
         "SiteUrl",
         "ListTitle",
         "TitleField",
-        "StartDateField",
+        "EventDate",
+        "EndDate",
+        "CategoryField",
         "SortOrder"
       ]
     }

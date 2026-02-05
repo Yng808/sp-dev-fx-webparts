@@ -17,7 +17,7 @@ import { Defaults } from './Defaults';
 import { ExternalListDataService } from './ExternalListDataService';
 import { ExternalListsLoader } from './ExternalListsLoader'; 
 import { SPHttpClient } from '@microsoft/sp-http';
-
+import moment from 'moment-timezone';
 import { AppName, ApprovalEmails as strings } from 'ComponentStrings';
 
 export class OnlineEventsService implements IEventsService {
@@ -66,6 +66,7 @@ export class OnlineEventsService implements IEventsService {
         this._externalListsLoader = new ExternalListsLoader(this._spo);
         dev.registerScripts(this._devScripts);
     }
+    
 public async initialize(): Promise<void> {
     const configuration = this._configurations.active;
 
@@ -77,61 +78,81 @@ public async initialize(): Promise<void> {
         this._eventLoader = new EventLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
         this._approversLoader = new ApproversLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
 
-        const externalConfigs = await this._externalListsLoader.loadExternalListConfigs();
-        const externalEvents = await this._externalListDataService.loadEventsFromExternalLists(externalConfigs);
+        console.log('🔧 OnlineEventsService: Loaders initialized');
 
-        // Process external events
-        externalEvents.forEach(e => {
-            e.snapshot();
+        try {
+            // Load external list configs and create external events FIRST
+            const externalConfigs = await this._externalListsLoader.loadExternalListConfigs();
+            console.log(`📋 Loaded ${externalConfigs.length} external list config(s)`);
             
-            // **CRITICAL**: Mark external events as approved so they bypass approval checks
-            // External events come from trusted sources and should always display
-            e.moderationStatus = EventModerationStatus.Approved;
-            console.log(` External event "${e.title}" marked as APPROVED (bypassing approval filter)`);
-            
-            this._eventLoader.track(e);
-        });
+            if (externalConfigs.length > 0) {
+                // Wait for refiner values to be loaded
+                const allRefinerValues = await this._refinerValueLoader.all();
+                console.log(`🏷️ Available RefinerValues (${allRefinerValues.length})`);
+                
+                const armyGreenRefinerValue = allRefinerValues.find(rv => rv.title === 'Army Green');
+                
+                if (!armyGreenRefinerValue) {
+                    console.warn(`⚠️ "Army Green" RefinerValue not found.`);
+                }
+                
+                // Load external events
+                console.log('📥 Loading external events...');
+                const externalEvents = await this._externalListDataService.loadEventsFromExternalLists(externalConfigs);
+                console.log(`📅 Loaded ${externalEvents.length} external event(s)`);
 
-        // Now that eventLoader has the external events tracked, we can try to add refiner values
-        // This happens asynchronously in the background
-        this._addRefinerValuesToExternalEvents(externalEvents).catch(err => {
-            console.warn(` Could not add refiner values to external events:`, err);
-            // Don't fail initialization if this doesn't work - events are already tracked
-        });
-    }
-}
+                const currentUser = this._directory.currentUser;
 
-/**
- * Asynchronously add "Army Green" refiner value to external events
- * This runs in the background after initialization
- */
-private async _addRefinerValuesToExternalEvents(externalEvents: Event[]): Promise<void> {
-    try {
-        // Wait a bit for refiner values to load
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const allRefinerValues = await this._refinerValueLoader.all();
-        const armyGreenRefinerValue = allRefinerValues.find(rv => rv.title === 'Army Green');
-        
-        if (!armyGreenRefinerValue) {
-            console.warn(` "Army Green" RefinerValue not found`);
-            console.log(`   Available RefinerValues:`, allRefinerValues.map(rv => rv.title).join(', '));
-            return;
+                // Process external events - create Event objects with proper setup
+                const processedExternalEvents: Event[] = [];
+                
+                externalEvents.forEach(e => {
+                    // Set required properties
+                    e.moderator = currentUser;
+                    e.moderationTimestamp = moment();
+                    e.moderationStatus = EventModerationStatus.Approved;
+                    
+                    // Add refiner value if found
+                    if (armyGreenRefinerValue) {
+                        e.refinerValues.add(armyGreenRefinerValue);
+                    }
+                    
+                    // Important: snapshot BEFORE adding to loader
+                    e.snapshot();
+                    
+                    processedExternalEvents.push(e);
+                });
+                
+                console.log(`✅ Processed ${processedExternalEvents.length} external events`);
+                
+                // Inject external events into the loader BEFORE loading SharePoint events
+                this._eventLoader.setExternalEvents(processedExternalEvents);
+            }
+        } catch (error) {
+            console.error('❌ Error loading external events:', error);
         }
 
-        console.log(` Found "Army Green" RefinerValue`);
-
-        externalEvents.forEach(e => {
-            if (!e.isDeleted) {
-                e.refinerValues.add(armyGreenRefinerValue);
-                console.log(`Added "Army Green" refiner to external event: "${e.title}"`);
-            }
-        });
-
-    } catch (error) {
-        console.warn(` Error adding refiner values:`, error);
+        // Load SharePoint events (this will merge with external events)
+        try {
+            console.log('⏳ Loading SharePoint events...');
+            await this._eventLoader.all();
+            
+            // Add external events to the collection
+            await this._eventLoader.addExternalEventsToCollection();
+            
+            const allEvents = await this._eventLoader.all();
+            console.log(`✅ Final total: ${allEvents.length} events`);
+        } catch (error) {
+            console.error('⚠️ Error loading SharePoint events:', error);
+            
+            // Even if SharePoint load fails, make sure external events are available
+            await this._eventLoader.addExternalEventsToCollection();
+            const allEvents = await this._eventLoader.all();
+            console.log(`✅ Final total (external only): ${allEvents.length} events`);
+        }
     }
 }
+
     public get externalListsLoader(): ExternalListsLoader {
         return this._externalListsLoader;
     }

@@ -5,8 +5,8 @@ export interface ExternalListConfig {
   listTitle?: string;
   viewId?: string;
   titleField: string;
-  startDateField: string;
-  endDateField?: string;
+  eventDate: string;
+  endDate?: string;
   categoryField?: string;
   enabled: boolean;
 }

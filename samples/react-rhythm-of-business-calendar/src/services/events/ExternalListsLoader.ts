@@ -44,8 +44,8 @@ export class ExternalListsLoader {
         "ListTitle",
         "ViewId",
         "TitleField",
-        "StartDateField",
-        "EndDateField",
+        "EventDate",
+        "EndDate",
         "CategoryField",
         "IsEnabled",
         "SortOrder"
@@ -53,18 +53,6 @@ export class ExternalListsLoader {
       query,
       row => this._mapItemToConfig(row)
     );
-
-    console.log(`\n📋 Loaded ${items.length} External List Configs:`);
-    items.forEach((config, idx) => {
-      console.log(`\n   [${idx}] ${config.listTitle || config.listId}`);
-      console.log(`       siteUrl: ${config.siteUrl}`);
-      console.log(`       listId: ${config.listId}`);
-      console.log(`       titleField: ${config.titleField}`);
-      console.log(`       startDateField: ${config.startDateField}`);
-      console.log(`       endDateField: ${config.endDateField}`);
-      console.log(`       categoryField: ${config.categoryField}`);
-      console.log(`       enabled: ${config.enabled}`);
-    });
 
     return items.sort(
       (a, b) => ((a as any).sortOrder ?? 0) - ((b as any).sortOrder ?? 0)
@@ -74,17 +62,6 @@ export class ExternalListsLoader {
   private _mapItemToConfig(row: IListItemResult): ExternalListConfig {
     const r = row as any;
 
-    console.log(`\n🔍 Mapping row to config:`, {
-      ID: row.ID,
-      SiteUrl: r.SiteUrl,
-      ListId: r.ListId,
-      TitleField: r.TitleField,
-      StartDateField: r.StartDateField,
-      EndDateField: r.EndDateField,
-      CategoryField: r.CategoryField,
-      IsEnabled: r.IsEnabled
-    });
-
     const config: ExternalListConfig = {
       id: String(row.ID),
       siteUrl: r.SiteUrl,
@@ -92,14 +69,12 @@ export class ExternalListsLoader {
       listTitle: r.ListTitle,
       viewId: r.ViewId,
       titleField: r.TitleField,
-      startDateField: r.StartDateField,
-      endDateField: r.EndDateField,
+      eventDate: r.EventDate,
+      endDate: r.EndDate, 
       categoryField: r.CategoryField,
       enabled: !!r.IsEnabled,
       sortOrder: r.SortOrder ?? 0
     } as ExternalListConfig;
-
-    console.log(`✅ Created config:`, config);
 
     return config;
   }

@@ -62,8 +62,8 @@ export const ExternalListsSettings: FC<IExternalListsSettingsProps> = ({
         listTitle: '',
         viewId: '',
         titleField: 'Title',
-        startDateField: '',
-        endDateField: '',
+        eventDate: 'EventDate',       
+        endDate: 'EndDate',         
         categoryField: '',
         enabled: true
     };
@@ -96,7 +96,7 @@ export const ExternalListsSettings: FC<IExternalListsSettingsProps> = ({
   const handleSave = useCallback(async () => {
     if (!selectedConfig) return;
 
-    if (!selectedConfig.siteUrl || !selectedConfig.listId || !selectedConfig.titleField || !selectedConfig.startDateField) {
+    if (!selectedConfig.siteUrl || !selectedConfig.listId || !selectedConfig.titleField || !selectedConfig.eventDate) {
       setErrorMessage('Required fields are missing');
       return;
     }
@@ -185,8 +185,8 @@ export const ExternalListsSettings: FC<IExternalListsSettingsProps> = ({
             <Separator />
 
             <TextField label="Title Field" value={selectedConfig.titleField} onChange={(_, v) => updateConfig({ titleField: v || '' })} />
-            <TextField label="Start Date Field" value={selectedConfig.startDateField} onChange={(_, v) => updateConfig({ startDateField: v || '' })} />
-            <TextField label="End Date Field" value={selectedConfig.endDateField} onChange={(_, v) => updateConfig({ endDateField: v || '' })} />
+            <TextField label="Start Date Field" value={selectedConfig.eventDate} onChange={(_, v) => updateConfig({ eventDate: v || '' })} />
+            <TextField label="End Date Field" value={selectedConfig.endDate} onChange={(_, v) => updateConfig({ endDate: v || '' })} />
             <TextField label="Category Field" value={selectedConfig.categoryField} onChange={(_, v) => updateConfig({ categoryField: v || '' })} />
 
             <Separator />

@@ -142,10 +142,37 @@ const toUpdateListItem = (event: Event, siteTimeZone: ITimeZone): IEventUpdateLi
 };
 
 export class EventLoader extends PagedViewLoader<Event> {
+    private _externalEvents: Event[] = [];
+    private _externalEventsAdded: boolean = false;
+
     constructor(schema: IRhythmOfBusinessCalendarSchema, timezones: ITimeZoneService, spo: ISharePointService, liveUpdate: ILiveUpdateService, private readonly _refinerValueLoader: RefinerValueLoader) {
         super({ ctor: Event, view: schema.eventsList.view_AllEvents, timezones, spo, liveUpdate, fastLoad: { useCache: true } });
 
         this.registerDependency(_refinerValueLoader);
+    }
+
+    public setExternalEvents(events: Event[]): void {
+        console.log(`📥 EventLoader.setExternalEvents: Received ${events.length} external events`);
+        this._externalEvents = events;
+        this._externalEventsAdded = false; // Reset flag when new events are set
+    }
+
+    public async addExternalEventsToCollection(): Promise<void> {
+        if (this._externalEvents.length > 0 && !this._externalEventsAdded) {
+            console.log(`📊 EventLoader.addExternalEventsToCollection: Adding ${this._externalEvents.length} external events`);
+            
+            for (const externalEvent of this._externalEvents) {
+                // Check if not already in the map (avoid duplicates)
+                if (!this._entitiesById.has(externalEvent.id)) {
+                    // Add to the internal array and map
+                    (this._entities as Event[]).push(externalEvent);
+                    this._entitiesById.set(externalEvent.id, externalEvent);
+                }
+            }
+            
+            this._externalEventsAdded = true;
+            console.log(`✅ EventLoader.addExternalEventsToCollection: Total ${this._entities.length} events`);
+        }
     }
 
     protected readonly extractReferencedUsers = (event: Event) => [...event.contacts, ...event.restrictedToAccounts, event.moderator];
