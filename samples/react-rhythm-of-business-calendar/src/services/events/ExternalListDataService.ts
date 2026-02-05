@@ -1,5 +1,5 @@
 import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
-import { ExternalListConfig, EventModerationStatus } from 'model';
+import { ExternalListConfig } from 'model';
 import { Event } from 'model/Event';
 import moment from 'moment-timezone';
 
@@ -108,10 +108,7 @@ export class ExternalListDataService {
 
   private _mapItemToEvent(item: IExternalListItem, config: ExternalListConfig): Event {
     const event = new Event();
-    
-    // CRITICAL: Snapshot before setting any properties
-    event.snapshot();
-    
+
     event.title = this._getValue(item, config.titleField) || '';
 
     // Get start and end values
@@ -151,13 +148,6 @@ export class ExternalListDataService {
       event.start = event.start.startOf('day');
       event.end = event.end.startOf('day');
     }
-    
-    // CRITICAL: Mark as approved and set moderation fields
-    event.moderationStatus = EventModerationStatus.Approved;
-    event.moderationTimestamp = moment();
-    
-    // Set the creator/author to current user (you'll need to pass this in)
-    // For now, we'll set it in the OnlineEventsService
 
     console.log(`Created event: "${event.title}" (${event.start.format('YYYY-MM-DD')} to ${event.end.format('YYYY-MM-DD')})`);
 

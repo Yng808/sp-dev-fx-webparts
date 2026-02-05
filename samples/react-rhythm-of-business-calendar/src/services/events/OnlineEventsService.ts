@@ -66,60 +66,38 @@ export class OnlineEventsService implements IEventsService {
         this._externalListsLoader = new ExternalListsLoader(this._spo);
         dev.registerScripts(this._devScripts);
     }
-    
-public async initialize(): Promise<void> {
-    const configuration = this._configurations.active;
 
+    public async initialize(): Promise<void> {
+    const configuration = this._configurations.active;
     if (configuration && !configuration.isNew) {
         const schema = configuration.schema;
-
         this._refinerLoader = new RefinerLoader(schema, this._timezones, this._spo, this._liveUpdate);
         this._refinerValueLoader = new RefinerValueLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerLoader);
         this._eventLoader = new EventLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
         this._approversLoader = new ApproversLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
-
         console.log('🔧 OnlineEventsService: Loaders initialized');
-
+        
         try {
             // Load external list configs and create external events FIRST
             const externalConfigs = await this._externalListsLoader.loadExternalListConfigs();
             console.log(`📋 Loaded ${externalConfigs.length} external list config(s)`);
             
             if (externalConfigs.length > 0) {
-                // Wait for refiner values to be loaded
-                const allRefinerValues = await this._refinerValueLoader.all();
-                console.log(`🏷️ Available RefinerValues (${allRefinerValues.length})`);
-                
-                const armyGreenRefinerValue = allRefinerValues.find(rv => rv.title === 'Army Green');
-                
-                if (!armyGreenRefinerValue) {
-                    console.warn(`⚠️ "Army Green" RefinerValue not found.`);
-                }
-                
                 // Load external events
                 console.log('📥 Loading external events...');
                 const externalEvents = await this._externalListDataService.loadEventsFromExternalLists(externalConfigs);
                 console.log(`📅 Loaded ${externalEvents.length} external event(s)`);
-
                 const currentUser = this._directory.currentUser;
 
-                // Process external events - create Event objects with proper setup
                 const processedExternalEvents: Event[] = [];
-                
                 externalEvents.forEach(e => {
-                    // Set required properties
                     e.moderator = currentUser;
                     e.moderationTimestamp = moment();
                     e.moderationStatus = EventModerationStatus.Approved;
                     
-                    // Add refiner value if found
-                    if (armyGreenRefinerValue) {
-                        e.refinerValues.add(armyGreenRefinerValue);
-                    }
+                    // DON'T add any refiner value - let external events be untagged
                     
-                    // Important: snapshot BEFORE adding to loader
                     e.snapshot();
-                    
                     processedExternalEvents.push(e);
                 });
                 
@@ -131,7 +109,7 @@ public async initialize(): Promise<void> {
         } catch (error) {
             console.error('❌ Error loading external events:', error);
         }
-
+        
         // Load SharePoint events (this will merge with external events)
         try {
             console.log('⏳ Loading SharePoint events...');
@@ -151,8 +129,8 @@ public async initialize(): Promise<void> {
             console.log(`✅ Final total (external only): ${allEvents.length} events`);
         }
     }
-}
-
+    }
+    
     public get externalListsLoader(): ExternalListsLoader {
         return this._externalListsLoader;
     }

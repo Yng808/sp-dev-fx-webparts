@@ -162,12 +162,9 @@ export class EventLoader extends PagedViewLoader<Event> {
             console.log(`📊 EventLoader.addExternalEventsToCollection: Adding ${this._externalEvents.length} external events`);
             
             for (const externalEvent of this._externalEvents) {
-                // Check if not already in the map (avoid duplicates)
-                if (!this._entitiesById.has(externalEvent.id)) {
-                    // Add to the internal array and map
-                    (this._entities as Event[]).push(externalEvent);
-                    this._entitiesById.set(externalEvent.id, externalEvent);
-                }
+                (this._entities as Event[]).push(externalEvent);
+                this._entitiesById.set(externalEvent.id, externalEvent);
+                console.log(`  Added external event: "${externalEvent.title}" (id: ${externalEvent.id})`);
             }
             
             this._externalEventsAdded = true;
