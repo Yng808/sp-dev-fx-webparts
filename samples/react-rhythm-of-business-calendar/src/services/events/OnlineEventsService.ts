@@ -75,18 +75,16 @@ export class OnlineEventsService implements IEventsService {
         this._refinerValueLoader = new RefinerValueLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerLoader);
         this._eventLoader = new EventLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
         this._approversLoader = new ApproversLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
-        console.log('🔧 OnlineEventsService: Loaders initialized');
+        console.log('OnlineEventsService: Loaders initialized');
         
         try {
             // Load external list configs and create external events FIRST
             const externalConfigs = await this._externalListsLoader.loadExternalListConfigs();
-            console.log(`📋 Loaded ${externalConfigs.length} external list config(s)`);
+            console.log(`Loaded ${externalConfigs.length} external list config(s)`);
             
             if (externalConfigs.length > 0) {
-                // Load external events
-                console.log('📥 Loading external events...');
                 const externalEvents = await this._externalListDataService.loadEventsFromExternalLists(externalConfigs);
-                console.log(`📅 Loaded ${externalEvents.length} external event(s)`);
+                console.log(`Loaded ${externalEvents.length} external event(s)`);
                 const currentUser = this._directory.currentUser;
 
                 const processedExternalEvents: Event[] = [];
@@ -94,39 +92,36 @@ export class OnlineEventsService implements IEventsService {
                     e.moderator = currentUser;
                     e.moderationTimestamp = moment();
                     e.moderationStatus = EventModerationStatus.Approved;
-                    
-                    // DON'T add any refiner value - let external events be untagged
-                    
                     e.snapshot();
                     processedExternalEvents.push(e);
                 });
                 
-                console.log(`✅ Processed ${processedExternalEvents.length} external events`);
+                console.log(`Processed ${processedExternalEvents.length} external events`);
                 
                 // Inject external events into the loader BEFORE loading SharePoint events
                 this._eventLoader.setExternalEvents(processedExternalEvents);
             }
         } catch (error) {
-            console.error('❌ Error loading external events:', error);
+            console.error('Error loading external events:', error);
         }
         
         // Load SharePoint events (this will merge with external events)
         try {
-            console.log('⏳ Loading SharePoint events...');
+            console.log('Loading SharePoint events...');
             await this._eventLoader.all();
             
             // Add external events to the collection
             await this._eventLoader.addExternalEventsToCollection();
             
             const allEvents = await this._eventLoader.all();
-            console.log(`✅ Final total: ${allEvents.length} events`);
+            console.log(`Final total: ${allEvents.length} events`);
         } catch (error) {
-            console.error('⚠️ Error loading SharePoint events:', error);
+            console.error('Error loading SharePoint events:', error);
             
             // Even if SharePoint load fails, make sure external events are available
             await this._eventLoader.addExternalEventsToCollection();
             const allEvents = await this._eventLoader.all();
-            console.log(`✅ Final total (external only): ${allEvents.length} events`);
+            console.log(`Final total (external only): ${allEvents.length} events`);
         }
     }
     }

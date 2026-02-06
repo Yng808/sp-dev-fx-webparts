@@ -33,9 +33,9 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
     const startOfMonth = firstDay;
     const endOfMonth = lastDay; 
 
-    console.log('\n=== EVENT FILTER START ===');
-    console.log('Initial Events:', events.length);
-    events.forEach((e, i) => console.log(`  [${i}] "${e.title}"`));
+    // console.log('\n=== EVENT FILTER START ===');
+    // console.log('Initial Events:', events.length);
+    // events.forEach((e, i) => console.log(`  [${i}] "${e.title}"`));
 
     const afterApprovalFilter = events
         .filter(event => !event.isSeriesException)
@@ -59,8 +59,8 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
             }
         });
 
-    console.log('\n After Approval Filter:', afterApprovalFilter.length);
-    afterApprovalFilter.forEach((e, i) => console.log(`  [${i}] "${e.title}"`));
+    // console.log('\n After Approval Filter:', afterApprovalFilter.length);
+    // afterApprovalFilter.forEach((e, i) => console.log(`  [${i}] "${e.title}"`));
 
     const afterFlatMap = afterApprovalFilter
         .flatMap(event => {
@@ -99,8 +99,8 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
             }
         });
 
-    console.log('\n After FlatMap:', afterFlatMap.length);
-    afterFlatMap.forEach((o, i) => console.log(`  [${i}] "${o.event.title}"`));
+    // console.log('\n After FlatMap:', afterFlatMap.length);
+    // afterFlatMap.forEach((o, i) => console.log(`  [${i}] "${o.event.title}"`));
 
     const filteredEventOccurrences = afterFlatMap
         .filter(occurrence => {
@@ -123,9 +123,9 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
             });
         });
 
-    console.log('\n After Refiner Filter:', filteredEventOccurrences.length);
-    filteredEventOccurrences.forEach((o, i) => console.log(`  [${i}] "${o.event.title}"`));
-    console.log('=== EVENT FILTER END ===\n');
+    // console.log('\n After Refiner Filter:', filteredEventOccurrences.length);
+    // filteredEventOccurrences.forEach((o, i) => console.log(`  [${i}] "${o.event.title}"`));
+    // console.log('=== EVENT FILTER END ===\n');
 
     return children(filteredEventOccurrences);
 };

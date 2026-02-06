@@ -67,6 +67,8 @@ const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: IT
     event.contacts = SPField.toUsers(row.Contacts);
     event.refinerValues.set(await SPField.fromLookupMultiAsync(row.RefinerValues, refinerValueLoader.getById));
 
+console.log(`SP row ${row.ID} "${row.Title}" RefinerValues raw:`, row.RefinerValues);
+
     const isAllDay = SPField.fromYesNo(row, 'fAllDayEvent');
     const start = SPField.fromDateTime(row, 'EventDate', siteTimeZone);
     const end = SPField.fromDateTime(row, 'EndDate', siteTimeZone);
@@ -152,23 +154,23 @@ export class EventLoader extends PagedViewLoader<Event> {
     }
 
     public setExternalEvents(events: Event[]): void {
-        console.log(`📥 EventLoader.setExternalEvents: Received ${events.length} external events`);
+        // console.log(`EventLoader.setExternalEvents: Received ${events.length} external events`);
         this._externalEvents = events;
         this._externalEventsAdded = false; // Reset flag when new events are set
     }
 
     public async addExternalEventsToCollection(): Promise<void> {
         if (this._externalEvents.length > 0 && !this._externalEventsAdded) {
-            console.log(`📊 EventLoader.addExternalEventsToCollection: Adding ${this._externalEvents.length} external events`);
+            // console.log(`EventLoader.addExternalEventsToCollection: Adding ${this._externalEvents.length} external events`);
             
             for (const externalEvent of this._externalEvents) {
                 (this._entities as Event[]).push(externalEvent);
                 this._entitiesById.set(externalEvent.id, externalEvent);
-                console.log(`  Added external event: "${externalEvent.title}" (id: ${externalEvent.id})`);
+                // console.log(`Added external event: "${externalEvent.title}" (id: ${externalEvent.id})`);
             }
             
             this._externalEventsAdded = true;
-            console.log(`✅ EventLoader.addExternalEventsToCollection: Total ${this._entities.length} events`);
+            // console.log(`EventLoader.addExternalEventsToCollection: Total ${this._entities.length} events`);
         }
     }
 

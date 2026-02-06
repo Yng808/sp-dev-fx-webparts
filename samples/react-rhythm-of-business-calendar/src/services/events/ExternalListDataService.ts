@@ -29,7 +29,7 @@ export class ExternalListDataService {
 
   public async loadEventsFromExternalList(config: ExternalListConfig): Promise<Event[]> {
     const items = await this._fetchListItems(config);
-    console.log(`✅ Fetched ${items.length} items`);
+    console.log(`Fetched ${items.length} items`);
     
     return items.map(item => this._mapItemToEvent(item, config));
   }
@@ -56,9 +56,9 @@ export class ExternalListDataService {
     );
 
     if (!response.ok) {
-      console.error('API Error:', response.status, response.statusText);
+      // console.error('API Error:', response.status, response.statusText);
       const responseText = await response.text();
-      console.error('Response body:', responseText);
+      // console.error('Response body:', responseText);
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
@@ -75,33 +75,33 @@ export class ExternalListDataService {
   private _buildSelectFields(config: ExternalListConfig): string {
     const fields: string[] = ['Id', config.titleField];
 
-    console.log(` Building select fields:`);
-    console.log(`   titleField: "${config.titleField}" → added`);
+    // console.log(` Building select fields:`);
+    // console.log(`   titleField: "${config.titleField}" → added`);
 
     // Only add date fields if they're defined
     if (config.eventDate) {
-      console.log(`   eventDate: "${config.eventDate}" → ADDING`);
+      // console.log(`   eventDate: "${config.eventDate}" → ADDING`);
       fields.push(config.eventDate);
     } else {
       console.log(`   eventDate: UNDEFINED (NOT ADDING)`);
     }
 
     if (config.endDate) {
-      console.log(`   endDate: "${config.endDate}" → ADDING`);
+      // console.log(`   endDate: "${config.endDate}" → ADDING`);
       fields.push(config.endDate);
     } else {
       console.log(`   endDate: UNDEFINED (NOT ADDING)`);
     }
 
     if (config.categoryField) {
-      console.log(`   categoryField: "${config.categoryField}" → ADDING`);
+      // console.log(`   categoryField: "${config.categoryField}" → ADDING`);
       fields.push(config.categoryField);
     } else {
       console.log(`   categoryField: UNDEFINED (NOT ADDING)`);
     }
 
     const result = fields.join(',');
-    console.log(`   Final select: "${result}"`);
+    // console.log(`   Final select: "${result}"`);
 
     return result;
   }
@@ -117,7 +117,7 @@ export class ExternalListDataService {
 
     if (config.eventDate) {
       startValue = this._getValue(item, config.eventDate);
-      console.log(`Event "${event.title}": startValue = "${startValue}"`);
+      // console.log(`Event "${event.title}": startValue = "${startValue}"`);
       if (startValue) {
         event.start = moment(startValue);
       }
@@ -125,7 +125,7 @@ export class ExternalListDataService {
 
     if (config.endDate) {
       endValue = this._getValue(item, config.endDate);
-      console.log(`Event "${event.title}": endValue = "${endValue}"`);
+      // console.log(`Event "${event.title}": endValue = "${endValue}"`);
       if (endValue) {
         event.end = moment(endValue);
       }
@@ -149,7 +149,7 @@ export class ExternalListDataService {
       event.end = event.end.startOf('day');
     }
 
-    console.log(`Created event: "${event.title}" (${event.start.format('YYYY-MM-DD')} to ${event.end.format('YYYY-MM-DD')})`);
+    // console.log(`Created event: "${event.title}" (${event.start.format('YYYY-MM-DD')} to ${event.end.format('YYYY-MM-DD')})`);
 
     return event;
   }

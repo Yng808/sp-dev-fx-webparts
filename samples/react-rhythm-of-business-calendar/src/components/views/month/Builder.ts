@@ -141,10 +141,10 @@ export class WeekInfo {
         // console.log('   Range end (adjusted):', range2Utc.end.format('YYYY-MM-DD HH:mm:ss Z'));
         
         const overlaps = MomentRange.overlaps(cccurrence, range2Utc, 'second');
-        console.log('   Overlaps result:', overlaps);
+        // console.log('   Overlaps result:', overlaps);
 
         if (overlaps) {
-            console.log(' Event INCLUDED in week');
+            // console.log(' Event INCLUDED in week');
             let availableRow = this.contentRows.find(row => row.canInclude(cccurrence));
 
             if (!availableRow) {
@@ -154,10 +154,10 @@ export class WeekInfo {
 
             availableRow.include(cccurrence);
         } else {
-            console.log(' Event EXCLUDED - does not overlap with week');
+            // console.log(' Event EXCLUDED - does not overlap with week');
         }
 
-        console.log(' WeekInfo.include END\n');
+        // console.log(' WeekInfo.include END\n');
     }
 }
 
@@ -165,17 +165,17 @@ export class Builder {
     public static dateRange(anchorDate: Moment): MomentRange {
         const start = anchorDate.clone().startOf('month').startOf('week');
         const end = anchorDate.clone().endOf('month').endOf('week');
-        console.log("Start (from Builder): ", start);
-        console.log("End (from Builder): ", end);
+        // console.log("Start (from Builder): ", start);
+        // console.log("End (from Builder): ", end);
         return { start, end };
     }
 
     public static build(cccurrences: readonly EventOccurrence[], anchorDate: Moment): WeekInfo[] {
-        console.log('Builder.build START - processing', cccurrences.length, 'occurrences');
+        // console.log('Builder.build START - processing', cccurrences.length, 'occurrences');
         const weeks = this._createWeeks(anchorDate);
-        console.log('Created', weeks.length, 'weeks');
+        // console.log('Created', weeks.length, 'weeks');
         this._fillWeeksWithEvents(weeks, cccurrences);
-        console.log(' Builder.build END\n');
+        // console.log(' Builder.build END\n');
         return weeks;
     }
 
