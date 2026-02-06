@@ -108,6 +108,11 @@ export class ExternalListDataService {
 
   private _mapItemToEvent(item: IExternalListItem, config: ExternalListConfig): Event {
     const event = new Event();
+    
+    // Mark this as an external event
+    (event as any).isExternal = true;
+    (event as any).externalSourceListId = config.listId;
+    (event as any).externalSourceSiteUrl = config.siteUrl;
 
     event.title = this._getValue(item, config.titleField) || '';
 

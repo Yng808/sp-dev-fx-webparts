@@ -121,6 +121,12 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
     }
 
     protected async persistChangesCore() {
+        // Prevent saving external events
+        const isExternal = (this.entity as any).isExternal === true;
+        if (isExternal) {
+            throw new Error('Cannot save changes to external events. Please edit the event in its source list.');
+        }
+
         const {
             [DirectoryService]: { currentUserIsSiteAdmin, currentUser },
             [ConfigurationService]: { active: { useApprovals } },
@@ -226,10 +232,36 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         const masterEvent = event.isSeriesException ? event.getSeriesMaster() : event;
         const eventId = masterEvent.id;
         
+        // Check if this is an external event
+        const isExternal = (event as any).isExternal === true;
+        const externalSourceSiteUrl = (event as any).externalSourceSiteUrl;
+        const externalSourceListId = (event as any).externalSourceListId;
 
         return (
             <FocusZone>
                 <ResponsiveGrid className={styles.content}>
+                    {/* Info banner for external events */}
+                    {isExternal && (
+                        <GridRow>
+                            <GridCol sm={12}>
+                                <MessageBar messageBarType={MessageBarType.info}>
+                                    This event is from an external SharePoint list and has limited field visibility.
+                                    {externalSourceSiteUrl && externalSourceListId && (
+                                        <>
+                                            {' '}
+                                            <Link 
+                                                href={`${externalSourceSiteUrl}/Lists/${externalSourceListId}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                View source list
+                                            </Link>
+                                        </>
+                                    )}
+                                </MessageBar>
+                            </GridCol>
+                        </GridRow>
+                    )}
                     <GridRow>
                         <GridCol sm={12}>
                             <LiveText
@@ -382,6 +414,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             </LiveText>
                         </GridCol>
                     </GridRow> */}
+                {!isExternal && (
                     <GridRow>
                         <GridCol sm={12}>
                             <LiveText
@@ -395,6 +428,8 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             </LiveText>
                         </GridCol>
                     </GridRow>
+                )}
+                {!isExternal && (
                     <GridRow>
                         <GridCol sm={12}>
                             <LiveText
@@ -413,7 +448,8 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             </LiveText>
                         </GridCol>
                     </GridRow>
-                    {this.context.showCOMDecision && (
+                )}
+                    {!isExternal && this.context.showCOMDecision && (
                         <GridRow>
                             <GridCol sm={12}>
                                 <LiveText
@@ -433,7 +469,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             </GridCol>
                         </GridRow>
                     )}
-                    {this.context.showReadAheadDueDate && (
+                    {!isExternal && this.context.showReadAheadDueDate && (
                         <GridRow>
                             <GridCol sm={12}>
                                 <LiveText
@@ -454,6 +490,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             </GridCol>
                         </GridRow>
                     )}
+                {!isExternal && (
                     <GridRow>
                         {refiners.map((refiner) => {
                             const transformer = {
@@ -499,12 +536,15 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             );
                         })}
                     </GridRow>
+                )}
+                {!isExternal && (
                     <GridRow>
                         <GridCol sm={12}>
                             {this._renderModerationStatus()}
                         </GridCol>
                     </GridRow>
-                    {confidentialFieldEnabled && (
+                )}
+                    {!isExternal && confidentialFieldEnabled && (
                         <GridRow>
                             <GridCol sm={3}>
                                 <LiveText
@@ -547,7 +587,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             </GridCol>
                         </GridRow>
                     )}
-                    {!isRecurring && itemId > 0 &&
+                    {!isExternal && !isRecurring && itemId > 0 &&
                         <GridRow>
                             <GridCol>
                                 <EventAttachments
@@ -557,7 +597,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             </GridCol>
                         </GridRow>
                     }
-                    {isRecurring && eventId > 0 &&
+                    {!isExternal && isRecurring && eventId > 0 &&
                         <GridRow>
                             <GridCol>
                                 <EventAttachments
@@ -599,9 +639,36 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
             updateField: this.updateField
         };
         const itemId = this.entity.id;
+        
+        // Check if this is an external event
+        const isExternal = (event as any).isExternal === true;
+        const externalSourceSiteUrl = (event as any).externalSourceSiteUrl;
+        const externalSourceListId = (event as any).externalSourceListId;
 
         return (
             <ResponsiveGrid className={styles.content}>
+                {/* Warning banner for external events */}
+                {isExternal && (
+                    <GridRow>
+                        <GridCol sm={12}>
+                            <MessageBar messageBarType={MessageBarType.warning}>
+                                This event is from an external SharePoint list and cannot be edited here.
+                                {externalSourceSiteUrl && externalSourceListId && (
+                                    <>
+                                        {' '}
+                                        <Link 
+                                            href={`${externalSourceSiteUrl}/Lists/${externalSourceListId}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            Edit in source list
+                                        </Link>
+                                    </>
+                                )}
+                            </MessageBar>
+                        </GridCol>
+                    </GridRow>
+                )}
                 <GridRow>
                     <GridCol sm={12}>
                         <LiveTextField
@@ -692,7 +759,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         </GridCol>
                     </GridRow>
                 }
-                {!isSeriesException &&
+                {!isExternal && !isSeriesException &&
                     <GridRow>
                         <GridCol sm={12} lg={3}>
                             <LiveToggle
@@ -758,6 +825,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         />
                     </GridCol>
                 </GridRow> */}
+            {!isExternal && (
                 <GridRow>
                     <GridCol sm={12}>
                         <LiveTextField
@@ -769,6 +837,8 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         />
                     </GridCol>
                 </GridRow>
+            )}
+            {!isExternal && (
                 <GridRow>
                     <GridCol sm={12}>
                         <LiveUserPicker
@@ -780,7 +850,8 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         />
                     </GridCol>
                 </GridRow>
-                {this.context.showCOMDecision && (
+            )}
+                {!isExternal && this.context.showCOMDecision && (
                     <GridRow>
                         <GridCol sm={12}>
                         <LiveDropdown
@@ -797,7 +868,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         </GridCol>
                     </GridRow>
                 )}
-                {this.context.showReadAheadDueDate && (
+                {!isExternal && this.context.showReadAheadDueDate && (
                     <GridRow>
                         <GridCol sm={12}>
                             <LiveDatePicker
@@ -810,6 +881,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     </GridRow>
                 )}
                 
+            {!isExternal && (
                 <GridRow>
                     {refiners.filter(Entity.NotDeletedFilter).map(refiner => {
                         const { displayName, required, allowMultiselect } = refiner;
@@ -872,12 +944,15 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         );
                     })}
                 </GridRow>
+            )}
+            {!isExternal && (
                 <GridRow>
                     <GridCol sm={12}>
                         {this._renderModerationStatus()}
                     </GridCol>
                 </GridRow>
-                {confidentialFieldEnabled &&
+            )}
+                {!isExternal && confidentialFieldEnabled &&
                     (isSeriesException
                         ? <GridRow>
                             <GridCol sm={3}>
@@ -980,6 +1055,10 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
             services: { [DirectoryService]: { currentUserIsSiteAdmin, currentUser, currentUserIsContributor } }
         } = this.props;
         const { isRecurring, isSeriesException, isSeriesMaster, seriesMaster, isDeleted, isNew, isApproved, creator } = this.entity;
+        
+        // Check if this is an external event
+        const isExternal = (this.entity as any).isExternal === true;
+        
         const onEdit = () => { this.edit(); };
         const onEditSeries = () => { this.edit(seriesMaster.get(), false); };
         const onDelete = () => { this.confirmDelete(); };
@@ -1127,9 +1206,9 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
 
         const userCanApprove = currentUserIsSiteAdmin || this._currentUserIsAnApprover() || currentUserIsContributor;
         const userIsCreator = User.equal(creator, currentUser);
-        const canEdit = userIsCreator || userCanApprove;
-        const canModerate = !isApproved && userCanApprove;
-        const canDelete = (!isNew || isSeriesException) && canEdit;
+        const canEdit = !isExternal && (userIsCreator || userCanApprove); // Prevent editing external events
+        const canModerate = !isExternal && !isApproved && userCanApprove; // Prevent moderating external events
+        const canDelete = !isExternal && (!isNew || isSeriesException) && canEdit; // Prevent deleting external events
         const canAddToOutlook = (!isNew || isSeriesException) && isApproved;
 
         return [

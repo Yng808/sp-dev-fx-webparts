@@ -59,6 +59,10 @@ interface IEventUpdateListItem extends IUpdateListItem {
 
 const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: ITimeZone, refinerValueLoader: RefinerValueLoader, eventsById: ReadonlyEventMap): Promise<void> => {
     //console.log("Raw data from SharePoint:", row);
+    
+    // Mark this as an internal event (from the default Events list)
+    (event as any).isExternal = false;
+    
     event.title = decode(row.Title);
     event.description = decode(row.Description);
     event.comDecision = row.comDecision;
