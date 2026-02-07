@@ -1059,7 +1059,14 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         // Check if this is an external event
         const isExternal = (this.entity as any).isExternal === true;
         
-        const onEdit = () => { this.edit(); };
+        const onEdit = () => {
+            if ((this.entity as any).isExternal) {
+                this.props.commands.view(this.entity);
+            } else {
+                this.edit();
+            }
+        };
+
         const onEditSeries = () => { this.edit(seriesMaster.get(), false); };
         const onDelete = () => { this.confirmDelete(); };
         const onDeleteSeries = () => {
@@ -1206,7 +1213,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
 
         const userCanApprove = currentUserIsSiteAdmin || this._currentUserIsAnApprover() || currentUserIsContributor;
         const userIsCreator = User.equal(creator, currentUser);
-        const canEdit = !isExternal && (userIsCreator || userCanApprove); // Prevent editing external events
+        const canEdit = isExternal && (userIsCreator || userCanApprove); // Prevent editing external events
         const canModerate = !isExternal && !isApproved && userCanApprove; // Prevent moderating external events
         const canDelete = !isExternal && (!isNew || isSeriesException) && canEdit; // Prevent deleting external events
         const canAddToOutlook = (!isNew || isSeriesException) && isApproved;

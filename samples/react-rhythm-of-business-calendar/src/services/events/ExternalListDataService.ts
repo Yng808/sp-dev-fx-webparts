@@ -113,7 +113,8 @@ export class ExternalListDataService {
     (event as any).isExternal = true;
     (event as any).externalSourceListId = config.listId;
     (event as any).externalSourceSiteUrl = config.siteUrl;
-
+    (event as any).externalItemId = item.Id;
+    (event as any).readOnly = true;
     event.title = this._getValue(item, config.titleField) || '';
 
     // Get start and end values

@@ -18,6 +18,8 @@ import { FilterConfigContext } from 'components/shared/FilterConfigContext';
 import { ViewRoute as strings } from "ComponentStrings";
 
 import styles from './ViewRoute.module.scss';
+import { SharePointFormPanel } from '../../components/events/SharePointFormPanel';
+import { Event } from 'model';
 
 const RefinerRailPanelDisplayBreakpoint = 1024;
 
@@ -82,6 +84,28 @@ const ViewRoute: FC = () => {
     ] = useApprovals();
 
     const [eventPanel, newEvent, displayEvent] = useEventPanel(anchorDate);
+
+    const [spFormState, setSpFormState] = useState<{
+        isOpen: boolean;
+        siteUrl?: string;
+        listId?: string;
+        itemId?: number;
+        mode?: 'new' | 'edit' | 'display';
+    }>({ isOpen: false });
+
+    const onEventClick = useCallback((event: Event) => {
+        if ((event as any).isExternal) {
+            setSpFormState({
+                isOpen: true,
+                siteUrl: (event as any).externalSourceSiteUrl,
+                listId: (event as any).externalSourceListId,
+                itemId: (event as any).externalItemId ?? event.id,
+                mode: 'display'
+            });
+        } else {
+            displayEvent(event);
+        }
+    }, [displayEvent]);
 
     const [refinerPanel, newRefiner, editRefiner] = useRefinerPanel();
 
@@ -246,24 +270,34 @@ const ViewRoute: FC = () => {
         events.addToOutlook(event.getSeriesMaster());
     };
 
-    const eventCommands = useMemo(() => {
-        return {
-            view: displayEvent,
-            approve: approveEvent,
-            reject: rejectEvent,
-            addToOutlook: addEventToOutlook,
-            addSeriesToOutlook: addEventSeriesToOutlook,
-            getLink,
-        } as IEventCommands;
-    }, [displayEvent, approveEvent, rejectEvent]);
+    const eventCommands = useMemo(() => ({
+    view: (event: Event) => {
+        if ((event as any).isExternal) {
+        setSpFormState({
+            isOpen: true,
+            siteUrl: (event as any).externalSourceSiteUrl,
+            listId: (event as any).externalSourceListId,
+            itemId: event.id,
+            mode: 'display',
+        });
+        } else {
+        displayEvent(event);
+        }
+    },
+    approve: approveEvent,
+    reject: rejectEvent,
+    addToOutlook: addEventToOutlook,
+    addSeriesToOutlook: addEventSeriesToOutlook,
+    getLink,
+    }), [displayEvent]);
 
     const viewCommands = useMemo(() => {
         return {
             setAnchorDate,
             newEvent,
-            activateEvent: displayEvent,
+            activateEvent: onEventClick
         } as IViewCommands;
-    }, [setAnchorDate, newEvent]);
+    }, [setAnchorDate, newEvent, onEventClick]);
 
     return (
         <>
@@ -575,6 +609,14 @@ const ViewRoute: FC = () => {
             />
             <ConfigureApproversPanel componentRef={configureApproversPanel} />
             <CopyLinkDialog componentRef={copyLinkDialog} />
+                    <SharePointFormPanel
+            isOpen={spFormState.isOpen}
+            siteUrl={spFormState.siteUrl!}
+            listId={spFormState.listId!}
+            itemId={spFormState.itemId}
+            mode={spFormState.mode!}
+            onDismiss={() => setSpFormState({ isOpen: false })}
+        />
         </>
     );
 };

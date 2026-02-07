@@ -92,7 +92,7 @@ export class OnlineEventsService implements IEventsService {
                     e.moderator = currentUser;
                     e.moderationTimestamp = moment();
                     e.moderationStatus = EventModerationStatus.Approved;
-                    e.snapshot();
+                    // e.snapshot();
                     processedExternalEvents.push(e);
                 });
                 
