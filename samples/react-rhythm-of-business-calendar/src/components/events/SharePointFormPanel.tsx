@@ -7,15 +7,11 @@ interface ISharePointFormPanelProps {
   onDismiss: () => void;
   siteUrl: string;
   listId: string;
-  itemId?: number; // undefined = New item, number = Edit item
+  itemId?: number;
   mode: 'new' | 'edit' | 'display';
-  onSaved?: () => void; // Callback when form is saved
+  onSaved?: () => void;
 }
 
-/**
- * Opens a native SharePoint list form in a panel
- * Works for any SharePoint list - respects all native validations, content types, etc.
- */
 export const SharePointFormPanel: FC<ISharePointFormPanelProps> = ({
   isOpen,
   onDismiss,
@@ -31,13 +27,8 @@ export const SharePointFormPanel: FC<ISharePointFormPanelProps> = ({
   useEffect(() => {
     if (!isOpen) return;
 
-    // Build the form URL
-    let url = `${siteUrl}/_layouts/15/listform.aspx?`;
-    
-    // Add list ID
-    url += `ListId={${listId.toUpperCase()}}`;
-    
-    // Add page type
+    let url = `${siteUrl}/_layouts/15/listform.aspx?ListId={${listId}}`;
+
     switch (mode) {
       case 'new':
         url += '&PageType=8'; // New item
@@ -50,15 +41,13 @@ export const SharePointFormPanel: FC<ISharePointFormPanelProps> = ({
         break;
     }
 
-    // Add IsDlg to show in dialog mode (cleaner UI)
-    //url += '&IsDlg=1';
+    url += '&pa=1'; // Power Apps custom
 
     setFormUrl(url);
     setIsLoading(false);
   }, [isOpen, siteUrl, listId, itemId, mode]);
 
   const handleDismiss = () => {
-    // When user closes the panel, refresh the events
     if (onSaved) {
       onSaved();
     }
