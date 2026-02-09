@@ -43,7 +43,7 @@ class RhythmOfBusinessCalendarApp extends Component<IProps> {
         liveUpdate.begin();
 
         this._registerDevScripts(services);
-        
+
     }
 
     private readonly _registerDevScripts = async (services: AppServices) => {

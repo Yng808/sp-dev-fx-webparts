@@ -53,8 +53,6 @@ export class OnlineEventsService implements IEventsService {
         this._spo = spo;
         this._configurations = configurations;
         
-        // Get SPHttpClient and webAbsoluteUrl from the _context property of SharePointService
-        // The _context is the SPFx BaseClientSideWebPart context object
         const context = (this._spo as any)._context;
         this._spHttpClient = context.spHttpClient as SPHttpClient;
         this._webAbsoluteUrl = context.pageContext.web.absoluteUrl as string;
