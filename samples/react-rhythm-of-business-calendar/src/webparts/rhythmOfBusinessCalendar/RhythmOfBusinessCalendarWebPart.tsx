@@ -12,8 +12,8 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-// console.log('html2canvas:', html2canvas);
-// console.log('jsPDF:', jsPDF);
+console.log('html2canvas:', html2canvas);
+console.log('jsPDF:', jsPDF);
 
 export interface IWebPartProps {
     filterButtonsJson: string;

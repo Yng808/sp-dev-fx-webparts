@@ -2,7 +2,7 @@ import { FC, ReactElement } from "react";
 import { Entity, MomentRange, User } from "common";
 import { Approvers, Event, EventOccurrence, Refiner, RefinerValue } from "model";
 import { useConfigurationService, useDirectoryService, useTimeZoneService } from "services";
-import moment from "moment";
+import moment, { Moment } from "moment";
 
 interface IProps {
     events: readonly Event[];
@@ -30,14 +30,17 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
     const firstDay = parsedDate.clone().startOf('month').tz(siteTimeZone.momentId, true);
     const lastDay = parsedDate.clone().endOf('month').tz(siteTimeZone.momentId, true); 
 
+
+    // Use the current date to calculate the start and end of the current month
+    //const now = moment();
     const startOfMonth = firstDay;
     const endOfMonth = lastDay; 
 
-    // console.log('\n=== EVENT FILTER START ===');
-    // console.log('Initial Events:', events.length);
-    // events.forEach((e, i) => console.log(`  [${i}] "${e.title}"`));
+    // Log the initial set of events
+    console.log('Initial Events:', events);
+    //console.log("Start of Month:", startOfMonth.format(), "End of Month:", endOfMonth.format());
 
-    const afterApprovalFilter = events
+    const filteredEventOccurrences = events
         .filter(event => !event.isSeriesException)
         .filter(Entity.NotDeletedFilter)
         .filter(event => {
@@ -57,27 +60,29 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
                 else
                     return false;
             }
-        });
-
-    // console.log('\n After Approval Filter:', afterApprovalFilter.length);
-    // afterApprovalFilter.forEach((e, i) => console.log(`  [${i}] "${e.title}"`));
-
-    const afterFlatMap = afterApprovalFilter
+        })
         .flatMap(event => {
             if (showOnlyCurrentMonth) {
+                //console.log("showOnlyCurrentMonth is true, processing event ID:", event.id);
+
                 if (event.isRecurring && event.isSeriesMaster) {
                     const occurrences = event.expandOccurrences(dateRange);
+                    //console.log(`Event ID: ${event.id} - Expanded Occurrences:`, occurrences);
+
                     return occurrences.filter(occurrence => {
                         const occurrenceStart = occurrence.start;
                         const occurrenceEnd = occurrence.end;
-                        return (
+                        const isIncluded = (
                             occurrenceStart.isBetween(startOfMonth, endOfMonth, null, '[]') ||
                             occurrenceEnd.isBetween(startOfMonth, endOfMonth, null, '[]') ||
                             (occurrenceStart.isBefore(startOfMonth) && occurrenceEnd.isAfter(endOfMonth))
                         );
+
+                        return isIncluded;
                     });
                 }
 
+                // Handle non-recurring events
                 const eventStart = event.start;
                 const eventEnd = event.end;
                 const isIncluded = (
@@ -87,45 +92,35 @@ export const EventFilter: FC<IProps> = ({ events, dateRange, refiners, selectedR
                 );
 
                 if (isIncluded) {
+                    //console.log(`Non-recurring Event Included: ID: ${event.id}, Start: ${eventStart.format()}, End: ${eventEnd.format()}`);
                     return [new EventOccurrence(event)];
+                } else {
+                    //console.log(`Non-recurring Event Excluded: ID: ${event.id}, Start: ${eventStart.format()}, End: ${eventEnd.format()}`);
                 }
                 return [];
             } else {
+                // If not filtering by current month, return all occurrences or the event itself
                 if (event.isRecurring && event.isSeriesMaster) {
                     const occurrences = event.expandOccurrences(dateRange);
+                    //console.log(`Event ID: ${event.id} - Expanded Occurrences:`, occurrences);
                     return occurrences;
                 }
                 return [new EventOccurrence(event)];
             }
-        });
-
-    // console.log('\n After FlatMap:', afterFlatMap.length);
-    // afterFlatMap.forEach((o, i) => console.log(`  [${i}] "${o.event.title}"`));
-
-    const filteredEventOccurrences = afterFlatMap
+        })
         .filter(occurrence => {
             const valuesByRefiner = occurrence.event.valuesByRefiner();
-            
-            if (!useRefiners) {
-                return true;
-            }
-            
-            return refiners.every(refiner => {
+            return !useRefiners || refiners.every(refiner => {
                 const values = valuesByRefiner.get(refiner);
-                
-                if (values) {
+                if (values)
                     return values.some(v => selectedRefinerValues.has(v));
-                } else if (!refiner.required) {
+                else if (!refiner.required)
                     return selectedRefinerValues.has(refiner.blankValue);
-                } else {
+                else
                     return true;
-                }
             });
         });
 
-    // console.log('\n After Refiner Filter:', filteredEventOccurrences.length);
-    // filteredEventOccurrences.forEach((o, i) => console.log(`  [${i}] "${o.event.title}"`));
-    // console.log('=== EVENT FILTER END ===\n');
-
+    //console.log("filteredEvents from EventFilter.tsx: ", filteredEventOccurrences);
     return children(filteredEventOccurrences);
 };
