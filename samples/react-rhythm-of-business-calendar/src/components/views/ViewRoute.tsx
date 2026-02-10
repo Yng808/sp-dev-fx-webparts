@@ -19,6 +19,7 @@ import { ViewRoute as strings } from "ComponentStrings";
 
 import styles from './ViewRoute.module.scss';
 import { SharePointFormPanel } from 'components/events/SharePointFormPanel';
+import { useExternalListsForEventCreation, IEventCreationOption } from '../hooks/useExternalListsForEventCreation';
 
 const RefinerRailPanelDisplayBreakpoint = 1024;
 
@@ -87,9 +88,27 @@ const ViewRoute: FC = () => {
         siteUrl?: string;
         listId?: string;
         itemId?: number;
-    }>({ isOpen: false });
+        mode: 'new' | 'edit' | 'display';
+    }>({ isOpen: false, mode: 'display' });
 
     const [eventPanel, newEvent, displayEvent] = useEventPanel(anchorDate);
+
+    const eventCreationOptions = useExternalListsForEventCreation();
+
+    const handleAddEvent = useCallback((option: IEventCreationOption) => {
+        if (option.isExternal) {
+            // Open SharePoint form for external list
+            setSpFormState({
+                isOpen: true,
+                siteUrl: option.siteUrl,
+                listId: option.listId,
+                mode: 'new'
+            });
+        } else {
+            // Open regular internal event panel
+            newEvent();
+        }
+    }, [newEvent]);
 
     const displayEventRouted = useCallback(
         async (event: IEvent): Promise<void> => {
@@ -101,6 +120,7 @@ const ViewRoute: FC = () => {
                     siteUrl: e.externalSourceSiteUrl,
                     listId: e.externalSourceListId,
                     itemId: e.externalItemId ?? e.id,
+                    mode: 'display'
                 });
                 return;
             }
@@ -164,17 +184,17 @@ const ViewRoute: FC = () => {
 
     const { filterButtons } = useContext(FilterConfigContext);
 
-     // Use a ref to capture the full list after the hook is initialized.
-  const fullRefinerValuesRef = useRef<RefinerValue[] | null>(null);
+    // Use a ref to capture the full list after the hook is initialized.
+    const fullRefinerValuesRef = useRef<RefinerValue[] | null>(null);
 
-  useEffect(() => {
-    console.log("selectedRefinerValues size:", selectedRefinerValues.size);
-    if (!fullRefinerValuesRef.current ||
-        selectedRefinerValues.size > fullRefinerValuesRef.current.length) {
-      fullRefinerValuesRef.current = Array.from(selectedRefinerValues);
-      console.log("Captured fullRefinerValuesRef:", fullRefinerValuesRef.current);
-    }
-  }, [selectedRefinerValues.size]);
+    useEffect(() => {
+        console.log("selectedRefinerValues size:", selectedRefinerValues.size);
+        if (!fullRefinerValuesRef.current ||
+            selectedRefinerValues.size > fullRefinerValuesRef.current.length) {
+            fullRefinerValuesRef.current = Array.from(selectedRefinerValues);
+            console.log("Captured fullRefinerValuesRef:", fullRefinerValuesRef.current);
+        }
+    }, [selectedRefinerValues.size]);
 
     // Create dynamic command bar items for each filter button.
     const dynamicFilterButtons: ICommandBarItemProps[] = (
@@ -220,35 +240,43 @@ const ViewRoute: FC = () => {
         (numberOfEventsNeedingApproval: number) => {
             const staticItems: ICommandBarItemProps[] = [
                 {
-                  key: 'new-event',
-                  text: strings.Command_NewEvent.Text,
-                  iconProps: { iconName: 'Add' },
-                  onClick: () => newEvent()
+                    key: 'new-event',
+                    text: strings.Command_NewEvent.Text,
+                    iconProps: { iconName: 'Add' },
+                    onClick: () => newEvent(),
+                    subMenuProps: eventCreationOptions.length > 1 ? {
+                        items: eventCreationOptions.map(option => ({
+                            key: option.key,
+                            text: option.text,
+                            iconProps: option.iconProps,
+                            onClick: () => handleAddEvent(option)
+                        }))
+                    } : undefined
                 },
                 userCanManageSettings && {
-                  key: 'settings',
-                  text: strings.Command_Settings.Text,
-                  iconProps: { iconName: 'Settings' },
-                  onClick: () => editSettings()
+                    key: 'settings',
+                    text: strings.Command_Settings.Text,
+                    iconProps: { iconName: 'Settings' },
+                    onClick: () => editSettings()
                 },
                 userIsAnApprover && {
-                  key: 'approvals',
-                  text: numberOfEventsNeedingApproval
-                    ? `${strings.Command_Approvals.Text} (${numberOfEventsNeedingApproval})`
-                    : strings.Command_Approvals.Text,
-                  iconProps: { iconName: 'InboxCheck' },
-                  onClick: () => openMyApprovalsPanel()
+                    key: 'approvals',
+                    text: numberOfEventsNeedingApproval
+                        ? `${strings.Command_Approvals.Text} (${numberOfEventsNeedingApproval})`
+                        : strings.Command_Approvals.Text,
+                    iconProps: { iconName: 'InboxCheck' },
+                    onClick: () => openMyApprovalsPanel()
                 },
                 {
-                  key: 'filter-current-month',
-                  text: 'Hide events/trips outside current month',
-                  iconProps: { iconName: showOnlyCurrentMonth ? 'CheckboxComposite' : 'Checkbox' },
-                  onClick: () => setShowOnlyCurrentMonth(!showOnlyCurrentMonth)
+                    key: 'filter-current-month',
+                    text: 'Hide events/trips outside current month',
+                    iconProps: { iconName: showOnlyCurrentMonth ? 'CheckboxComposite' : 'Checkbox' },
+                    onClick: () => setShowOnlyCurrentMonth(!showOnlyCurrentMonth)
                 }
-              ].filter(Boolean) as ICommandBarItemProps[];
+            ].filter(Boolean) as ICommandBarItemProps[];
             
-              // Merge the dynamic filter buttons from context.
-              return [...staticItems, ...dynamicFilterButtons];
+            // Merge the dynamic filter buttons from context.
+            return [...staticItems, ...dynamicFilterButtons];
 
 
         },
@@ -261,7 +289,9 @@ const ViewRoute: FC = () => {
             showOnlyCurrentMonth,
             refinerValuesAsync,
             onSelectedRefinerValuesChanged,
-            dynamicFilterButtons
+            dynamicFilterButtons,
+            eventCreationOptions,
+            handleAddEvent
         ]
     );
 
@@ -282,7 +312,7 @@ const ViewRoute: FC = () => {
             addSeriesToOutlook: addEventSeriesToOutlook,
             getLink,
         } as IEventCommands;
-    }, [displayEvent, approveEvent, rejectEvent]);
+    }, [displayEventRouted, approveEvent, rejectEvent]);
 
     const viewCommands = useMemo(() => {
         return {
@@ -290,7 +320,15 @@ const ViewRoute: FC = () => {
             newEvent,
             activateEvent: displayEventRouted,
         } as IViewCommands;
-    }, [setAnchorDate, newEvent]);
+    }, [setAnchorDate, newEvent, displayEventRouted]);
+
+    const handleFormDismiss = () => {
+        setSpFormState({ isOpen: false, mode: 'display' });
+    };
+
+    const handleFormSaved = () => {
+        handleFormDismiss();
+    };
 
     return (
         <>
@@ -607,8 +645,9 @@ const ViewRoute: FC = () => {
                 siteUrl={spFormState.siteUrl!}
                 listId={spFormState.listId!}
                 itemId={spFormState.itemId}
-                mode="display"
-                onDismiss={() => setSpFormState({ isOpen: false })}
+                mode={spFormState.mode}
+                onDismiss={handleFormDismiss}
+                onSaved={handleFormSaved}
             />
         </>
     );

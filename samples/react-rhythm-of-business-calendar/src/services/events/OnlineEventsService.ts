@@ -65,7 +65,7 @@ export class OnlineEventsService implements IEventsService {
         dev.registerScripts(this._devScripts);
     }
 
-public async initialize(): Promise<void> {
+    public async initialize(): Promise<void> {
         const configuration = this._configurations.active;
         if (configuration && !configuration.isNew) {
             const schema = configuration.schema;
@@ -94,52 +94,48 @@ public async initialize(): Promise<void> {
             } catch (error) {
                 console.error('Error loading external events:', error);
             }
-            
-            // Internal events will load automatically when UI requests them via eventsAsync
         }
     }
 
-    // ✅ ONLY ONE eventsAsync - the wrapped version
-// ✅ Wrap eventsAsync to return merged results
-public get eventsAsync(): IAsyncData<readonly Event[]> {
-    const loaderAsync = this._eventLoader.asyncData();
-    const eventLoader = this._eventLoader;
-    
-    // Create a wrapper that intercepts the data property
-    return {
-        get done() {
-            return loaderAsync.done;
-        },
-        get loaded() {
-            return loaderAsync.loaded;
-        },
-        get saving() {
-            return loaderAsync.saving;
-        },
-        get error() {
-            return loaderAsync.error;
-        },
-        get data(): readonly Event[] {
-            const internal = loaderAsync.data || [];
-            const external = (eventLoader as any)._externalEvents || [];
-            return [...internal, ...external];
-        },
-        get promise() {
-            return loaderAsync.promise.then(internal => {
+    public get eventsAsync(): IAsyncData<readonly Event[]> {
+        const loaderAsync = this._eventLoader.asyncData();
+        const eventLoader = this._eventLoader;
+        
+        // Create a wrapper that intercepts the data property
+        return {
+            get done() {
+                return loaderAsync.done;
+            },
+            get loaded() {
+                return loaderAsync.loaded;
+            },
+            get saving() {
+                return loaderAsync.saving;
+            },
+            get error() {
+                return loaderAsync.error;
+            },
+            get data(): readonly Event[] {
+                const internal = loaderAsync.data || [];
                 const external = (eventLoader as any)._externalEvents || [];
                 return [...internal, ...external];
-            });
-        },
-        registerComponentForUpdates(component: IComponent) {
-            loaderAsync.registerComponentForUpdates(component);
-        },
-        unregisterComponentForUpdates(component: IComponent) {
-            loaderAsync.unregisterComponentForUpdates(component);
-        }
-    };
-}
+            },
+            get promise() {
+                return loaderAsync.promise.then(internal => {
+                    const external = (eventLoader as any)._externalEvents || [];
+                    return [...internal, ...external];
+                });
+            },
+            registerComponentForUpdates(component: IComponent) {
+                loaderAsync.registerComponentForUpdates(component);
+            },
+            unregisterComponentForUpdates(component: IComponent) {
+                loaderAsync.unregisterComponentForUpdates(component);
+            }
+        };
+    }
 
-    // ✅ ONLY ONE eventsById - the merged version
+    // ONLY ONE eventsById - the merged version
     public async eventsById(): Promise<ReadonlyEventMap> {
         const allEvents = await this._eventLoader.allWithExternal();
         const map = new Map<number, Event>();
@@ -150,15 +146,6 @@ public get eventsAsync(): IAsyncData<readonly Event[]> {
     public get externalListsLoader(): ExternalListsLoader {
         return this._externalListsLoader;
     }
-
-    // ❌ REMOVE THESE OLD DECLARATIONS - they're duplicates!
-    // public get eventsAsync(): IAsyncData<readonly Event[]> {
-    //     return this._eventLoader.asyncData();
-    // }
-
-    // public async eventsById(): Promise<ReadonlyEventMap> {
-    //     return this._eventLoader.entitiesById();
-    // }
 
     public get refinersAsync(): IAsyncData<readonly Refiner[]> {
         return this._refinerLoader.asyncData();

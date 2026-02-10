@@ -197,7 +197,7 @@ export class EventLoader extends PagedViewLoader<Event> {
             timezones,
             spo,
             liveUpdate,
-            fastLoad: { useCache: false }  // ✅ DISABLE CACHE to get fresh data
+            fastLoad: { useCache: false }
         });
         this.registerDependency(_refinerValueLoader);
     }
@@ -206,7 +206,6 @@ export class EventLoader extends PagedViewLoader<Event> {
         this._externalEvents = events;
     }
 
-    // ✅ NEW: Return merged events without modifying internal state
     public async allWithExternal(): Promise<readonly Event[]> {
         const internalEvents = await this.all();
         return [...internalEvents, ...this._externalEvents];

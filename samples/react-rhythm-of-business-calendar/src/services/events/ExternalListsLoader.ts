@@ -4,14 +4,24 @@ import { IListItemResult, CamlQuery } from "common/sharepoint";
 import ExternalListsConfigList from "../../schema/lists/ExternalListsConfigList";
 
 export class ExternalListsLoader {
+    private _cachedConfigs: ExternalListConfig[] = [];
+
     constructor( private readonly spo: ISharePointService ) {}
 
     public async loadExternalListConfigs(): Promise<ExternalListConfig[]> {
-        return this._load(true);
+        const configs = await this._load(true);
+        this._cachedConfigs = configs;
+        return configs;
     }
 
     public async loadAllExternalListConfigs(): Promise<ExternalListConfig[]> {
-        return this._load(false);
+        const configs = await this._load(false);
+        this._cachedConfigs = configs; 
+        return configs;
+    }
+
+    public getCachedConfigs(): ExternalListConfig[] {
+        return this._cachedConfigs;
     }
 
     private async _load(enabledOnly: boolean): Promise<ExternalListConfig[]> {
