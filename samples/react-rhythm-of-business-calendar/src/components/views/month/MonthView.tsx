@@ -19,7 +19,7 @@ const MonthView: FC<IViewProps> = ({ anchorDate, eventCommands, viewCommands, cc
 
     // Log refiner values for each event occurrence
     useEffect(() => {
-        console.log('occurrences:',cccurrences);
+        // console.log('occurrences:',cccurrences);
         cccurrences.forEach(cccurrence => {
             const event = cccurrence.event;
             const valuesByRefiner = event.valuesByRefiner();
