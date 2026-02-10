@@ -26,6 +26,9 @@ export class ExternalListDataService {
 
     private async _fetchListItems(config: ExternalListConfig): Promise<IExternalListItem[]> {
         const siteUrl = this._normalizeSiteUrl(config.siteUrl);
+ 
+        if (config.viewId) { return await this._fetchListItemsUsingView(config, siteUrl); }
+
         const selectFields = this._buildSelectFields(config);
 
         let apiUrl =
@@ -52,6 +55,114 @@ export class ExternalListDataService {
         }
         
         return data.value || [];
+    }
+
+    private async _fetchListItemsUsingView(config: ExternalListConfig, siteUrl: string): Promise<IExternalListItem[]> {
+        const viewEndpoint = `${siteUrl}/_api/web/lists(guid'${config.listId}')/views(guid'${config.viewId}')`;
+        
+        const viewResponse: SPHttpClientResponse = await this.spHttpClient.get(viewEndpoint, SPHttpClient.configurations.v1);
+
+        if (!viewResponse.ok) {
+            console.warn(`Failed to fetch view, falling back to all items: ${viewResponse.statusText}`);
+            return await this._fetchAllItems(config, siteUrl);
+        }
+
+        const viewData = await viewResponse.json();
+        const viewQuery = viewData.ViewQuery || '';
+
+        const oDataFilter = this._camlToODataFilter(viewQuery);
+        
+        if (!oDataFilter) {
+            console.warn(`Complex CAML query detected, falling back to all items for "${config.listTitle}"`);
+            return await this._fetchAllItems(config, siteUrl);
+        }
+
+        const selectFields = this._buildSelectFields(config);
+        
+        let apiUrl =
+            `${siteUrl}/_api/web/lists(guid'${config.listId}')/items` +
+            `?$select=${selectFields}` +
+            `&$filter=${encodeURIComponent(oDataFilter)}`;
+
+        if (config.eventDate) {
+            apiUrl += `&$orderby=${config.eventDate}`;
+        }
+
+        apiUrl += `&$top=5000`;
+
+        const response: SPHttpClientResponse = await this.spHttpClient.get(
+            apiUrl,
+            SPHttpClient.configurations.v1
+        );
+
+        if (!response.ok) {
+            console.error(`Failed to fetch filtered items: ${response.statusText}`);
+            throw new Error(`Failed to fetch items using view filter: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const items = data.value || [];
+        return items;
+    }
+
+    private async _fetchAllItems(config: ExternalListConfig, siteUrl: string): Promise<IExternalListItem[]> {
+        const selectFields = this._buildSelectFields(config);
+
+        let apiUrl =
+            `${siteUrl}/_api/web/lists(guid'${config.listId}')/items` +
+            `?$select=${selectFields}`;
+
+        if (config.eventDate) {
+            apiUrl += `&$orderby=${config.eventDate}`;
+        }
+
+        apiUrl += `&$top=5000`;
+
+        const response: SPHttpClientResponse = await this.spHttpClient.get(
+            apiUrl,
+            SPHttpClient.configurations.v1
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data.value || [];
+    }
+
+    private _camlToODataFilter(caml: string): string | null {
+        if (!caml || caml.trim() === '') {
+            return null;
+        }
+
+        // Extract simple equality filters
+        // Example: <Eq><FieldRef Name="Status" /><Value Type="Text">Approved</Value></Eq>
+        const eqMatch = caml.match(/<Eq>\s*<FieldRef Name="([^"]+)"\s*\/>\s*<Value Type="[^"]*">([^<]+)<\/Value>\s*<\/Eq>/i);
+        if (eqMatch) {
+            const fieldName = eqMatch[1];
+            const fieldValue = eqMatch[2];
+            return `${fieldName} eq '${fieldValue}'`;
+        }
+
+        // Extract simple date comparisons
+        // Example: <Geq><FieldRef Name="EventDate" /><Value Type="DateTime"><Today /></Value></Geq>
+        const todayMatch = caml.match(/<(Geq|Leq|Gt|Lt)>\s*<FieldRef Name="([^"]+)"\s*\/>\s*<Value Type="DateTime"><Today\s*\/><\/Value>\s*<\/(Geq|Leq|Gt|Lt)>/i);
+        if (todayMatch) {
+            const operator = todayMatch[1].toLowerCase();
+            const fieldName = todayMatch[2];
+            const today = new Date().toISOString();
+            
+            const odataOp = {
+                'geq': 'ge',
+                'leq': 'le',
+                'gt': 'gt',
+                'lt': 'lt'
+            }[operator];
+            
+            return `${fieldName} ${odataOp} datetime'${today}'`;
+        }
+    return null;
     }
 
     private _buildSelectFields(config: ExternalListConfig): string {
