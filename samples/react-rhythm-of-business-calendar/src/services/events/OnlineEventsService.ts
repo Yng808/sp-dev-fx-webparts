@@ -2,7 +2,7 @@ import { sp } from '@pnp/sp';
 import { IEmailProperties } from '@pnp/sp/sputilities';
 import { IMicrosoftTeams } from '@microsoft/sp-webpart-base';
 import { format } from '@fluentui/react';
-import { Color, Entity, humanizeFixedList, IAsyncData, multifilter, now, User } from 'common';
+import { Color, Entity, humanizeFixedList, IAsyncData, IComponent, multifilter, now, User } from 'common';
 import { ServiceContext, DeveloperService, DeveloperServiceProp, SharePointServiceProp, SharePointService, ISharePointService, TimeZoneServiceProp, TimeZoneService, ITimeZoneService, LiveUpdateServiceProp, LiveUpdateService, ILiveUpdateService, DirectoryService, DirectoryServiceProp, IDirectoryService, TeamsJs } from 'common/services';
 import { RoleType } from 'common/sharepoint';
 import { Approvers, Event, EventModerationStatus, humanizeDateRange, humanizeRecurrencePattern, ReadonlyEventMap, Refiner, RefinerValue } from 'model';
@@ -65,76 +65,100 @@ export class OnlineEventsService implements IEventsService {
         dev.registerScripts(this._devScripts);
     }
 
-    public async initialize(): Promise<void> {
-    const configuration = this._configurations.active;
-    if (configuration && !configuration.isNew) {
-        const schema = configuration.schema;
-        this._refinerLoader = new RefinerLoader(schema, this._timezones, this._spo, this._liveUpdate);
-        this._refinerValueLoader = new RefinerValueLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerLoader);
-        this._eventLoader = new EventLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
-        this._approversLoader = new ApproversLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
-        console.log('OnlineEventsService: Loaders initialized');
-        
-        try {
-            // Load external list configs and create external events FIRST
-            const externalConfigs = await this._externalListsLoader.loadExternalListConfigs();
-            console.log(`Loaded ${externalConfigs.length} external list config(s)`);
+public async initialize(): Promise<void> {
+        const configuration = this._configurations.active;
+        if (configuration && !configuration.isNew) {
+            const schema = configuration.schema;
+            this._refinerLoader = new RefinerLoader(schema, this._timezones, this._spo, this._liveUpdate);
+            this._refinerValueLoader = new RefinerValueLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerLoader);
+            this._eventLoader = new EventLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
+            this._approversLoader = new ApproversLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
             
-            if (externalConfigs.length > 0) {
-                const externalEvents = await this._externalListDataService.loadEventsFromExternalLists(externalConfigs);
-                console.log(`Loaded ${externalEvents.length} external event(s)`);
-                const currentUser = this._directory.currentUser;
+            try {
+                // Load external events FIRST (before internal events load)
+                const externalConfigs = await this._externalListsLoader.loadExternalListConfigs();
+                
+                if (externalConfigs.length > 0) {
+                    const externalEvents = await this._externalListDataService.loadEventsFromExternalLists(externalConfigs);
+                    const currentUser = this._directory.currentUser;
 
-                const processedExternalEvents: Event[] = [];
-                externalEvents.forEach(e => {
-                    e.moderator = currentUser;
-                    e.moderationTimestamp = moment();
-                    e.moderationStatus = EventModerationStatus.Approved;
-                    // e.snapshot();
-                    processedExternalEvents.push(e);
-                });
-                
-                console.log(`Processed ${processedExternalEvents.length} external events`);
-                
-                // Inject external events into the loader BEFORE loading SharePoint events
-                this._eventLoader.setExternalEvents(processedExternalEvents);
+                    externalEvents.forEach(e => {
+                        e.moderator = currentUser;
+                        e.moderationTimestamp = moment();
+                        e.moderationStatus = EventModerationStatus.Approved;
+                    });
+                    
+                    // Just set them - don't inject into internal arrays
+                    this._eventLoader.setExternalEvents(externalEvents);
+                }
+            } catch (error) {
+                console.error('Error loading external events:', error);
             }
-        } catch (error) {
-            console.error('Error loading external events:', error);
-        }
-        
-        // Load SharePoint events (this will merge with external events)
-        try {
-            console.log('Loading SharePoint events...');
-            await this._eventLoader.all();
             
-            // Add external events to the collection
-            await this._eventLoader.addExternalEventsToCollection();
-            
-            const allEvents = await this._eventLoader.all();
-            console.log(`Final total: ${allEvents.length} events`);
-        } catch (error) {
-            console.error('Error loading SharePoint events:', error);
-            
-            // Even if SharePoint load fails, make sure external events are available
-            await this._eventLoader.addExternalEventsToCollection();
-            const allEvents = await this._eventLoader.all();
-            console.log(`Final total (external only): ${allEvents.length} events`);
+            // Internal events will load automatically when UI requests them via eventsAsync
         }
     }
+
+    // ✅ ONLY ONE eventsAsync - the wrapped version
+// ✅ Wrap eventsAsync to return merged results
+public get eventsAsync(): IAsyncData<readonly Event[]> {
+    const loaderAsync = this._eventLoader.asyncData();
+    const eventLoader = this._eventLoader;
+    
+    // Create a wrapper that intercepts the data property
+    return {
+        get done() {
+            return loaderAsync.done;
+        },
+        get loaded() {
+            return loaderAsync.loaded;
+        },
+        get saving() {
+            return loaderAsync.saving;
+        },
+        get error() {
+            return loaderAsync.error;
+        },
+        get data(): readonly Event[] {
+            const internal = loaderAsync.data || [];
+            const external = (eventLoader as any)._externalEvents || [];
+            return [...internal, ...external];
+        },
+        get promise() {
+            return loaderAsync.promise.then(internal => {
+                const external = (eventLoader as any)._externalEvents || [];
+                return [...internal, ...external];
+            });
+        },
+        registerComponentForUpdates(component: IComponent) {
+            loaderAsync.registerComponentForUpdates(component);
+        },
+        unregisterComponentForUpdates(component: IComponent) {
+            loaderAsync.unregisterComponentForUpdates(component);
+        }
+    };
+}
+
+    // ✅ ONLY ONE eventsById - the merged version
+    public async eventsById(): Promise<ReadonlyEventMap> {
+        const allEvents = await this._eventLoader.allWithExternal();
+        const map = new Map<number, Event>();
+        allEvents.forEach(event => map.set(event.id, event));
+        return map;
     }
     
     public get externalListsLoader(): ExternalListsLoader {
         return this._externalListsLoader;
     }
 
-    public get eventsAsync(): IAsyncData<readonly Event[]> {
-        return this._eventLoader.asyncData();
-    }
+    // ❌ REMOVE THESE OLD DECLARATIONS - they're duplicates!
+    // public get eventsAsync(): IAsyncData<readonly Event[]> {
+    //     return this._eventLoader.asyncData();
+    // }
 
-    public async eventsById(): Promise<ReadonlyEventMap> {
-        return this._eventLoader.entitiesById();
-    }
+    // public async eventsById(): Promise<ReadonlyEventMap> {
+    //     return this._eventLoader.entitiesById();
+    // }
 
     public get refinersAsync(): IAsyncData<readonly Refiner[]> {
         return this._refinerLoader.asyncData();

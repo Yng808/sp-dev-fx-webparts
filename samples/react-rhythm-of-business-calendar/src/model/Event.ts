@@ -358,7 +358,7 @@ export class Event extends ListItemEntity<IState> implements IEvent {
         if (this.isSeriesMaster) {
             const cadence = new Cadence(this.start, this.recurrence);
             const dates = Array.from(cadence.generate(range));
-            console.log('expandOccurences dates', dates);
+            // console.log('expandOccurences dates', dates);
             const exceptionsInRange = multifilter(this.exceptions.get(), inverseFilter(Entity.NewAndGhostableFilter), e => MomentRange.overlaps(range, e));
 
             return dates
@@ -378,7 +378,7 @@ export class Event extends ListItemEntity<IState> implements IEvent {
                         } else {
 
                             const newEvent = new EventOccurrence(exception);
-                            console.log('expandOccurences inside line 376', newEvent);
+                            // console.log('expandOccurences inside line 376', newEvent);
                             return newEvent;
                         }
                     } else {
@@ -386,14 +386,14 @@ export class Event extends ListItemEntity<IState> implements IEvent {
                         const start = date.clone().add(this.startTime);
                         const end = start.clone().add(this.duration);
                         const newEvent2 = new EventOccurrence(this, start, end)
-                        console.log('expandOccurences inside line 384', newEvent2);
+                        // console.log('expandOccurences inside line 384', newEvent2);
                         return newEvent2;
                     }
                 })
                 .filter(Boolean)
                 .concat(exceptionsInRange.map(e => new EventOccurrence(e)));
         } else {
-            console.log('expandOccurences inside line 391');
+            // console.log('expandOccurences inside line 391');
             return (!range || MomentRange.overlaps(this, range)) ? [new EventOccurrence(this)] : [];
         }
     }
