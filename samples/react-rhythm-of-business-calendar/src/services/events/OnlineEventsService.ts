@@ -75,7 +75,6 @@ export class OnlineEventsService implements IEventsService {
             this._approversLoader = new ApproversLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
             
             try {
-                // Load external events FIRST (before internal events load)
                 const externalConfigs = await this._externalListsLoader.loadExternalListConfigs();
                 
                 if (externalConfigs.length > 0) {
@@ -88,7 +87,6 @@ export class OnlineEventsService implements IEventsService {
                         e.moderationStatus = EventModerationStatus.Approved;
                     });
                     
-                    // Just set them - don't inject into internal arrays
                     this._eventLoader.setExternalEvents(externalEvents);
                 }
             } catch (error) {

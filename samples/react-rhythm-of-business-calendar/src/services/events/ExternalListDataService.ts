@@ -1,6 +1,8 @@
 import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
 import { ExternalListConfig } from 'model';
 import { Event } from 'model/Event';
+import { RefinerValue, Refiner } from 'model';
+import { Color } from 'common';
 import moment from 'moment-timezone';
 
 export interface IExternalListItem {
@@ -9,6 +11,36 @@ export interface IExternalListItem {
 }
 
 export class ExternalListDataService {
+
+    private readonly _colorPalette: Color[] = [
+        Color.parse('#FF6B6B'), // 1
+        Color.parse('#F7DC6F'), // 2
+        Color.parse('#4ECDC4'), // 3
+        Color.parse('#2ECC71'), // 4
+        Color.parse('#45B7D1'), // 5
+        Color.parse('#FFA07A'), // 6
+        Color.parse('#98D8C8'), // 7
+        Color.parse('#BB8FCE'), // 8
+        Color.parse('#E74C3C'), // 9
+        Color.parse('#3498DB'), // 10
+    ];
+
+    private readonly _externalRefinerValues = new Map<string, RefinerValue>();
+
+    private _externalRefiner: Refiner | undefined;
+
+    private _ensureExternalRefiner(): Refiner {
+        if (this._externalRefiner) {
+            return this._externalRefiner;
+        }
+
+        this._externalRefiner = new Refiner();
+        this._externalRefiner.title = "External Sources";
+        this._externalRefiner.enableColors = true;
+        
+        return this._externalRefiner;
+    }
+
     constructor( private readonly spHttpClient: SPHttpClient, private readonly currentWebUrl: string ) {}
 
     public async loadEventsFromExternalLists(configs: ExternalListConfig[]): Promise<Event[]> {
@@ -21,7 +53,46 @@ export class ExternalListDataService {
 
     public async loadEventsFromExternalList(config: ExternalListConfig): Promise<Event[]> {
         const items = await this._fetchListItems(config);
-        return items.map(item => this._mapItemToEvent(item, config));
+        const events = items.map(item => this._mapItemToEvent(item, config));
+        const refinerValue = this._getOrCreateRefinerValue(config);
+        events.forEach(e => {e.refinerValues.add(refinerValue);});
+        return events;
+    }
+
+    private _getOrCreateRefinerValue(config: ExternalListConfig): RefinerValue {
+        const cacheKey = config.listId;
+
+        if (this._externalRefinerValues.has(cacheKey)) {
+            return this._externalRefinerValues.get(cacheKey)!;
+        }
+
+        const externalRefiner = this._ensureExternalRefiner();
+        const listTitle = config.listTitle || 'External';
+        
+        const existingValues = externalRefiner.values.get();
+        let refinerValue = existingValues.find(rv => rv.title === listTitle);
+
+        if (!refinerValue) {
+            refinerValue = new RefinerValue();
+            refinerValue.title = listTitle;
+            refinerValue.color = this._getColorForSortOrder(config.sortOrder);
+            refinerValue.refiner.set(externalRefiner);
+            externalRefiner.values.add(refinerValue);
+        }
+
+        this._externalRefinerValues.set(cacheKey, refinerValue);
+
+        return refinerValue;
+    }
+
+
+    private _getColorForSortOrder(sortOrder?: number): Color {
+        if (!sortOrder || sortOrder <= 0) {
+            return this._colorPalette[0];
+        }
+
+        const index = (sortOrder - 1) % this._colorPalette.length;
+        return this._colorPalette[index];
     }
 
     private async _fetchListItems(config: ExternalListConfig): Promise<IExternalListItem[]> {

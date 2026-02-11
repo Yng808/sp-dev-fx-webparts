@@ -39,7 +39,8 @@ export const ExternalListsSettings: FC<IExternalListsSettingsProps> = ({ isOpen,
             eventDate: 'EventDate',       
             endDate: 'EndDate',         
             categoryField: '',
-            enabled: true
+            enabled: true,
+            sortOrder: undefined
         };
         setSelectedConfig(newConfig);
         setIsEditing(true);

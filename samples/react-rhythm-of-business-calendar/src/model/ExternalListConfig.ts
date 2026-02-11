@@ -9,4 +9,5 @@ export interface ExternalListConfig {
     endDate?: string;
     categoryField?: string;
     enabled: boolean;
+    sortOrder?: number;
 }
