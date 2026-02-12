@@ -31,7 +31,7 @@ export const useExternalListsForEventCreation = () => {
                 opts.push({
                     key: config.listId,
                     text: `Add ${config.listTitle} Event`,
-                    iconProps: { iconName: 'CalendarSettings' },
+                    iconProps: { iconName: 'Add' },
                     isExternal: true,
                     listId: config.listId,
                     siteUrl: config.siteUrl
