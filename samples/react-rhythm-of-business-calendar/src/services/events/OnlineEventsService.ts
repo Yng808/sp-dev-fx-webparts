@@ -59,7 +59,8 @@ export class OnlineEventsService implements IEventsService {
         
         this._externalListDataService = new ExternalListDataService(
             this._spHttpClient,
-            this._webAbsoluteUrl
+            this._webAbsoluteUrl,
+            this._timezones
         );
         this._externalListsLoader = new ExternalListsLoader(this._spo);
         dev.registerScripts(this._devScripts);

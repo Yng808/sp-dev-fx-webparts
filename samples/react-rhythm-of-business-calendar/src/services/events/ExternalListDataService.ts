@@ -3,6 +3,7 @@ import { ExternalListConfig } from 'model';
 import { Event } from 'model/Event';
 import { RefinerValue, Refiner } from 'model';
 import { Color } from 'common';
+import { ITimeZoneService } from "common/services";
 import moment from 'moment-timezone';
 
 export interface IExternalListItem {
@@ -41,7 +42,7 @@ export class ExternalListDataService {
         return this._externalRefiner;
     }
 
-    constructor( private readonly spHttpClient: SPHttpClient, private readonly currentWebUrl: string ) {}
+    constructor( private readonly spHttpClient: SPHttpClient, private readonly currentWebUrl: string, private readonly timeZoneService: ITimeZoneService ) {}
 
     public async loadEventsFromExternalLists(configs: ExternalListConfig[]): Promise<Event[]> {
         const enabledConfigs = configs.filter(c => c.enabled);
@@ -263,7 +264,7 @@ export class ExternalListDataService {
 
     private _mapItemToEvent(item: IExternalListItem, config: ExternalListConfig): Event {
         const event = new Event();
-        
+        const siteTimeZone = this.timeZoneService.siteTimeZone;
         (event as any).isExternal = true;
         (event as any).externalSourceListId = config.listId;
         (event as any).externalSourceSiteUrl = config.siteUrl;
@@ -271,54 +272,39 @@ export class ExternalListDataService {
         (event as any).readOnly = true;
         event.title = this._getValue(item, config.titleField) || '';
 
-        let startValue = null;
-        let endValue = null;
+        const startValue = config.eventDate ? this._getValue(item, config.eventDate) : null;
+        const endValue = config.endDate ? this._getValue(item, config.endDate) : null;
 
-        if (config.eventDate) {
-            startValue = this._getValue(item, config.eventDate);
-            if (startValue) {
-                event.start = moment(startValue);
-            }
-        }
+        if (startValue) {
+            const startMoment = moment.tz(startValue, siteTimeZone.momentId);
 
-        if (config.endDate) {
-            endValue = this._getValue(item, config.endDate);
-            if (endValue) {
-                event.end = moment(endValue);
+            const isMidnight =
+                startMoment.hours() === 0 &&
+                startMoment.minutes() === 0 &&
+                startMoment.seconds() === 0;
+
+            if (isMidnight) {
+                event.isAllDay = true;
+                event.start = startMoment.clone().startOf('day');
+
+                if (endValue) {
+                    const endMoment = moment.tz(endValue, siteTimeZone.momentId);
+                    event.end = endMoment.clone().startOf('day');
+                } else {
+                    event.end = event.start.clone().add(1, 'day');
+                }
             }
         }
  
         if (!event.start || !event.start.isValid()) {
-            event.start = moment();
+            event.start = moment().tz(siteTimeZone.momentId);
         }
 
         if (!event.end || !event.end.isValid()) {
-            event.end = moment(event.start);
-        }
-
-        const isAllDayEvent = this._isAllDayEventValue(startValue);
-        
-        if (isAllDayEvent) {
-            event.isAllDay = true;
-            event.start = event.start.startOf('day');
-            event.end = event.end.startOf('day');
+            event.end = event.isAllDay ? event.start.clone().add(1, 'day') : event.start.clone().add(1, 'hour');
         }
 
         return event;
-    }
-
-    private _isAllDayEventValue(value: any): boolean {
-        if (!value) {
-            return false;
-        }
-
-        if (typeof value === 'string') {
-            if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private _getValue(item: IExternalListItem, field: string): any {
