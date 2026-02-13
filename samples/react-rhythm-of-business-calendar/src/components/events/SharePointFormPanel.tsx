@@ -17,7 +17,22 @@ export const SharePointFormPanel: FC<ISharePointFormPanelProps> = ({ isOpen, onD
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        if (!isOpen) return;
+        if (!isOpen) {
+            setFormUrl('');
+            setIsLoading(true);
+            return;
+        }
+
+        try {
+        const allowedOrigin = window.location.origin;
+        const targetOrigin = new URL(siteUrl).origin;
+
+        if (targetOrigin !== allowedOrigin) {
+            console.error("Blocked cross-origin form load:", siteUrl);
+            setIsLoading(false);
+            setFormUrl('');
+            return;
+        }
 
         let url = `${siteUrl}/_layouts/15/listform.aspx?ListId={${listId}}`;
 
@@ -26,17 +41,25 @@ export const SharePointFormPanel: FC<ISharePointFormPanelProps> = ({ isOpen, onD
                 url += '&PageType=8'; // New item
                 break;
             case 'edit':
+                if (!itemId) return;
                 url += `&PageType=6&ID=${itemId}`; // Edit item
                 break;
             case 'display':
+                if (!itemId) return;
                 url += `&PageType=4&ID=${itemId}`; // Display item
                 break;
         }
 
         url += '&pa=1'; // Power Apps custom
 
+        setIsLoading(true);
         setFormUrl(url);
+
+    } catch (err) {
+        console.error("Invalid siteUrl format:", siteUrl);
         setIsLoading(false);
+        setFormUrl('');
+    }
     }, [isOpen, siteUrl, listId, itemId, mode]);
 
     const handleDismiss = () => {
@@ -52,7 +75,13 @@ export const SharePointFormPanel: FC<ISharePointFormPanelProps> = ({ isOpen, onD
             </div>
         ) : (
             <>
-                <iframe src={formUrl} style={{ width: '100%', height: 'calc(100vh - 150px)', border: 'none', display: 'block' }} title="SharePoint Form"/>
+                <iframe 
+                src={formUrl} 
+                onLoad={() => setIsLoading(false)}
+                sandbox="allow-scripts allow-same-origin allow-forms"
+                referrerPolicy="no-referrer"
+                style={{ width: '100%', height: 'calc(100vh - 150px)', border: 'none', display: 'block' }} 
+                title="SharePoint Form"/>
             </>
         )}
         </Panel>
