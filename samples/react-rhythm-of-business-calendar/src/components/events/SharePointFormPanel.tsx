@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { FC, useEffect, useState } from 'react';
-import { Panel, PanelType, Spinner, SpinnerSize } from '@fluentui/react';
+import { FC, useEffect } from 'react';
 
 interface ISharePointFormPanelProps {
     isOpen: boolean;
@@ -13,9 +12,6 @@ interface ISharePointFormPanelProps {
 }
 
 export const SharePointFormPanel: FC<ISharePointFormPanelProps> = ({ isOpen, onDismiss, siteUrl, listId,  itemId, mode, onSaved }) => {
-    const [formUrl, setFormUrl] = useState<string>('');
-    const [isLoading, setIsLoading] = useState(true);
-
     useEffect(() => {
         if (!isOpen) return;
 
@@ -33,28 +29,41 @@ export const SharePointFormPanel: FC<ISharePointFormPanelProps> = ({ isOpen, onD
                 break;
         }
 
-        url += '&pa=1'; // Power Apps custom
+        const width = 1000;
+        const height = 800;
+        const left = Math.max(0, (window.screen.width - width) / 2);
+        const top = Math.max(0, (window.screen.height - height) / 2);
+        
+        const popup = window.open(
+            url,
+            'SharePointForm',
+            `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,status=yes,toolbar=no,menubar=no,location=no`
+        );
 
-        setFormUrl(url);
-        setIsLoading(false);
-    }, [isOpen, siteUrl, listId, itemId, mode]);
+        if (!popup) {
+            console.error('Popup blocked. Please allow popups for this site.');
+            alert('Please allow popups to open the SharePoint form.');
+            onDismiss();
+            return;
+        }
 
-    const handleDismiss = () => {
-        if (onSaved) { onSaved(); }
-        onDismiss();
-    };
+        const interval = setInterval(() => {
+            if (popup.closed) {
+                clearInterval(interval);
+                if (onSaved) {
+                    onSaved();
+                }
+                onDismiss();
+            }
+        }, 500);
 
-    return (
-        <Panel isOpen={isOpen} onDismiss={handleDismiss} type={PanelType.large} isLightDismiss={false} closeButtonAriaLabel="Close">
-        {isLoading ? (
-            <div style={{ padding: '20px', textAlign: 'center' }}>
-                <Spinner size={SpinnerSize.large} label="Loading form..." />
-            </div>
-        ) : (
-            <>
-                <iframe src={formUrl} style={{ width: '100%', height: 'calc(100vh - 150px)', border: 'none', display: 'block' }} title="SharePoint Form"/>
-            </>
-        )}
-        </Panel>
-    );
+        return () => {
+            clearInterval(interval);
+            if (popup && !popup.closed) {
+                popup.close();
+            }
+        };
+    }, [isOpen, siteUrl, listId, itemId, mode, onSaved, onDismiss]);
+
+    return null;
 };
