@@ -27,6 +27,7 @@ export interface IEventsService extends IService {
 
     createEventDeepLink(event: Event): string;
 
+    refreshExternalEvents(): Promise<void>;
     readonly externalListsLoader: ExternalListsLoader;
 }
 

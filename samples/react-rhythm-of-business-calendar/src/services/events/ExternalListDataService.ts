@@ -14,16 +14,16 @@ export interface IExternalListItem {
 export class ExternalListDataService {
 
     private readonly _colorPalette: Color[] = [
-        Color.parse('#FF6B6B'), // 1
-        Color.parse('#F7DC6F'), // 2
-        Color.parse('#4ECDC4'), // 3
-        Color.parse('#2ECC71'), // 4
-        Color.parse('#45B7D1'), // 5
-        Color.parse('#FFA07A'), // 6
-        Color.parse('#98D8C8'), // 7
-        Color.parse('#BB8FCE'), // 8
-        Color.parse('#E74C3C'), // 9
-        Color.parse('#3498DB'), // 10
+        Color.parse('#F4CCCC'), // 1 Red
+        Color.parse('#FCE5CD'), // 2 Orange
+        Color.parse('#FFF2CC'), // 3 Yellow
+        Color.parse('#D9EAD3'), // 4 Green
+        Color.parse('#D0E0E3'), // 5 Teal
+        Color.parse('#CFE2F3'), // 6 Blue
+        Color.parse('#D9D2E9'), // 7 Purple
+        Color.parse('#EAD1DC'), // 8 Pink
+        Color.parse('#E6E6E6'), // 9 Gray
+        Color.parse('#D0D0D0'), // 10 Neutral Gray
     ];
 
     private readonly _externalRefinerValues = new Map<string, RefinerValue>();

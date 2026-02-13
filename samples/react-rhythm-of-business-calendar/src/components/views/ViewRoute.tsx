@@ -322,11 +322,15 @@ const ViewRoute: FC = () => {
         } as IViewCommands;
     }, [setAnchorDate, newEvent, displayEventRouted]);
 
-    const handleFormDismiss = () => {
+    const eventsService = useEventsService();
+
+    const handleFormDismiss = async () => {
+        await eventsService.refreshExternalEvents();
         setSpFormState({ isOpen: false, mode: 'display' });
     };
 
-    const handleFormSaved = () => {
+    const handleFormSaved = async () => {
+        await eventsService.refreshExternalEvents();
         handleFormDismiss();
     };
 

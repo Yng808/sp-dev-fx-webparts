@@ -142,6 +142,35 @@ export class OnlineEventsService implements IEventsService {
         return map;
     }
     
+    public async refreshExternalEvents(): Promise<void> {
+        try {
+            const externalConfigs =
+                await this._externalListsLoader.loadExternalListConfigs();
+
+            if (externalConfigs.length === 0) {
+                this._eventLoader.setExternalEvents([]);
+                return;
+            }
+
+            const externalEvents =
+                await this._externalListDataService.loadEventsFromExternalLists(externalConfigs);
+
+            const currentUser = this._directory.currentUser;
+
+            externalEvents.forEach(e => {
+                e.moderator = currentUser;
+                e.moderationTimestamp = moment();
+                e.moderationStatus = EventModerationStatus.Approved;
+            });
+
+            this._eventLoader.setExternalEvents(externalEvents);
+            this._eventLoader.asyncData().dataUpdated();
+
+        } catch (error) {
+            console.error('Error refreshing external events:', error);
+        }
+    }
+
     public get externalListsLoader(): ExternalListsLoader {
         return this._externalListsLoader;
     }
