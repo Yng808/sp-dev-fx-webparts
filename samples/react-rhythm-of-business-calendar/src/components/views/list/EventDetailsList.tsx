@@ -1,4 +1,4 @@
-import React, { FC, useContext, useEffect, useRef, useState } from 'react';
+import React, { FC, useContext, useEffect, useState } from 'react';
 import { EventOccurrence } from 'model';
 import { useTimeZoneService } from 'services';
 import moment from 'moment';
@@ -190,7 +190,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     />
                 </div>
                 <div className="col">
-                    <label></label>
+                    <label/>
                     <button
                         className="form-control mb-2"
                         style={{ backgroundColor: '#0d6efd', color: '#ffffff' }}
@@ -200,7 +200,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                     </button>
                 </div>
                 <div className="col">
-                    <label></label>
+                    <label/>
                     <button
                         className="form-control"
                         style={{ 

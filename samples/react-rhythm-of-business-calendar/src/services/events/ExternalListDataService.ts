@@ -64,7 +64,7 @@ export class ExternalListDataService {
         const cacheKey = config.listId;
 
         if (this._externalRefinerValues.has(cacheKey)) {
-            return this._externalRefinerValues.get(cacheKey)!;
+            return this._externalRefinerValues.get(cacheKey);
         }
 
         const externalRefiner = this._ensureExternalRefiner();
@@ -116,7 +116,7 @@ export class ExternalListDataService {
         const response: SPHttpClientResponse = await this.spHttpClient.get(apiUrl, SPHttpClient.configurations.v1);
 
         if (!response.ok) {
-            const responseText = await response.text();
+            // const responseText = await response.text();
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 

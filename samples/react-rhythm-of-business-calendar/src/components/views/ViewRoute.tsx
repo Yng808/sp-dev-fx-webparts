@@ -646,8 +646,8 @@ const ViewRoute: FC = () => {
             <CopyLinkDialog componentRef={copyLinkDialog} />
             <SharePointFormPanel
                 isOpen={spFormState.isOpen}
-                siteUrl={spFormState.siteUrl!}
-                listId={spFormState.listId!}
+                siteUrl={spFormState.siteUrl}
+                listId={spFormState.listId}
                 itemId={spFormState.itemId}
                 mode={spFormState.mode}
                 onDismiss={handleFormDismiss}
