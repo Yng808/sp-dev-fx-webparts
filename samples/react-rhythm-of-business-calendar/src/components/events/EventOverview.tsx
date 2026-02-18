@@ -71,7 +71,7 @@ export const EventOverview: FC<IProps> = ({ event, className }) => {
                 {isRecurring &&
                     <Stack horizontal verticalAlign='center' tokens={iconTextStackTokens}>
                         <Text><RepeatAllIcon /></Text>
-                        <Text data-is-focusable>{event.getSeriesMaster().start.format('LT')} - {event.getSeriesMaster().end.format('LT')}, {humanizeRecurrencePattern(start, recurrence)}</Text>
+                        <Text data-is-focusable>{!isAllDay && `${event.getSeriesMaster().start.format('LT')} - ${event.getSeriesMaster().end.format('LT')}, `}{humanizeRecurrencePattern(start, recurrence)}</Text>
                     </Stack>
                 }
                 {location &&

@@ -281,21 +281,40 @@ export class ExternalListDataService {
 
         if (startValue) {
             const rawStartUtc = moment.utc(startValue);
-
-            const isMidnightUtc =
-                rawStartUtc.hours() === 0 &&
-                rawStartUtc.minutes() === 0 &&
-                rawStartUtc.seconds() === 0;
+            const rawEndUtc = endValue ? moment.utc(endValue) : null;
 
             const startMoment = rawStartUtc.clone().tz(siteTimeZone.momentId);
+            const endMoment = rawEndUtc
+                ? rawEndUtc.clone().tz(siteTimeZone.momentId)
+                : null;
 
-            if (isMidnightUtc) {
+            const isMidnightStart =
+    startMoment.hours() === 0 &&
+    startMoment.minutes() === 0 &&
+    startMoment.seconds() === 0;
+
+const isMidnightEnd =
+    rawEndUtc &&
+    endMoment.hours() === 0 &&
+    endMoment.minutes() === 0 &&
+    endMoment.seconds() === 0;
+
+            const isSingleDayDuration =
+    endMoment &&
+    endMoment.diff(startMoment, 'days') === 1;
+
+            const shouldBeAllDay =
+                isMidnightStart &&
+                (!rawEndUtc || isMidnightEnd || isSingleDayDuration);
+console.log('startValue:', startValue, 'isMidnightStart:', isMidnightStart, 'shouldBeAllDay:', shouldBeAllDay, 'isAllDay:', event.isAllDay);
+            if (shouldBeAllDay) {
+
                 event.isAllDay = true;
+
                 event.start = startMoment.clone().startOf('day');
 
-                if (endValue) {
-                    const rawEndUtc = moment.utc(endValue);
-                    event.end = rawEndUtc.clone().tz(siteTimeZone.momentId).startOf('day');
+                if (endMoment) {
+                    event.end = endMoment.clone().startOf('day');
                 } else {
                     event.end = event.start.clone().add(1, 'day');
                 }
@@ -304,8 +323,8 @@ export class ExternalListDataService {
                 event.isAllDay = false;
                 event.start = startMoment;
 
-                if (endValue) {
-                    event.end = moment.utc(endValue).tz(siteTimeZone.momentId);
+                if (endMoment) {
+                    event.end = endMoment;
                 } else {
                     event.end = event.start.clone().add(1, 'hour');
                 }
