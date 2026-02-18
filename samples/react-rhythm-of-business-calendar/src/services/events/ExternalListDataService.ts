@@ -144,6 +144,10 @@ export class ExternalListDataService {
 
         const oDataFilter = this._camlToODataFilter(viewQuery);
         
+        if (!viewQuery || viewQuery.trim() === '') {
+            return await this._fetchAllItems(config, siteUrl);
+        }
+
         if (!oDataFilter) {
             console.warn(`Complex CAML query detected, falling back to all items for "${config.listTitle}"`);
             return await this._fetchAllItems(config, siteUrl);
@@ -276,22 +280,34 @@ export class ExternalListDataService {
         const endValue = config.endDate ? this._getValue(item, config.endDate) : null;
 
         if (startValue) {
-            const startMoment = moment.tz(startValue, siteTimeZone.momentId);
+            const rawStartUtc = moment.utc(startValue);
 
-            const isMidnight =
-                startMoment.hours() === 0 &&
-                startMoment.minutes() === 0 &&
-                startMoment.seconds() === 0;
+            const isMidnightUtc =
+                rawStartUtc.hours() === 0 &&
+                rawStartUtc.minutes() === 0 &&
+                rawStartUtc.seconds() === 0;
 
-            if (isMidnight) {
+            const startMoment = rawStartUtc.clone().tz(siteTimeZone.momentId);
+
+            if (isMidnightUtc) {
                 event.isAllDay = true;
                 event.start = startMoment.clone().startOf('day');
 
                 if (endValue) {
-                    const endMoment = moment.tz(endValue, siteTimeZone.momentId);
-                    event.end = endMoment.clone().startOf('day');
+                    const rawEndUtc = moment.utc(endValue);
+                    event.end = rawEndUtc.clone().tz(siteTimeZone.momentId).startOf('day');
                 } else {
                     event.end = event.start.clone().add(1, 'day');
+                }
+            } else {
+
+                event.isAllDay = false;
+                event.start = startMoment;
+
+                if (endValue) {
+                    event.end = moment.utc(endValue).tz(siteTimeZone.momentId);
+                } else {
+                    event.end = event.start.clone().add(1, 'hour');
                 }
             }
         }
