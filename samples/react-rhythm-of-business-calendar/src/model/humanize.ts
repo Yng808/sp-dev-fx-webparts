@@ -11,27 +11,26 @@ const dayStrings = [...weekdays(), strings.Day, strings.Weekday, strings.Weekend
 const weekOfStrings = [strings.First, strings.Second, strings.Third, strings.Fourth, strings.Last];
 
 export const humanizeDateRange = (start: Moment, end: Moment, isAllDay: boolean): string => {
-    const displayEnd = isAllDay ? end.clone().subtract(1, 'day') : end;
-    if (start.isSame(displayEnd, 'year')) {
-        if (start.isSame(displayEnd, 'month')) {
-            if (start.isSame(displayEnd, 'day')) {
+    if (start.isSame(end, 'year')) {
+        if (start.isSame(end, 'month')) {
+            if (start.isSame(end, 'day')) {
                 return isAllDay
                     ? `${start.format('dddd, MMMM D, YYYY')}, ${strings.AllDay}`
-                    : `${start.format('dddd, MMMM D, YYYY, LT')} - ${displayEnd.format('LT')}`;
+                    : `${start.format('dddd, MMMM D, YYYY, LT')} - ${end.format('LT')}`;
             } else {
                 return isAllDay
-                    ? `${start.format('MMMM D')}-${displayEnd.format('D, YYYY')}, ${strings.AllDay}`
-                    : `${start.format('MMMM D')}-${displayEnd.format('D')}, ${start.format('YYYY, LT')} - ${displayEnd.format('LT')}`;
+                    ? `${start.format('MMMM D')}-${end.format('D, YYYY')}, ${strings.AllDay}`
+                    : `${start.format('MMMM D')}-${end.format('D')}, ${start.format('YYYY, LT')} - ${end.format('LT')}`;
             }
         } else {
             return isAllDay
-                ? `${start.format('MMMM DD')} - ${displayEnd.format('MMMM DD, YYYY')}, ${strings.AllDay}`
-                : `${start.format('MMM D')} - ${displayEnd.format('MMM D')}, ${start.format('YYYY, LT')} - ${displayEnd.format('LT')}`;
+                ? `${start.format('MMMM DD')} - ${end.format('MMMM DD, YYYY')}, ${strings.AllDay}`
+                : `${start.format('MMM D')} - ${end.format('MMM D')}, ${start.format('YYYY, LT')} - ${end.format('LT')}`;
         }
     } else {
         return isAllDay
-            ? `${start.format('MMMM D, YYYY')} - ${displayEnd.format('MMMM D, YYYY')}, ${strings.AllDay}`
-            : `${start.format('MMMM DD, YYYY, LT')} - ${displayEnd.format('MMMM DD, YYYY, LT')}`;
+            ? `${start.format('MMMM D, YYYY')} - ${end.format('MMMM D, YYYY')}, ${strings.AllDay}`
+            : `${start.format('MMMM DD, YYYY, LT')} - ${end.format('MMMM DD, YYYY, LT')}`;
     }
 }
 

@@ -7,11 +7,17 @@ export class DayInfo {
     constructor(public readonly date: Moment) {}
 
     public include(occurrence: EventOccurrence) {
-        const dayStart = this.date.clone().startOf('day');
-        const dayEnd = this.date.clone().endOf('day');
-        if (
-            occurrence.start.isBefore(dayEnd) &&
-            occurrence.end.isAfter(dayStart)
+        const occurrenceTimeZone = occurrence.start.tz();
+        const dayStart = this.date.clone().startOf('day').tz(occurrenceTimeZone, true);
+        const dayEnd = this.date.clone().endOf('day').tz(occurrenceTimeZone, true);
+    
+        const endsAtMidnightThisDay = // For all-day events ending at midnight, check if end equals the start of this day
+        occurrence.isAllDay && occurrence.end.hours() === 0 && occurrence.end.minutes() === 0 && occurrence.end.seconds() === 0 && occurrence.end.isSame(dayStart, 'day');
+
+        if ( // Check if the event overlaps with the current day
+            (occurrence.start.isBefore(dayEnd) && occurrence.end.isAfter(dayStart)) || // Event spans into this day
+            occurrence.start.isSame(dayStart, 'day') || // Event starts on this day
+            endsAtMidnightThisDay // All-day event ending at midnight of this day
         ) {
             this.occurrences.push(occurrence);
         }

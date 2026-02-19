@@ -280,18 +280,15 @@ export class ExternalListDataService {
         const endValue = config.endDate ? this._getValue(item, config.endDate) : null;
 
         if (startValue) {
-            const rawStartUtc = moment.utc(startValue);
-            const rawEndUtc = endValue ? moment.utc(endValue) : null;
+            const startMoment = this._parseSharePointDate(startValue, siteTimeZone.momentId);
+            const endMoment = endValue  ? this._parseSharePointDate(endValue, siteTimeZone.momentId) : null;
 
-            const startMoment = rawStartUtc.clone().tz(siteTimeZone.momentId);
-            const endMoment = rawEndUtc ? rawEndUtc.clone().tz(siteTimeZone.momentId) : null;
-
-            const isMidnightStart = startMoment.hours() === 0 && startMoment.minutes() === 0 && startMoment.seconds() === 0;
-            const isMidnightEnd = rawEndUtc && endMoment.hours() === 0 && endMoment.minutes() === 0 && endMoment.seconds() === 0;
+            const isStartMidnight = startMoment.hours() === 0 && startMoment.minutes() === 0 && startMoment.seconds() === 0;
+            const isEndMidnight = endMoment && endMoment.hours() === 0 && endMoment.minutes() === 0 && endMoment.seconds() === 0;
 
             const isSingleDayDuration = endMoment && endMoment.diff(startMoment, 'days') === 1;
 
-            const shouldBeAllDay = isMidnightStart && (!rawEndUtc || isMidnightEnd || isSingleDayDuration);
+            const shouldBeAllDay = isStartMidnight && (!endMoment || isEndMidnight || isSingleDayDuration);
 
             if (shouldBeAllDay) {
                 event.isAllDay = true;
@@ -323,6 +320,22 @@ export class ExternalListDataService {
         }
 
         return event;
+    }
+
+    private _parseSharePointDate(value: string, timeZoneId: string): moment.Moment {
+
+        if (!value) {
+            return null;
+        }
+
+        const isLikelyDateOnly = value.endsWith('T00:00:00Z'); // Detect likely Date Only 
+
+        if (isLikelyDateOnly) {
+            const datePart = value.substring(0, 10); // YYYY-MM-DD
+            return moment.tz(datePart, timeZoneId).startOf('day');
+        }
+
+        return moment.utc(value).tz(timeZoneId);
     }
 
     private _getValue(item: IExternalListItem, field: string): any {

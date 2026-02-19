@@ -3,7 +3,7 @@
     "solution": {
         "name": "MULTI",
         "id": "ab5031ae-1ca1-444a-afe4-c3b334ea0b70",
-        "version": "1.7.0.1",
+        "version": "1.7.0.2",
         "includeClientSideAssets": true,
         "skipFeatureDeployment": true,
         "developer": {
