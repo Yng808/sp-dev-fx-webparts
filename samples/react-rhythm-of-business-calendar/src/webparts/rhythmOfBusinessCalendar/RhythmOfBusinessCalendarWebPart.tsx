@@ -14,6 +14,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 // console.log('html2canvas:', html2canvas);
 // console.log('jsPDF:', jsPDF);
+console.warn('version 1.7.0.3')
 
 export interface IWebPartProps {
     filterButtonsJson: string;

@@ -323,16 +323,25 @@ export class ExternalListDataService {
     }
 
     private _parseSharePointDate(value: string, timeZoneId: string): moment.Moment {
+        console.log("RAW VALUE:", value);
+        console.log("TIMEZONE:", timeZoneId);
 
         if (!value) {
             return null;
         }
 
-        const isLikelyDateOnly = value.endsWith('T00:00:00Z'); // Detect likely Date Only 
+        if (/^\d{4}-\d{2}-\d{2}$/.test(value)) { // Case 1: Pure date (YYYY-MM-DD)
+            return moment.tz(value, 'YYYY-MM-DD', timeZoneId).startOf('day');
+        }
 
-        if (isLikelyDateOnly) {
-            const datePart = value.substring(0, 10); // YYYY-MM-DD
-            return moment.tz(datePart, timeZoneId).startOf('day');
+        if (value.endsWith('T00:00:00')) { // Case 2: Midnight without timezone
+            const datePart = value.substring(0, 10);
+            return moment.tz(datePart, 'YYYY-MM-DD', timeZoneId).startOf('day');
+        }
+
+        if (value.endsWith('T00:00:00Z')) { // Case 3: Midnight UTC
+            const datePart = value.substring(0, 10);
+            return moment.tz(datePart, 'YYYY-MM-DD', timeZoneId).startOf('day');
         }
 
         return moment.utc(value).tz(timeZoneId);
