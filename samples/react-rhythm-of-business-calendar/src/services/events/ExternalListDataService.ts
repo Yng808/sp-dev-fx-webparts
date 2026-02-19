@@ -284,33 +284,17 @@ export class ExternalListDataService {
             const rawEndUtc = endValue ? moment.utc(endValue) : null;
 
             const startMoment = rawStartUtc.clone().tz(siteTimeZone.momentId);
-            const endMoment = rawEndUtc
-                ? rawEndUtc.clone().tz(siteTimeZone.momentId)
-                : null;
+            const endMoment = rawEndUtc ? rawEndUtc.clone().tz(siteTimeZone.momentId) : null;
 
-            const isMidnightStart =
-    startMoment.hours() === 0 &&
-    startMoment.minutes() === 0 &&
-    startMoment.seconds() === 0;
+            const isMidnightStart = startMoment.hours() === 0 && startMoment.minutes() === 0 && startMoment.seconds() === 0;
+            const isMidnightEnd = rawEndUtc && endMoment.hours() === 0 && endMoment.minutes() === 0 && endMoment.seconds() === 0;
 
-const isMidnightEnd =
-    rawEndUtc &&
-    endMoment.hours() === 0 &&
-    endMoment.minutes() === 0 &&
-    endMoment.seconds() === 0;
+            const isSingleDayDuration = endMoment && endMoment.diff(startMoment, 'days') === 1;
 
-            const isSingleDayDuration =
-    endMoment &&
-    endMoment.diff(startMoment, 'days') === 1;
+            const shouldBeAllDay = isMidnightStart && (!rawEndUtc || isMidnightEnd || isSingleDayDuration);
 
-            const shouldBeAllDay =
-                isMidnightStart &&
-                (!rawEndUtc || isMidnightEnd || isSingleDayDuration);
-console.log('startValue:', startValue, 'isMidnightStart:', isMidnightStart, 'shouldBeAllDay:', shouldBeAllDay, 'isAllDay:', event.isAllDay);
             if (shouldBeAllDay) {
-
                 event.isAllDay = true;
-
                 event.start = startMoment.clone().startOf('day');
 
                 if (endMoment) {
@@ -319,7 +303,6 @@ console.log('startValue:', startValue, 'isMidnightStart:', isMidnightStart, 'sho
                     event.end = event.start.clone().add(1, 'day');
                 }
             } else {
-
                 event.isAllDay = false;
                 event.start = startMoment;
 
