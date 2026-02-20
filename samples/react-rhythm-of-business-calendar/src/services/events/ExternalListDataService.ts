@@ -48,8 +48,16 @@ export class ExternalListDataService {
         const enabledConfigs = configs.filter(c => c.enabled);
         if (enabledConfigs.length === 0) { return []; }
 
-        const results = await Promise.all(enabledConfigs.map(c => this.loadEventsFromExternalList(c)));
-        return results.flat();
+        const results = await Promise.allSettled(enabledConfigs.map(c => this.loadEventsFromExternalList(c)));
+        
+        return results.flatMap(result => {
+            if (result.status === 'fulfilled') {
+                return result.value;
+            } else {
+                console.warn('Failed to load external list:', result.reason);
+                return [];
+            }
+        });
     }
 
     public async loadEventsFromExternalList(config: ExternalListConfig): Promise<Event[]> {
