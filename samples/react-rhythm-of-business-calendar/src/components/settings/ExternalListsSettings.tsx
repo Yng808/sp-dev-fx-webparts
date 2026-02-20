@@ -40,6 +40,7 @@ export const ExternalListsSettings: FC<IExternalListsSettingsProps> = ({ isOpen,
             endDate: 'EndDate',         
             categoryField: '',
             enabled: true,
+            dateOnly: true,
             sortOrder: undefined
         };
         setSelectedConfig(newConfig);
@@ -94,6 +95,7 @@ export const ExternalListsSettings: FC<IExternalListsSettingsProps> = ({ isOpen,
         { key: 'listTitle', name: 'List', minWidth: 200, onRender: (i: ExternalListConfig) => i.listTitle || i.listId },
         { key: 'siteUrl', name: 'Site', minWidth: 250, onRender: (i: ExternalListConfig) => i.siteUrl },
         { key: 'enabled', name: 'Enabled', minWidth: 70, onRender: (i: ExternalListConfig) => <Checkbox checked={i.enabled} disabled /> },
+        { key: 'dateOnly', name: 'Date Only', minWidth: 70, onRender: (i: ExternalListConfig) => <Checkbox checked={i.dateOnly} disabled /> },
         { key: 'actions', name: '', minWidth: 80, onRender: (i: ExternalListConfig) => (
             <Stack horizontal tokens={{ childrenGap: 4 }}>
                 <IconButton iconProps={{ iconName: 'Edit' }} onClick={() => handleEdit(i)} />
@@ -137,6 +139,7 @@ export const ExternalListsSettings: FC<IExternalListsSettingsProps> = ({ isOpen,
                     <Separator />
 
                     <Checkbox label="Enabled" checked={selectedConfig.enabled} onChange={(_, v) => updateConfig({ enabled: !!v })} />
+                    <Checkbox label="Date Only" checked={selectedConfig.dateOnly} onChange={(_, v) => updateConfig({ dateOnly: !!v })} />
 
                     <Stack horizontal tokens={{ childrenGap: 8 }}>
                         <PrimaryButton text="Save" onClick={handleSave} disabled={isSaving} />

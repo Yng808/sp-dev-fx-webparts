@@ -56,6 +56,7 @@ export class ExternalListsLoader {
             "EndDate",
             "CategoryField",
             "IsEnabled",
+            "IsDateOnly",
             "SortOrder"
         ],
         query,
@@ -81,6 +82,7 @@ export class ExternalListsLoader {
         endDate: r.EndDate, 
         categoryField: r.CategoryField,
         enabled: !!r.IsEnabled,
+        dateOnly: !!r.IsDateOnly,
         sortOrder: r.SortOrder ?? 0
         } as ExternalListConfig;
 

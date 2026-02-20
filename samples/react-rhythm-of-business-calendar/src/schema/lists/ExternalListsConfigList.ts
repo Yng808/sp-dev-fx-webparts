@@ -17,6 +17,7 @@ export interface IExternalListsConfig {
     LocationField?: string;
     DescriptionField?: string;
     IsEnabled: boolean;
+    IsDateOnly: boolean;
     SortOrder?: number;
     AdvancedConfig?: string;
     Author?: { Title: string };
@@ -44,6 +45,7 @@ const ExternalListsConfigList: IListDefinition = {
         { name: "LocationField", displayName: "Location Field Internal Name", type: FieldType.Text, required: false },
         { name: "DescriptionField", displayName: "Description Field Internal Name", type: FieldType.Text, required: false },
         { name: "IsEnabled", displayName: "Is Enabled", type: FieldType.Boolean, required: true, default: "Yes" },
+        { name: "IsDateOnly", displayName: "Is Enabled", type: FieldType.Boolean, required: false, default: "Yes" },
         { name: "SortOrder",  displayName: "Sort Order", type: FieldType.Number, required: false, min: 0 },
         { name: "AdvancedConfig", displayName: "Advanced Configuration (JSON)", type: FieldType.Text, required: false, richText: false }
     ],
@@ -63,6 +65,7 @@ const ExternalListsConfigList: IListDefinition = {
                 "EndDate",
                 "CategoryField",
                 "IsEnabled",
+                "IsDateOnly",
                 "SortOrder",
                 "Modified"
             ]

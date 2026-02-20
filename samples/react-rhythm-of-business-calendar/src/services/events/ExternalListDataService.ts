@@ -280,8 +280,8 @@ export class ExternalListDataService {
         const endValue = config.endDate ? this._getValue(item, config.endDate) : null;
 
         if (startValue) {
-            const startMoment = this._parseSharePointDate(startValue, siteTimeZone.momentId);
-            const endMoment = endValue  ? this._parseSharePointDate(endValue, siteTimeZone.momentId) : null;
+            const startMoment = this._parseSharePointDate(startValue, siteTimeZone.momentId, config.dateOnly);
+            const endMoment = endValue ? this._parseSharePointDate(endValue, siteTimeZone.momentId, config.dateOnly) : null;
 
             const isStartMidnight = startMoment.hours() === 0 && startMoment.minutes() === 0 && startMoment.seconds() === 0;
             const isEndMidnight = endMoment && endMoment.hours() === 0 && endMoment.minutes() === 0 && endMoment.seconds() === 0;
@@ -322,8 +322,13 @@ export class ExternalListDataService {
         return event;
     }
 
-    private _parseSharePointDate(value: string, timeZoneId: string): moment.Moment {
+    private _parseSharePointDate(value: string, timeZoneId: string, dateOnly?: boolean): moment.Moment {
         if (!value) return null;
+
+        if (dateOnly) {
+            const datePart = value.substring(0, 10);
+            return moment.tz(datePart, 'YYYY-MM-DD', timeZoneId).startOf('day');
+        }
 
         const converted = moment.utc(value).tz(timeZoneId);
 
