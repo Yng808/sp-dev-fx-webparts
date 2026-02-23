@@ -1081,47 +1081,47 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
             }
         };
 
-        const addToOutlookSingleCommand: ICommandBarItemProps = {
-            key: 'add-to-outlook',
-            text: strings.Command_AddToOutlook.Text,
-            iconProps: { iconName: 'AddEvent' },
-            disabled: isDeleted,
-            onClick: onAddToOutlook
-        };
+        // const addToOutlookSingleCommand: ICommandBarItemProps = {
+        //     key: 'add-to-outlook',
+        //     text: strings.Command_AddToOutlook.Text,
+        //     iconProps: { iconName: 'AddEvent' },
+        //     disabled: isDeleted,
+        //     onClick: onAddToOutlook
+        // };
 
-        const addToOutlookSeriesCommand: ICommandBarItemProps = {
-            key: 'add-to-outlook',
-            text: strings.Command_AddToOutlook.Text,
-            iconProps: { iconName: 'AddEvent' },
-            disabled: isDeleted,
-            onClick: onAddSeriesToOutlook
-        };
+        // const addToOutlookSeriesCommand: ICommandBarItemProps = {
+        //     key: 'add-to-outlook',
+        //     text: strings.Command_AddToOutlook.Text,
+        //     iconProps: { iconName: 'AddEvent' },
+        //     disabled: isDeleted,
+        //     onClick: onAddSeriesToOutlook
+        // };
 
-        const addToOutlookRecurringCommand: ICommandBarItemProps = {
-            key: 'add-to-outlook',
-            text: strings.Command_AddToOutlook.Text,
-            iconProps: { iconName: 'AddEvent' },
-            disabled: isDeleted,
-            subMenuProps: {
-                items: [{
-                    key: 'add-to-outlook-series',
-                    text: strings.Command_AddToOutlook_Recurring_Series.Text,
-                    onClick: onAddSeriesToOutlook
-                }, {
-                    key: 'add-to-outlook-occurrence',
-                    text: strings.Command_AddToOutlook_Recurring_Instance.Text,
-                    onClick: onAddToOutlook
-                }]
-            }
-        };
+        // const addToOutlookRecurringCommand: ICommandBarItemProps = {
+        //     key: 'add-to-outlook',
+        //     text: strings.Command_AddToOutlook.Text,
+        //     iconProps: { iconName: 'AddEvent' },
+        //     disabled: isDeleted,
+        //     subMenuProps: {
+        //         items: [{
+        //             key: 'add-to-outlook-series',
+        //             text: strings.Command_AddToOutlook_Recurring_Series.Text,
+        //             onClick: onAddSeriesToOutlook
+        //         }, {
+        //             key: 'add-to-outlook-occurrence',
+        //             text: strings.Command_AddToOutlook_Recurring_Instance.Text,
+        //             onClick: onAddToOutlook
+        //         }]
+        //     }
+        // };
 
-        const getLinkCommand: ICommandBarItemProps = {
-            key: 'get-link',
-            text: strings.Command_GetLink.Text,
-            iconProps: { iconName: 'Link' },
-            disabled: isDeleted,
-            onClick: onGetLink
-        };
+        // const getLinkCommand: ICommandBarItemProps = {
+        //     key: 'get-link',
+        //     text: strings.Command_GetLink.Text,
+        //     iconProps: { iconName: 'Link' },
+        //     disabled: isDeleted,
+        //     onClick: onGetLink
+        // };
 
         console.log("EventPanel line 885", currentUserIsContributor);
 
@@ -1150,15 +1150,15 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     )
                     : deleteSingleCommand
             ),
-            canAddToOutlook && (
-                isRecurring
-                    ? (isSeriesMaster
-                        ? addToOutlookSeriesCommand
-                        : addToOutlookRecurringCommand
-                    )
-                    : addToOutlookSingleCommand
-            ),
-            getLinkCommand
+            // canAddToOutlook && (
+            //     isRecurring
+            //         ? (isSeriesMaster
+            //             ? addToOutlookSeriesCommand
+            //             : addToOutlookRecurringCommand
+            //         )
+            //         : addToOutlookSingleCommand
+            // ),
+            // getLinkCommand
         ].filter(Boolean);
     }
 

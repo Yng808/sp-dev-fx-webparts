@@ -51,7 +51,9 @@ export class ExternalListDataService {
         if (value && /^#([0-9A-F]{3}){1,2}$/i.test(value.trim())) {
             try {
                 return Color.parse(value.trim());
-            } catch { }
+            } catch { 
+                console.warn("Invalid color value:", value);
+            }
         }
         
         return Color.parse('#3A86C6');
@@ -60,9 +62,8 @@ export class ExternalListDataService {
     private _getOrCreateRefinerValue(config: ExternalListConfig): RefinerValue {
         const cacheKey = config.listId;
 
-        if (this._externalRefinerValues.has(cacheKey)) {
-            return this._externalRefinerValues.get(cacheKey)!;
-        }
+        const cached = this._externalRefinerValues.get(cacheKey);
+        if (cached) { return cached; }
 
         if (!this._typeRefiner) {
             throw new Error("Type refiner has not been initialized.");

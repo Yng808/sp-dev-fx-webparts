@@ -48,8 +48,8 @@ export const EventDetailsCallout: FC<IProps> = ({ componentRef, commands }) => {
 
     const [
         viewCommand,
-        addToOutlookCommand,
-        getLinkCommand
+        // addToOutlookCommand,
+        // getLinkCommand
     ] = useEventCommandActionButtons(commands, event);
 
     return (isOpen &&
@@ -65,8 +65,8 @@ export const EventDetailsCallout: FC<IProps> = ({ componentRef, commands }) => {
                 <Separator />
                 <Stack horizontal wrap tokens={stackTokens}>
                     {viewCommand}
-                    {addToOutlookCommand}
-                    {getLinkCommand}
+                    {/* {addToOutlookCommand}
+                    {getLinkCommand} */}
                 </Stack>
             </FocusZone>
         </FocusTrapCallout>

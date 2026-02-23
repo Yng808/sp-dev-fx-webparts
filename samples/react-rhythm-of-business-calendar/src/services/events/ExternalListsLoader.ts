@@ -82,7 +82,7 @@ export class ExternalListsLoader {
         eventDate: r.EventDate,
         endDate: r.EndDate, 
         categoryField: r.CategoryField,
-        enabled: !!r.IsEnabled,
+        enabled: String(r.IsEnabled).toLowerCase() === "yes",
         dateOnly: !!r.IsDateOnly,
         sortOrder: r.SortOrder ?? 0,
         color: r.Color
