@@ -9,8 +9,8 @@ export class Builder {
         // End date: 2 year after the anchor date
         const end = anchorDate.clone().add(2, 'year').endOf('day');
 
-        console.log("Start (from Builder reports): ", start);
-        console.log("End (from Builder reports): ", end);
+        // console.log("Start (from Builder reports): ", start);
+        // console.log("End (from Builder reports): ", end);
 
         return { start, end };
     }

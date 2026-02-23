@@ -88,7 +88,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         filtered.sort((a, b) => moment(a.start).diff(moment(b.start)));
 
         setFilteredEvents(filtered);
-        console.log('filtered events', filteredEvents);
+        // console.log('filtered events', filteredEvents);
     }, [startDate, endDate, searchQuery, cccurrences]);
   
     const handleExportToExcel = () => {

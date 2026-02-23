@@ -976,7 +976,8 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
 
     protected buildDisplayHeaderCommands(): ICommandBarItemProps[] {
         const {
-            commands: { approve, reject, addToOutlook, addSeriesToOutlook, getLink },
+            // commands: { approve, reject, addToOutlook, addSeriesToOutlook, getLink },
+            commands: { approve, reject },
             services: { [DirectoryService]: { currentUserIsSiteAdmin, currentUser, currentUserIsContributor } }
         } = this.props;
         const { isRecurring, isSeriesException, isSeriesMaster, seriesMaster, isDeleted, isNew, isApproved, creator } = this.entity;
@@ -989,9 +990,9 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         };
         const onApprove = () => { approve(this.entity); };
         const onReject = () => { reject(this.entity); };
-        const onAddToOutlook = () => { addToOutlook(this.entity); };
-        const onAddSeriesToOutlook = () => { addSeriesToOutlook(this.entity); };
-        const onGetLink = () => { getLink(this.entity); };
+        // const onAddToOutlook = () => { addToOutlook(this.entity); };
+        // const onAddSeriesToOutlook = () => { addSeriesToOutlook(this.entity); };
+        // const onGetLink = () => { getLink(this.entity); };
 
         const editSingleCommand: ICommandBarItemProps = {
             key: 'edit',
@@ -1130,7 +1131,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         const canEdit = userIsCreator || userCanApprove;
         const canModerate = !isApproved && userCanApprove;
         const canDelete = (!isNew || isSeriesException) && canEdit;
-        const canAddToOutlook = (!isNew || isSeriesException) && isApproved;
+        // const canAddToOutlook = (!isNew || isSeriesException) && isApproved;
 
         return [
             canEdit && (
