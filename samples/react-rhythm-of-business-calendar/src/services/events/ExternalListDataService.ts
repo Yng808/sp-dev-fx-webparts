@@ -68,32 +68,54 @@ export class ExternalListDataService {
         return events;
     }
 
+    private _typeRefiner: Refiner | undefined;
+
+    public setTypeRefiner(refiner: Refiner): void {
+        this._typeRefiner = refiner;
+    }
+
     private _getOrCreateRefinerValue(config: ExternalListConfig): RefinerValue {
         const cacheKey = config.listId;
 
+        // Return cached value if already resolved for this list
         if (this._externalRefinerValues.has(cacheKey)) {
-            return this._externalRefinerValues.get(cacheKey);
+            return this._externalRefinerValues.get(cacheKey)!;
         }
 
-        const externalRefiner = this._ensureExternalRefiner();
-        const listTitle = config.listTitle || 'External';
-        
-        const existingValues = externalRefiner.values.get();
-        let refinerValue = existingValues.find(rv => rv.title === listTitle);
+        if (!this._typeRefiner) {
+            throw new Error("Type refiner has not been initialized.");
+        }
 
+        const typeRefiner = this._typeRefiner;
+        const listTitle = config.listTitle || "External";
+
+        // Get active existing values for this refiner
+        const existingValues = typeRefiner.values
+            .get()
+            .filter(v => v.isActive);
+
+        // Try to find an existing RefinerValue with same title
+        let refinerValue = existingValues.find(
+            (rv: RefinerValue) => rv.title === listTitle
+        );
+
+        // If not found, create it
         if (!refinerValue) {
             refinerValue = new RefinerValue();
             refinerValue.title = listTitle;
             refinerValue.color = this._getColorForSortOrder(config.sortOrder);
-            refinerValue.refiner.set(externalRefiner);
-            externalRefiner.values.add(refinerValue);
+            refinerValue.order = existingValues.length;
+
+            // Attach to SAME Type refiner instance
+            refinerValue.refiner.set(typeRefiner);
+            typeRefiner.values.add(refinerValue);
         }
 
+        // Cache by listId for performance
         this._externalRefinerValues.set(cacheKey, refinerValue);
 
         return refinerValue;
     }
-
 
     private _getColorForSortOrder(sortOrder?: number): Color {
         if (!sortOrder || sortOrder <= 0) {
