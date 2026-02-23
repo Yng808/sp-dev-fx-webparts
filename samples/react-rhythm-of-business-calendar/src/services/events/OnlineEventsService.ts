@@ -201,8 +201,12 @@ export class OnlineEventsService implements IEventsService {
             this._eventLoader.track(entity);
         } else if (entity instanceof Refiner) {
             this._refinerLoader.track(entity);
-            entity.values.forEach(value => this.track(value));
+            entity.values.forEach(value => {
+                if ((value as any).__external) return;
+                this.track(value);
+            });
         } else if (entity instanceof RefinerValue) {
+            if ((entity as any).__external) return;
             this._refinerValueLoader.track(entity);
         } else if (entity instanceof Approvers) {
             this._approversLoader.track(entity);

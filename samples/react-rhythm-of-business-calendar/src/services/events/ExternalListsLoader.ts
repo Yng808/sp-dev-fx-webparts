@@ -57,7 +57,8 @@ export class ExternalListsLoader {
             "CategoryField",
             "IsEnabled",
             "IsDateOnly",
-            "SortOrder"
+            "SortOrder",
+            "Color"
         ],
         query,
         row => this._mapItemToConfig(row)
@@ -83,7 +84,8 @@ export class ExternalListsLoader {
         categoryField: r.CategoryField,
         enabled: !!r.IsEnabled,
         dateOnly: !!r.IsDateOnly,
-        sortOrder: r.SortOrder ?? 0
+        sortOrder: r.SortOrder ?? 0,
+        color: r.Color
         } as ExternalListConfig;
 
         return config;

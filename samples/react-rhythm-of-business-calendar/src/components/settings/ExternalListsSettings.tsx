@@ -41,7 +41,8 @@ export const ExternalListsSettings: FC<IExternalListsSettingsProps> = ({ isOpen,
             categoryField: '',
             enabled: true,
             dateOnly: true,
-            sortOrder: undefined
+            sortOrder: undefined,
+            color: ''
         };
         setSelectedConfig(newConfig);
         setIsEditing(true);

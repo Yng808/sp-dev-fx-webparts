@@ -13,34 +13,7 @@ export interface IExternalListItem {
 
 export class ExternalListDataService {
 
-    private readonly _colorPalette: Color[] = [
-        Color.parse('#D64761'), // 1 Red
-        Color.parse('#3A86C6'), // 2 Blue
-        Color.parse('#E9C46A'), // 3 Yellow
-        Color.parse('#6BA368'), // 4 Green
-        Color.parse('#4D908E'), // 5 Teal
-        Color.parse('#E07A5F'), // 6 Orange
-        Color.parse('#7B6D8D'), // 7 Purple
-        Color.parse('#C06C84'), // 8 Pink
-        Color.parse('#9A8C98'), // 9 Gray
-        Color.parse('#2F3E46'), // 10 Deep Navy
-    ];
-
     private readonly _externalRefinerValues = new Map<string, RefinerValue>();
-
-    private _externalRefiner: Refiner | undefined;
-
-    private _ensureExternalRefiner(): Refiner {
-        if (this._externalRefiner) {
-            return this._externalRefiner;
-        }
-
-        this._externalRefiner = new Refiner();
-        this._externalRefiner.title = "External Sources";
-        this._externalRefiner.enableColors = true;
-        
-        return this._externalRefiner;
-    }
 
     constructor( private readonly spHttpClient: SPHttpClient, private readonly currentWebUrl: string, private readonly timeZoneService: ITimeZoneService ) {}
 
@@ -74,10 +47,19 @@ export class ExternalListDataService {
         this._typeRefiner = refiner;
     }
 
+    private _parseColor(value?: string): Color {
+        if (value && /^#([0-9A-F]{3}){1,2}$/i.test(value.trim())) {
+            try {
+                return Color.parse(value.trim());
+            } catch { }
+        }
+        
+        return Color.parse('#3A86C6');
+    }
+
     private _getOrCreateRefinerValue(config: ExternalListConfig): RefinerValue {
         const cacheKey = config.listId;
 
-        // Return cached value if already resolved for this list
         if (this._externalRefinerValues.has(cacheKey)) {
             return this._externalRefinerValues.get(cacheKey)!;
         }
@@ -89,41 +71,27 @@ export class ExternalListDataService {
         const typeRefiner = this._typeRefiner;
         const listTitle = config.listTitle || "External";
 
-        // Get active existing values for this refiner
-        const existingValues = typeRefiner.values
-            .get()
-            .filter(v => v.isActive);
+        const allValues = typeRefiner.values.get();
 
-        // Try to find an existing RefinerValue with same title
-        let refinerValue = existingValues.find(
+        let refinerValue = allValues.find(
             (rv: RefinerValue) => rv.title === listTitle
         );
 
-        // If not found, create it
         if (!refinerValue) {
             refinerValue = new RefinerValue();
             refinerValue.title = listTitle;
-            refinerValue.color = this._getColorForSortOrder(config.sortOrder);
-            refinerValue.order = existingValues.length;
-
-            // Attach to SAME Type refiner instance
+            refinerValue.order = allValues.length;
+            (refinerValue as any).__external = true;
             refinerValue.refiner.set(typeRefiner);
             typeRefiner.values.add(refinerValue);
         }
 
-        // Cache by listId for performance
+        // Always enforce config color (external controlled)
+        refinerValue.color = this._parseColor(config.color);
+
         this._externalRefinerValues.set(cacheKey, refinerValue);
 
         return refinerValue;
-    }
-
-    private _getColorForSortOrder(sortOrder?: number): Color {
-        if (!sortOrder || sortOrder <= 0) {
-            return this._colorPalette[0];
-        }
-
-        const index = (sortOrder - 1) % this._colorPalette.length;
-        return this._colorPalette[index];
     }
 
     private async _fetchListItems(config: ExternalListConfig): Promise<IExternalListItem[]> {

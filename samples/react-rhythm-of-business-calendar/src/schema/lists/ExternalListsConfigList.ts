@@ -19,6 +19,7 @@ export interface IExternalListsConfig {
     IsEnabled: boolean;
     IsDateOnly: boolean;
     SortOrder?: number;
+    Color: string;
     AdvancedConfig?: string;
     Author?: { Title: string };
     Editor?: { Title: string };
@@ -47,6 +48,7 @@ const ExternalListsConfigList: IListDefinition = {
         { name: "IsEnabled", displayName: "Is Enabled", type: FieldType.Boolean, required: true, default: "Yes" },
         { name: "IsDateOnly", displayName: "Is Enabled", type: FieldType.Boolean, required: false, default: "Yes" },
         { name: "SortOrder",  displayName: "Sort Order", type: FieldType.Number, required: false, min: 0 },
+        { name: "Color", displayName: "Color", type: FieldType.Text, required: false },
         { name: "AdvancedConfig", displayName: "Advanced Configuration (JSON)", type: FieldType.Text, required: false, richText: false }
     ],
     views: [
@@ -67,6 +69,7 @@ const ExternalListsConfigList: IListDefinition = {
                 "IsEnabled",
                 "IsDateOnly",
                 "SortOrder",
+                "Color",
                 "Modified"
             ]
         },
@@ -84,7 +87,8 @@ const ExternalListsConfigList: IListDefinition = {
                 "EventDate",
                 "EndDate",
                 "CategoryField",
-                "SortOrder"
+                "SortOrder",
+                "Color"
             ]
         }
     ]

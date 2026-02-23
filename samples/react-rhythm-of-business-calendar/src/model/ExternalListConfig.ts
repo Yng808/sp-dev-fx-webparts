@@ -11,4 +11,5 @@ export interface ExternalListConfig {
     enabled: boolean;
     dateOnly: boolean;
     sortOrder?: number;
+    color: string;
 }
