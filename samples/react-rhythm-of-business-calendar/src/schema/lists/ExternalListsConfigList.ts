@@ -1,4 +1,4 @@
-import { IListDefinition, IViewDefinition, ListTemplateType, FieldType } from "common/sharepoint";
+import { IListDefinition, ListTemplateType, FieldType } from "common/sharepoint";
 
 export const ExternalListsConfigList_Title = "External Lists Configuration";
 
@@ -12,7 +12,7 @@ export interface IExternalListsConfig {
     ViewTitle?: string;
     TitleField: string;
     EventDate: string;
-    EndDate?: string;
+    EndDate: string;
     CategoryField?: string;
     LocationField?: string;
     DescriptionField?: string;
@@ -41,57 +41,17 @@ const ExternalListsConfigList: IListDefinition = {
         { name: "ViewTitle", displayName: "View Title", type: FieldType.Text, required: false },
         { name: "TitleField", displayName: "Title Field Internal Name", type: FieldType.Text, required: true },
         { name: "EventDate", displayName: "Start Date Field Internal Name", type: FieldType.Text, required: true },
-        { name: "EndDate", displayName: "End Date Field Internal Name", type: FieldType.Text, required: false },
+        { name: "EndDate", displayName: "End Date Field Internal Name", type: FieldType.Text, required: true },
         { name: "CategoryField", displayName: "Category Field Internal Name", type: FieldType.Text, required: false },
         { name: "LocationField", displayName: "Location Field Internal Name", type: FieldType.Text, required: false },
         { name: "DescriptionField", displayName: "Description Field Internal Name", type: FieldType.Text, required: false },
         { name: "IsEnabled", displayName: "Is Enabled", type: FieldType.Boolean, required: true, default: "Yes" },
-        { name: "IsDateOnly", displayName: "Is Enabled", type: FieldType.Boolean, required: false, default: "Yes" },
+        { name: "IsDateOnly", displayName: "Is Date Only", type: FieldType.Boolean, required: false, default: "Yes" },
         { name: "SortOrder",  displayName: "Sort Order", type: FieldType.Number, required: false, min: 0 },
         { name: "Color", displayName: "Color", type: FieldType.Text, required: false },
         { name: "AdvancedConfig", displayName: "Advanced Configuration (JSON)", type: FieldType.Text, required: false, richText: false }
     ],
-    views: [
-        <IViewDefinition>{
-            title: "All Items",
-            default: true,
-            rowLimit: 100,
-            paged: true,
-            query: '',
-            fields: [
-                "LinkTitle",
-                "SiteUrl",
-                "ListTitle",
-                "TitleField",
-                "EventDate",
-                "EndDate",
-                "CategoryField",
-                "IsEnabled",
-                "IsDateOnly",
-                "SortOrder",
-                "Color",
-                "Modified"
-            ]
-        },
-        <IViewDefinition>{
-            title: "Active Lists",
-            default: false,
-            rowLimit: 100,
-            paged: true,
-            query: '<Where><Eq><FieldRef Name="IsEnabled"/><Value Type="Boolean">1</Value></Eq></Where><OrderBy><FieldRef Name="SortOrder"/></OrderBy>',
-            fields: [
-                "LinkTitle",
-                "SiteUrl",
-                "ListTitle",
-                "TitleField",
-                "EventDate",
-                "EndDate",
-                "CategoryField",
-                "SortOrder",
-                "Color"
-            ]
-        }
-    ]
+    views: []
 };
 
 export default ExternalListsConfigList;

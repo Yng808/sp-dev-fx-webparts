@@ -56,20 +56,17 @@ export class OnlineEventsService implements IEventsService {
         const context = (this._spo as any)._context;
         this._spHttpClient = context.spHttpClient as SPHttpClient;
         this._webAbsoluteUrl = context.pageContext.web.absoluteUrl as string;
-        
-        this._externalListDataService = new ExternalListDataService(
-            this._spHttpClient,
-            this._webAbsoluteUrl,
-            this._timezones
-        );
+        this._externalListDataService = new ExternalListDataService(this._spHttpClient, this._webAbsoluteUrl, this._timezones);
         this._externalListsLoader = new ExternalListsLoader(this._spo);
         dev.registerScripts(this._devScripts);
     }
 
     public async initialize(): Promise<void> {
         const configuration = this._configurations.active;
+
         if (configuration && !configuration.isNew) {
             const schema = configuration.schema;
+
             this._refinerLoader = new RefinerLoader(schema, this._timezones, this._spo, this._liveUpdate);
             this._refinerValueLoader = new RefinerValueLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerLoader);
             this._eventLoader = new EventLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
@@ -107,18 +104,10 @@ export class OnlineEventsService implements IEventsService {
         
         // Create a wrapper that intercepts the data property
         return {
-            get done() {
-                return loaderAsync.done;
-            },
-            get loaded() {
-                return loaderAsync.loaded;
-            },
-            get saving() {
-                return loaderAsync.saving;
-            },
-            get error() {
-                return loaderAsync.error;
-            },
+            get done()   {return loaderAsync.done;},
+            get loaded() {return loaderAsync.loaded;},
+            get saving() {return loaderAsync.saving;},
+            get error()  {return loaderAsync.error;},
             get data(): readonly Event[] {
                 const internal = loaderAsync.data || [];
                 const external = (eventLoader as any)._externalEvents || [];
@@ -139,7 +128,6 @@ export class OnlineEventsService implements IEventsService {
         };
     }
 
-    // ONLY ONE eventsById - the merged version
     public async eventsById(): Promise<ReadonlyEventMap> {
         const allEvents = await this._eventLoader.allWithExternal();
         const map = new Map<number, Event>();

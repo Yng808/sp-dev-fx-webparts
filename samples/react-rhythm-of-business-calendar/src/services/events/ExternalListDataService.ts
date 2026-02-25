@@ -87,7 +87,6 @@ export class ExternalListDataService {
             typeRefiner.values.add(refinerValue);
         }
 
-        // Always enforce config color (external controlled)
         refinerValue.color = this._parseColor(config.color);
 
         this._externalRefinerValues.set(cacheKey, refinerValue);
@@ -120,10 +119,6 @@ export class ExternalListDataService {
         }
 
         const data = await response.json();
-        
-        if (data.value && data.value.length > 0) {
-            console.log('First item:', data.value[0]);
-        }
         
         return data.value || [];
     }

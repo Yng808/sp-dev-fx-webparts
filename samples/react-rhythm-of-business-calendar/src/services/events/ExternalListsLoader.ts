@@ -64,9 +64,7 @@ export class ExternalListsLoader {
         row => this._mapItemToConfig(row)
         );
 
-        return items.sort(
-        (a, b) => ((a as any).sortOrder ?? 0) - ((b as any).sortOrder ?? 0)
-        );
+        return items.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
     }
 
     private _mapItemToConfig(row: IListItemResult): ExternalListConfig {
