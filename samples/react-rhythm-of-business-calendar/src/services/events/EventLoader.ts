@@ -2,11 +2,10 @@ import { decode } from "he";
 import { ErrorHandler } from "common";
 import { PagedViewLoader, IListItemResult, SPField, IUpdateListItem, ErrorDiagnosis } from "common/sharepoint";
 import { ISharePointService, ILiveUpdateService, ITimeZoneService, ITimeZone } from "common/services";
-import { Event, EventModerationStatus, ReadonlyEventMap, RefinerValue } from "model";
+import { Event, EventModerationStatus, ReadonlyEventMap } from "model";
 import { IRhythmOfBusinessCalendarSchema } from "schema";
 import { RefinerValueLoader } from "./RefinerValueLoader";
 import { RecurrenceData } from "./RecurrenceData";
-import moment from 'moment-timezone';
 
 interface IEventListItemResult extends IListItemResult {
     Description: SPField.Query_TextMultiLine;
@@ -58,99 +57,60 @@ interface IEventUpdateListItem extends IUpdateListItem {
     ReadAheadDueDate: SPField.Update_DateTime;
 }
 
-const toEvent = async (
-    row: IEventListItemResult,
-    event: Event,
-    siteTimeZone: ITimeZone,
-    refinerValueLoader: RefinerValueLoader,
-    eventsById: ReadonlyEventMap
-): Promise<void> => {
-    try {
-        (event as any).isExternal = false;
+const toEvent = async (row: IEventListItemResult, event: Event, siteTimeZone: ITimeZone, refinerValueLoader: RefinerValueLoader, eventsById: ReadonlyEventMap): Promise<void> => {
+    //console.log("Raw data from SharePoint:", row);
+    event.title = decode(row.Title);
+    event.description = decode(row.Description);
+    event.comDecision = row.comDecision;
 
-        event.title = decode(row.Title ?? "");
-        event.description = decode(row.Description ?? "");
-        event.comDecision = row.comDecision ?? "";
+    event.location = decode(row.Location);
+    event.contacts = SPField.toUsers(row.Contacts);
+    event.refinerValues.set(await SPField.fromLookupMultiAsync(row.RefinerValues, refinerValueLoader.getById));
 
-        event.location = decode(row.Location ?? "");
-        event.contacts = SPField.toUsers(row.Contacts ?? []);  // ← explicit type
+    const isAllDay = SPField.fromYesNo(row, 'fAllDayEvent');
+    const start = SPField.fromDateTime(row, 'EventDate', siteTimeZone);
+    const end = SPField.fromDateTime(row, 'EndDate', siteTimeZone);
+    const readAheadDueDate = SPField.fromDateTime(row, 'ReadAheadDueDate', siteTimeZone);
 
-        const refinerValuesRaw = row.RefinerValues ?? [];
-        if (refinerValuesRaw.length === 0 && row.ID) {
-            console.debug(`[toEvent] Event ID ${row.ID} has no RefinerValues`);
+    if (isAllDay) {
+        start.utc().tz(siteTimeZone.momentId, true);
+        end.utc().tz(siteTimeZone.momentId, true);
+    }
+    event.start = start;
+    event.end = end;
+    event.isAllDay = isAllDay;
+    event.readAheadDueDate = readAheadDueDate;
+
+    event.isConfidential = SPField.fromYesNo(row, 'IsConfidential');
+    event.restrictedToAccounts = SPField.toUsers(row.RestrictedToAccounts);
+    event.moderationStatus = EventModerationStatus.fromName(row.ModerationStatus);
+    event.moderator = SPField.toUser(row.Moderator);
+    event.moderationTimestamp = SPField.fromDateTime(row, 'ModerationTimestamp', siteTimeZone);
+    event.moderationMessage = decode(row.ModerationMessage);
+    event.isRecurring = SPField.fromRecurrence(row, 'fRecurrence');
+    event.recurrenceUID = SPField.fromGuid(row, 'UID');
+
+
+    if (event.isRecurring) {
+        const seriesMasterId = SPField.fromInteger(row, 'MasterSeriesItemID');
+        if (seriesMasterId) { // this is an exception occurrence to the series
+            event.seriesMaster.set(eventsById.get(seriesMasterId));
+            event.recurrenceExceptionInstanceDate = SPField.fromDateTime(row, 'RecurrenceID', siteTimeZone);
+            event.recurrenceInstanceCancelled = (SPField.fromInteger(row, 'EventType') === 3);
+        } else { // this is the series master
+            const duration = SPField.fromInteger(row, 'Duration');
+            event.end = event.start.clone().add(duration, 'seconds');
+            event.recurrence = RecurrenceData.deserialize(decode(row.RecurrenceData || ''));
         }
-        event.refinerValues.set(
-            await SPField.fromLookupMultiAsync(
-                refinerValuesRaw,
-                refinerValueLoader.getById
-            ).catch((error): RefinerValue[] => {
-                console.error(
-                    `[toEvent] RefinerValues failed for ID ${row.ID ?? 'unknown'}:`,
-                    error
-                );
-                return [];
-            })
-        );
-
-        const isAllDay = SPField.fromYesNo(row, 'fAllDayEvent') ?? false;
-
-        const startRaw = SPField.fromDateTime(row, 'EventDate', siteTimeZone);
-        const endRaw = SPField.fromDateTime(row, 'EndDate', siteTimeZone);
-        const readAheadRaw = SPField.fromDateTime(row, 'ReadAheadDueDate', siteTimeZone);
-
-        const start = startRaw?.isValid() ? startRaw : moment().startOf('hour').add(1, 'hour');
-        const end = endRaw?.isValid() ? endRaw : start.clone().add(1, 'hour');
-        const readAheadDueDate = readAheadRaw?.isValid() ? readAheadRaw : null;
-
-        if (isAllDay && start.isValid() && end.isValid()) {
-            start.utc().tz(siteTimeZone.momentId, true);
-            end.utc().tz(siteTimeZone.momentId, true);
-        }
-
-        event.start = start;
-        event.end = end;
-        event.isAllDay = isAllDay;
-        event.readAheadDueDate = readAheadDueDate;
-
-        event.isConfidential = SPField.fromYesNo(row, 'IsConfidential') ?? false;
-        event.restrictedToAccounts = SPField.toUsers(row.RestrictedToAccounts ?? undefined);
-        event.moderationStatus = EventModerationStatus.fromName(row.ModerationStatus ?? "") ?? EventModerationStatus.Pending;
-        event.moderator = SPField.toUser(row.Moderator) ?? undefined;
-        event.moderationTimestamp = SPField.fromDateTime(row, 'ModerationTimestamp', siteTimeZone) ?? undefined;
-        event.moderationMessage = decode(row.ModerationMessage ?? "");
-
-        event.isRecurring = SPField.fromRecurrence(row, 'fRecurrence') ?? false;
-        event.recurrenceUID = SPField.fromGuid(row, 'UID') ?? undefined;
-
-        if (event.isRecurring) {
-            const seriesMasterId = SPField.fromInteger(row, 'MasterSeriesItemID') ?? 0;
-            if (seriesMasterId) {
-                const master = eventsById.get(seriesMasterId);
-                if (master) event.seriesMaster.set(master);
-                event.recurrenceExceptionInstanceDate = SPField.fromDateTime(row, 'RecurrenceID', siteTimeZone) ?? undefined;
-                event.recurrenceInstanceCancelled = (SPField.fromInteger(row, 'EventType') ?? 0) === 3;
-            } else {
-                const durationSec = SPField.fromInteger(row, 'Duration') ?? 0;
-                if (durationSec > 0 && event.start.isValid()) {
-                    event.end = event.start.clone().add(durationSec, 'seconds');
-                }
-                event.recurrence = RecurrenceData.deserialize(decode(row.RecurrenceData ?? ''));
-            }
-        }
-
-        console.debug(`[toEvent] Mapped event ID ${row.ID ?? 'unknown'}`);
-    } catch (err) {
-        console.error(`[toEvent] Failed to map event ID ${row.ID ?? 'unknown'}:`, err);
-        // Don't re-throw — let other events continue
     }
 };
 
-const getEventTypeValue = (event: Event): number => {
-    if (!event.isRecurring) return 0;
-    if (!event.isSeriesException) return 1;
-    if (!event.recurrenceInstanceCancelled) return 4;
-    return 3;
-};
+const getEventTypeValue = (event: Event) => {
+    if (!event.isRecurring) return 0; // 0 = non-recurring event
+    if (!event.isSeriesException) return 1; // 1 = series master
+    if (!event.recurrenceInstanceCancelled) return 4; // 4 = this one occurrence of the series is an exception (date/time change)
+    return 3; // 3 = cancelled this one occurrence of a series
+}
 
 const toUpdateListItem = (event: Event, siteTimeZone: ITimeZone): IEventUpdateListItem => {
     const { isNew, isAllDay, isRecurring, isSeriesMaster, isSeriesException } = event;
@@ -184,45 +144,18 @@ const toUpdateListItem = (event: Event, siteTimeZone: ITimeZone): IEventUpdateLi
 export class EventLoader extends PagedViewLoader<Event> {
     private _externalEvents: Event[] = [];
 
-    constructor(
-        schema: IRhythmOfBusinessCalendarSchema,
-        timezones: ITimeZoneService,
-        spo: ISharePointService,
-        liveUpdate: ILiveUpdateService,
-        private readonly _refinerValueLoader: RefinerValueLoader
-    ) {
-        super({
-            ctor: Event,
-            view: schema.eventsList.view_AllEvents,
-            timezones,
-            spo,
-            liveUpdate,
-            fastLoad: { useCache: false }
-        });
+    constructor(schema: IRhythmOfBusinessCalendarSchema, timezones: ITimeZoneService, spo: ISharePointService, liveUpdate: ILiveUpdateService, private readonly _refinerValueLoader: RefinerValueLoader) {
+        super({ ctor: Event, view: schema.eventsList.view_AllEvents, timezones, spo, liveUpdate, fastLoad: { useCache: true } });
+
         this.registerDependency(_refinerValueLoader);
     }
 
-    public setExternalEvents(events: Event[]): void {
-        this._externalEvents = events;
-    }
+    public setExternalEvents(events: Event[]): void {this._externalEvents = events;}
 
-    public async allWithExternal(): Promise<readonly Event[]> {
-        const internalEvents = await this.all();
-        return [...internalEvents, ...this._externalEvents];
-    }
+    public async allWithExternal(): Promise<readonly Event[]> {const internalEvents = await this.all(); return [...internalEvents, ...this._externalEvents];}
 
-    protected readonly extractReferencedUsers = (event: Event) => [
-        ...event.contacts,
-        ...event.restrictedToAccounts,
-        event.moderator
-    ];
-
-    protected readonly toEntity = (row: IEventListItemResult, event: Event) =>
-        toEvent(row, event, this.timezones.siteTimeZone, this._refinerValueLoader, this._entitiesById);
-
-    protected readonly updateListItem = (event: Event) =>
-        toUpdateListItem(event, this.timezones.siteTimeZone);
-
-    protected readonly diagnosePersistError = (error: any) =>
-        ErrorHandler.is_412_PRECONDITION_FAILED(error) ? ErrorDiagnosis.Propogate : ErrorDiagnosis.Critical;
+    protected readonly extractReferencedUsers = (event: Event) => [...event.contacts, ...event.restrictedToAccounts, event.moderator];
+    protected readonly toEntity = (row: IEventListItemResult, event: Event) => toEvent(row, event, this.timezones.siteTimeZone, this._refinerValueLoader, this._entitiesById);
+    protected readonly updateListItem = (event: Event) => toUpdateListItem(event, this.timezones.siteTimeZone);
+    protected readonly diagnosePersistError = (error: any) => ErrorHandler.is_412_PRECONDITION_FAILED(error) ? ErrorDiagnosis.Propogate : ErrorDiagnosis.Critical;
 }
