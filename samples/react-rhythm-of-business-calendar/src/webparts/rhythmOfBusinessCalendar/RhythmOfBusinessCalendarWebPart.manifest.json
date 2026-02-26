@@ -1,7 +1,7 @@
 {
     "$schema": "https://dev.office.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
-    "id": "a759d756-822d-4e21-ab21-41462f5a8f6e",
-    "alias": "MULTI",
+    "id": "580ba0e9-5b9d-49d1-810c-d21cdf06fb41",
+    "alias": "TDC-J6",
     "componentType": "WebPart",
     "version": "*",
     "manifestVersion": 2,
@@ -20,7 +20,7 @@
                 "default": "Other"
             },
             "title": {
-                "default": "MULTI"
+                "default": "TDC-J6"
             },
             "description": {
                 "default": "One calendar for managing and maintaining all team and organizational events"

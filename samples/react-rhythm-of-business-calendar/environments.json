@@ -5,35 +5,35 @@
             "environmentSymbol": "Environments.LOCAL",
             "skipFeatureDeployment": false,
             "package": {
-                "name": "MULTI",
+                "name": "LOCAL Rhythm of Business Calendar",
                 "id": "37df9a1c-b53e-46ad-9efb-2e4da77a724f",
-                "filename": "MULTI-LOCAL.sppkg"
+                "filename": "RhythmOfBusinessCalendar-LOCAL.sppkg"
             },
             "webparts": [
                 {
                     "manifest": "RhythmOfBusinessCalendarWebPart.manifest.json",
                     "id": "ff77b45a-483c-4fe7-94b4-b5fc8def29c0",
-                    "alias": "MULTI",
-                    "title": "MULTI"
+                    "alias": "RhythmOfBusinessCalendarWebPartLOCAL",
+                    "title": "(LOCAL) Rhythm of Business Calendar"
                 }
             ]
         },
         "dev": {
-            "deploySiteUrl": "https://contoso.sharepoint.com/sites/MULTI_DEV",
+            "deploySiteUrl": "https://contoso.sharepoint.com/sites/RhythmOfBusinessCalendar_DEV",
             "deployScope": "Site",
             "skipFeatureDeployment": false,
             "environmentSymbol": "Environments.DEV",
             "package": {
-                "name": "MULTI",
+                "name": "DEV Rhythm of Business Calendar",
                 "id": "54b89a4f-15c4-4007-942f-d1d9e8fc6871",
-                "filename": "MULTI-DEV.sppkg"
+                "filename": "RhythmOfBusinessCalendar-DEV.sppkg"
             },
             "webparts": [
                 {
                     "manifest": "RhythmOfBusinessCalendarWebPart.manifest.json",
                     "id": "8454e333-242f-45af-bd58-bd823010822a",
-                    "alias": "MULTI",
-                    "title": "MULTI"
+                    "alias": "RhythmOfBusinessCalendarWebPartDEV",
+                    "title": "(DEV) Rhythm of Business Calendar"
                 }
             ]
         },
@@ -43,16 +43,16 @@
             "skipFeatureDeployment": true,
             "environmentSymbol": "Environments.TEST",
             "package": {
-                "name": "MULTI",
+                "name": "TEST Rhythm of Business Calendar",
                 "id": "839937b0-a90a-4665-8ed6-30dcde0cfa9e",
-                "filename": "MULTI-TEST.sppkg"
+                "filename": "RhythmOfBusinessCalendar-TEST.sppkg"
             },
             "webparts": [
                 {
                     "manifest": "RhythmOfBusinessCalendarWebPart.manifest.json",
                     "id": "0039f049-a62f-427e-830e-7b3de838f69e",
-                    "alias": "MULTI",
-                    "title": "MULTI"
+                    "alias": "RhythmOfBusinessCalendarWebPartTEST",
+                    "title": "(TEST) Rhythm of Business Calendar"
                 }
             ]
         },
@@ -62,16 +62,16 @@
             "skipFeatureDeployment": true,
             "environmentSymbol": "Environments.STAGE",
             "package": {
-                "name": "MULTI",
+                "name": "STG Rhythm of Business Calendar",
                 "id": "bf1f3d59-8ce2-4c98-9c92-a7a7bf36abb6",
-                "filename": "MULTI-STG.sppkg"
+                "filename": "RhythmOfBusinessCalendar-STG.sppkg"
             },
             "webparts": [
                 {
                     "manifest": "RhythmOfBusinessCalendarWebPart.manifest.json",
                     "id": "b7aeb8c7-7819-4f06-8779-00dce2caeeab",
-                    "alias": "MULTI",
-                    "title": "MULTI"
+                    "alias": "RhythmOfBusinessCalendarWebPartSTG",
+                    "title": "(STG) Rhythm of Business Calendar"
                 }
             ]
         },
@@ -81,16 +81,16 @@
             "skipFeatureDeployment": true,
             "environmentSymbol": "Environments.PROD",
             "package": {
-                "name": "MULTI",
-                "id": "ab5031ae-1ca1-444a-afe4-c3b334ea0b70",
-                "filename": "MULTI.sppkg"
+                "name": "TDC-J6",
+                "id": "55819f95-7767-4c5f-96ef-42d8f35ecf97",
+                "filename": "TDC-J6.sppkg"
             },
             "webparts": [
                 {
                     "manifest": "RhythmOfBusinessCalendarWebPart.manifest.json",
-                    "id": "a759d756-822d-4e21-ab21-41462f5a8f6e",
-                    "alias": "MULTI",
-                    "title": "MULTI"
+                    "id": "580ba0e9-5b9d-49d1-810c-d21cdf06fb41",
+                    "alias": "TDC-J6",
+                    "title": "TDC-J6"
                 }
             ]
         }

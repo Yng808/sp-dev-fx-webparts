@@ -1,9 +1,9 @@
 {
     "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
     "solution": {
-        "name": "MULTI",
-        "id": "ab5031ae-1ca1-444a-afe4-c3b334ea0b70",
-        "version": "1.7.0.6",
+        "name": "TDC-J6",
+        "id": "55819f95-7767-4c5f-96ef-42d8f35ecf97",
+        "version": "1.7.0.0",
         "includeClientSideAssets": true,
         "skipFeatureDeployment": true,
         "developer": {
@@ -15,6 +15,6 @@
         }
     },
     "paths": {
-        "zippedPackage": "solution/MULTI.sppkg"
+        "zippedPackage": "solution/TDC-J6.sppkg"
     }
 }
