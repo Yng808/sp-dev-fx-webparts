@@ -51,7 +51,7 @@ export const Month: FC<IProps> = ({
                     {start.format("MMMM")}
                 </ActionButton>
             </div>
-            <Stack horizontal wrap>
+            {/* <Stack horizontal wrap>
                 {(!refiner || selectedRefinerValues.has(refiner.blankValue) || (refiner.required && blankValue.eventCount > 0)) &&
                     <StackItem styles={styles}>
                         <RefinerValueEvents showTitle={!!refiner} refinerValue={blankValue} onActivate={onActivate} />
@@ -62,7 +62,7 @@ export const Month: FC<IProps> = ({
                         <RefinerValueEvents showTitle refinerValue={value} onActivate={onActivate} />
                     </StackItem>
                 )}
-            </Stack>
+            </Stack> */}
         </FocusZone>
     );
 }
