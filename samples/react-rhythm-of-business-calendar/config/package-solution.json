@@ -3,7 +3,7 @@
     "solution": {
         "name": "TDC-J6",
         "id": "55819f95-7767-4c5f-96ef-42d8f35ecf97",
-        "version": "1.7.0.1",
+        "version": "1.7.0.4",
         "includeClientSideAssets": true,
         "skipFeatureDeployment": true,
         "developer": {
