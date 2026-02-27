@@ -277,6 +277,11 @@ export class ExternalListDataService {
             const startMoment = this._parseSharePointDate(startValue, siteTimeZone.momentId, config.dateOnly);
             const endMoment = endValue ? this._parseSharePointDate(endValue, siteTimeZone.momentId, config.dateOnly) : null;
 
+            if (config.dateOnly) {
+                event.isAllDay = true;
+                event.start = startMoment;
+                event.end = endMoment ?? startMoment.clone().add(1, 'day');
+            } else {
             const isStartMidnight = startMoment.hours() === 0 && startMoment.minutes() === 0 && startMoment.seconds() === 0;
             const isEndMidnight = endMoment && endMoment.hours() === 0 && endMoment.minutes() === 0 && endMoment.seconds() === 0;
 
@@ -287,20 +292,11 @@ export class ExternalListDataService {
             if (shouldBeAllDay) {
                 event.isAllDay = true;
                 event.start = startMoment.clone().startOf('day');
-
-                if (endMoment) {
-                    event.end = endMoment.clone().startOf('day');
-                } else {
-                    event.end = event.start.clone().add(1, 'day');
-                }
+                event.end = endMoment ? endMoment.clone().startOf('day') : startMoment.clone().add(1, 'day');
             } else {
                 event.isAllDay = false;
                 event.start = startMoment;
-
-                if (endMoment) {
-                    event.end = endMoment;
-                } else {
-                    event.end = event.start.clone().add(1, 'hour');
+                event.end = endMoment ?? startMoment.clone().add(1, 'hour');
                 }
             }
         }
