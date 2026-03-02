@@ -124,8 +124,8 @@ export class ExternalListDataService {
     }
 
     private async _fetchListItemsUsingView(config: ExternalListConfig, siteUrl: string): Promise<IExternalListItem[]> {
-        const viewEndpoint = `${siteUrl}/_api/web/lists(guid'${config.listId}')/views(guid'${config.viewId}')`;
-        
+        const viewEndpoint = `${siteUrl}/_api/web/lists(guid'${config.listId}')/views(guid'${config.viewId}')?$select=ViewQuery`;
+
         const viewResponse: SPHttpClientResponse = await this.spHttpClient.get(viewEndpoint, SPHttpClient.configurations.v1);
 
         if (!viewResponse.ok) {
@@ -134,45 +134,38 @@ export class ExternalListDataService {
         }
 
         const viewData = await viewResponse.json();
-        const viewQuery = viewData.ViewQuery || '';
-
-        const oDataFilter = this._camlToODataFilter(viewQuery);
-        
-        if (!viewQuery || viewQuery.trim() === '') {
-            return await this._fetchAllItems(config, siteUrl);
-        }
-
-        if (!oDataFilter) {
-            console.warn(`Complex CAML query detected, falling back to all items for "${config.listTitle}"`);
-            return await this._fetchAllItems(config, siteUrl);
-        }
+        const viewQuery: string = viewData.ViewQuery || '';
 
         const selectFields = this._buildSelectFields(config);
-        
-        let apiUrl =
-            `${siteUrl}/_api/web/lists(guid'${config.listId}')/items` +
-            `?$select=${selectFields}` +
-            `&$filter=${encodeURIComponent(oDataFilter)}`;
+        const viewFields = selectFields.split(',')
+            .map(f => `<FieldRef Name="${f.trim()}"/>`)
+            .join('');
 
-        if (config.eventDate) {
-            apiUrl += `&$orderby=${config.eventDate}`;
-        }
+        const viewXml = `<View><Query>${viewQuery}</Query><ViewFields>${viewFields}</ViewFields><RowLimit>5000</RowLimit></View>`;
 
-        apiUrl += `&$top=5000`;
+        const getItemsEndpoint = `${siteUrl}/_api/web/lists(guid'${config.listId}')/GetItems`;
 
-        const response: SPHttpClientResponse = await this.spHttpClient.get(
-            apiUrl,
-            SPHttpClient.configurations.v1
+        const postResponse: SPHttpClientResponse = await this.spHttpClient.post(
+            getItemsEndpoint,
+            SPHttpClient.configurations.v1,
+            {
+                body: JSON.stringify({
+                    query: {
+                        ViewXml: viewXml
+                    }
+                })
+            }
         );
 
-        if (!response.ok) {
-            console.error(`Failed to fetch filtered items: ${response.statusText}`);
-            throw new Error(`Failed to fetch items using view filter: ${response.statusText}`);
+        if (!postResponse.ok) {
+            const errorText = await postResponse.text();
+            console.error(`GetItems failed: ${errorText}`);
+            console.warn(`Falling back to all items for "${config.listTitle}"`);
+            return await this._fetchAllItems(config, siteUrl);
         }
 
-        const data = await response.json();
-        const items = data.value || [];
-        return items;
+        const data = await postResponse.json();
+        return data.value || data?.d?.results || [];
     }
 
     private async _fetchAllItems(config: ExternalListConfig, siteUrl: string): Promise<IExternalListItem[]> {
@@ -201,60 +194,20 @@ export class ExternalListDataService {
         return data.value || [];
     }
 
-    private _camlToODataFilter(caml: string): string | null {
-        if (!caml || caml.trim() === '') {
-            return null;
-        }
-
-        // Extract simple equality filters
-        // Example: <Eq><FieldRef Name="Status" /><Value Type="Text">Approved</Value></Eq>
-        const eqMatch = caml.match(/<Eq>\s*<FieldRef Name="([^"]+)"\s*\/>\s*<Value Type="[^"]*">([^<]+)<\/Value>\s*<\/Eq>/i);
-        if (eqMatch) {
-            const fieldName = eqMatch[1];
-            const fieldValue = eqMatch[2];
-            return `${fieldName} eq '${fieldValue}'`;
-        }
-
-        // Extract simple date comparisons
-        // Example: <Geq><FieldRef Name="EventDate" /><Value Type="DateTime"><Today /></Value></Geq>
-        const todayMatch = caml.match(/<(Geq|Leq|Gt|Lt)>\s*<FieldRef Name="([^"]+)"\s*\/>\s*<Value Type="DateTime"><Today\s*\/><\/Value>\s*<\/(Geq|Leq|Gt|Lt)>/i);
-        if (todayMatch) {
-            const operator = todayMatch[1].toLowerCase();
-            const fieldName = todayMatch[2];
-            const today = new Date().toISOString();
-            
-            const odataOp = {
-                'geq': 'ge',
-                'leq': 'le',
-                'gt': 'gt',
-                'lt': 'lt'
-            }[operator];
-            
-            return `${fieldName} ${odataOp} datetime'${today}'`;
-        }
-    return null;
-    }
-
     private _buildSelectFields(config: ExternalListConfig): string {
         const fields: string[] = ['Id', config.titleField];
 
         if (config.eventDate) {
             fields.push(config.eventDate);
-        } else {
-            console.log(`eventDate: UNDEFINED (NOT ADDING)`);
-        }
+        }  // else { console.log(`eventDate: UNDEFINED (NOT ADDING)`); }
 
         if (config.endDate) {
             fields.push(config.endDate);
-        } else {
-            console.log(`endDate: UNDEFINED (NOT ADDING)`);
-        }
+        }  // else { console.log(`endDate: UNDEFINED (NOT ADDING)`); }
 
         if (config.approvalStatus) {
             fields.push(config.approvalStatus);
-        } else {
-            console.log(`approvalStatus: UNDEFINED (NOT ADDING)`);
-        }
+        } // else { console.log(`approvalStatus: UNDEFINED (NOT ADDING)`);}
 
         const result = fields.join(','); 
         return result;
