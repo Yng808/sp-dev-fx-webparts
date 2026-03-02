@@ -54,17 +54,16 @@ export class ExternalListsLoader {
             "TitleField",
             "EventDate",
             "EndDate",
-            "CategoryField",
+            "ApprovalStatus",
             "IsEnabled",
             "IsDateOnly",
-            "SortOrder",
             "Color"
         ],
         query,
         row => this._mapItemToConfig(row)
         );
 
-        return items.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+        return items
     }
 
     private _mapItemToConfig(row: IListItemResult): ExternalListConfig {
@@ -79,10 +78,9 @@ export class ExternalListsLoader {
         titleField: r.TitleField,
         eventDate: r.EventDate,
         endDate: r.EndDate, 
-        categoryField: r.CategoryField,
+        approvalStatus: r.ApprovalStatus,
         enabled: String(r.IsEnabled).toLowerCase() === "yes",
         dateOnly: r.IsDateOnly === true || r.IsDateOnly === 1 || String(r.IsDateOnly).toLowerCase() === 'yes',
-        sortOrder: r.SortOrder ?? 0,
         color: r.Color
         } as ExternalListConfig;
 

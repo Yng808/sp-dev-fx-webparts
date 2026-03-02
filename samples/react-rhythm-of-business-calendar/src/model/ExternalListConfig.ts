@@ -6,10 +6,9 @@ export interface ExternalListConfig {
     viewId?: string;
     titleField: string;
     eventDate: string;
-    endDate?: string;
-    categoryField?: string;
+    endDate: string;
+    approvalStatus?: string;
     enabled: boolean;
     dateOnly: boolean;
-    sortOrder?: number;
     color: string;
 }

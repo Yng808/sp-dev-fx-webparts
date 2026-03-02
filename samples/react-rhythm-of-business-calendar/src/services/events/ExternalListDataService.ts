@@ -241,19 +241,19 @@ export class ExternalListDataService {
         if (config.eventDate) {
             fields.push(config.eventDate);
         } else {
-            console.log(`   eventDate: UNDEFINED (NOT ADDING)`);
+            console.log(`eventDate: UNDEFINED (NOT ADDING)`);
         }
 
         if (config.endDate) {
             fields.push(config.endDate);
         } else {
-            console.log(`   endDate: UNDEFINED (NOT ADDING)`);
+            console.log(`endDate: UNDEFINED (NOT ADDING)`);
         }
 
-        if (config.categoryField) {
-            fields.push(config.categoryField);
+        if (config.approvalStatus) {
+            fields.push(config.approvalStatus);
         } else {
-            console.log(`   categoryField: UNDEFINED (NOT ADDING)`);
+            console.log(`approvalStatus: UNDEFINED (NOT ADDING)`);
         }
 
         const result = fields.join(','); 
@@ -268,7 +268,12 @@ export class ExternalListDataService {
         (event as any).externalSourceSiteUrl = config.siteUrl;
         (event as any).externalItemId = item.Id;
         (event as any).readOnly = true;
-        event.title = this._getValue(item, config.titleField) || '';
+
+        const rawTitle = this._getValue(item, config.titleField) || '';
+        const approvalStatusValue = config.approvalStatus ? this._getValue(item, config.approvalStatus) : null;
+        const statusString = approvalStatusValue != null ? String(approvalStatusValue).trim() : '';
+        const firstLetter = statusString.length > 0 ? statusString.charAt(0).toUpperCase() : '';
+        event.title = firstLetter ? `(${firstLetter}) ${rawTitle}`: rawTitle;
 
         const startValue = config.eventDate ? this._getValue(item, config.eventDate) : null;
         const endValue = config.endDate ? this._getValue(item, config.endDate) : null;
