@@ -7,7 +7,7 @@ import { OnRefinerSelectionChanged } from "../refiners";
 
 export const useRefinerValues = () => {
     const forceUpdate = useForceUpdate();
-    const { refinersAsync, refinerValuesAsync } = useEventsService();
+    const { refinersAsync, refinerValuesAsync, eventsAsync } = useEventsService();
 
     const [selectedRefinerValues] = useState(new Set<RefinerValue>());
     const [knownRefinerValues] = useState(new Set<RefinerValue>());
@@ -59,6 +59,31 @@ export const useRefinerValues = () => {
         refinerValuesAsync.registerComponentForUpdates(component);
         return () => refinerValuesAsync.unregisterComponentForUpdates(component);
     }, [refinersAsync, refinerValuesAsync, selectedRefinerValues, knownRefinerValues, forceUpdate]);
+
+    useEffect(() => {
+        const update = () => {
+            const refiners = refinersAsync.data?.filter(Entity.NotDeletedFilter);
+            if (!refiners?.length) return;
+
+            let changed = false;
+            refiners.forEach(refiner => {
+                refiner.values.get().forEach((value: RefinerValue) => {
+                    if (!knownRefinerValues.has(value)) {
+                        knownRefinerValues.add(value);
+                        selectedRefinerValues.add(value);
+                        changed = true;
+                    }
+                });
+            });
+
+            if (changed) forceUpdate();
+        };
+
+        eventsAsync.promise.then(update);
+        const component: IComponent = { componentShouldRender: update };
+        eventsAsync.registerComponentForUpdates(component);
+        return () => eventsAsync.unregisterComponentForUpdates(component);
+    }, [eventsAsync, refinersAsync, selectedRefinerValues, knownRefinerValues, forceUpdate]);
 
     const onSelectedRefinerValuesChanged: OnRefinerSelectionChanged = useCallback(({ added, removed }) => {
         added.forEach(v => selectedRefinerValues.add(v));
