@@ -1,13 +1,11 @@
 import { Moment } from 'moment-timezone';
 import React, { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ActionButton, FocusZone, FontSizes, FontWeights, IStackItemStyles, Stack, StackItem, useTheme } from '@fluentui/react';
+import { ActionButton, FocusZone, FontSizes, FontWeights, useTheme } from '@fluentui/react';
 import { useConst } from '@fluentui/react-hooks';
-import { Entity } from 'common';
 import { EventOccurrence, RefinerValue, ViewKeys } from 'model';
 import { IViewCommands } from '../IViewCommands';
 import { MonthInfo } from './Builder';
-import { RefinerValueEvents } from './RefinerValueEvents';
 
 interface IProps {
     anchorDate: Moment;
@@ -33,7 +31,7 @@ export const Month: FC<IProps> = ({
         navigate(`/${ViewKeys.monthly}`);
     };
 
-    const styles: IStackItemStyles = { root: { width: `${columnWidth}%`, paddingBottom: 10 } };
+    // const styles: IStackItemStyles = { root: { width: `${columnWidth}%`, paddingBottom: 10 } };
 
     return (
         <FocusZone>

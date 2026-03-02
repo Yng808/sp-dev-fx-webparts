@@ -271,7 +271,7 @@ export class ExternalListDataService {
 
         const rawTitle = this._getValue(item, config.titleField) || '';
         const approvalStatusValue = config.approvalStatus ? this._getValue(item, config.approvalStatus) : null;
-        const statusString = approvalStatusValue != null ? String(approvalStatusValue).trim() : '';
+        const statusString = approvalStatusValue !== null ? String(approvalStatusValue).trim() : '';
         const firstLetter = statusString.length > 0 ? statusString.charAt(0).toUpperCase() : '';
         event.title = firstLetter ? `(${firstLetter}) ${rawTitle}`: rawTitle;
 
