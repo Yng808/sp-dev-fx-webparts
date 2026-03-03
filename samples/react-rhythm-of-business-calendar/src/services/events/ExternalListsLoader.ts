@@ -55,6 +55,7 @@ export class ExternalListsLoader {
             "EventDate",
             "EndDate",
             "ApprovalStatus",
+            "LocationField",
             "IsEnabled",
             "IsDateOnly",
             "Color"
@@ -79,6 +80,7 @@ export class ExternalListsLoader {
         eventDate: r.EventDate,
         endDate: r.EndDate, 
         approvalStatus: r.ApprovalStatus,
+        locationField: r.LocationField,
         enabled: String(r.IsEnabled).toLowerCase() === "yes",
         dateOnly: r.IsDateOnly === true || r.IsDateOnly === 1 || String(r.IsDateOnly).toLowerCase() === 'yes',
         color: r.Color

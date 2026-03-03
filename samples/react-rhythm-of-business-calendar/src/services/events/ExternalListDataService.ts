@@ -209,6 +209,10 @@ export class ExternalListDataService {
             fields.push(config.approvalStatus);
         } // else { console.log(`approvalStatus: UNDEFINED (NOT ADDING)`);}
 
+        if (config.locationField) {
+            fields.push(config.locationField);
+        } // else { console.log(`locationField: UNDEFINED (NOT ADDING)`);}
+
         const result = fields.join(','); 
         return result;
     }
@@ -227,6 +231,11 @@ export class ExternalListDataService {
         const statusString = approvalStatusValue !== null ? String(approvalStatusValue).trim() : '';
         const firstLetter = statusString.length > 0 ? statusString.charAt(0).toUpperCase() : '';
         event.title = firstLetter ? `(${firstLetter}) ${rawTitle}`: rawTitle;
+
+        if (config.locationField) {
+            const locationValue = this._getValue(item, config.locationField);
+            event.location = locationValue || '';
+        }
 
         const startValue = config.eventDate ? this._getValue(item, config.eventDate) : null;
         const endValue = config.endDate ? this._getValue(item, config.endDate) : null;

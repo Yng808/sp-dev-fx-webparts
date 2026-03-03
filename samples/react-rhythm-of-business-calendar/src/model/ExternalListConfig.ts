@@ -8,6 +8,7 @@ export interface ExternalListConfig {
     eventDate: string;
     endDate: string;
     approvalStatus?: string;
+    locationField?: string;
     enabled: boolean;
     dateOnly: boolean;
     color: string;
