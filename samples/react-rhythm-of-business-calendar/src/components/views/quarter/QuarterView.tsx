@@ -1,5 +1,5 @@
 import { clamp } from 'lodash';
-import React, { FC, useCallback, useRef } from 'react';
+import React, { FC, useCallback, useMemo, useRef } from 'react';
 import { IStackItemStyles, Stack, StackItem } from '@fluentui/react';
 import { Entity, multifilter } from 'common';
 import { EventOccurrence, ViewKeys } from 'model';
@@ -18,7 +18,7 @@ const QuarterView: FC<IViewProps> = ({ anchorDate, cccurrences, refiners, select
     const { active: config } = useConfigurationService();
 
     const groupByRefiner = config.useRefiners ? refiners.find(r => r.id === config.quarterViewGroupByRefinerId) : undefined;
-    const months = Builder.build(cccurrences, anchorDate, groupByRefiner, config);
+    const months = useMemo(() => Builder.build(cccurrences, anchorDate, groupByRefiner, config), [cccurrences, anchorDate, groupByRefiner, config, refiners]);
 
     const detailsCallout = useRef<IEventDetailsCallout>();
 

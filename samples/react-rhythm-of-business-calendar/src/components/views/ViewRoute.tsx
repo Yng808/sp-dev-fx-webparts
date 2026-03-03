@@ -55,7 +55,7 @@ const ViewRoute: FC = () => {
 
     const dateRange = useMemo(
         () => view.dateRange(anchorDate, config),
-        [view, anchorDate]
+        [view, anchorDate, config]
     );
 
     const { eventsAsync, refinersAsync, refinerValuesAsync, approversAsync } =

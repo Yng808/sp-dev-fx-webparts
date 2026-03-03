@@ -72,7 +72,11 @@ export class MonthInfo {
                 this.blankValue.include(event);
             } else {
                 for (const value of refinerValues) {
-                    const info = this.refinerValues.get(value);
+                    let info = this.refinerValues.get(value);
+                    if (!info) {
+                        info = new RefinerValueInfo(value.displayName, this.start, this.end);
+                        this.refinerValues.set(value, info);
+                    }
                     info.include(event);
                 }
             }
