@@ -181,8 +181,13 @@ export class ExternalListDataService {
 
         apiUrl += `&$top=5000`;
 
+        const allItems: IExternalListItem[] = [];
+        let nextUrl: string | undefined = apiUrl;
+
+        while (nextUrl) {
+
         const response: SPHttpClientResponse = await this.spHttpClient.get(
-            apiUrl,
+            nextUrl,
             SPHttpClient.configurations.v1
         );
 
@@ -191,7 +196,15 @@ export class ExternalListDataService {
         }
 
         const data = await response.json();
-        return data.value || [];
+
+        if (data.value) {
+            allItems.push(...data.value);
+        }
+
+        nextUrl = data['@odata.nextLink'];
+        }
+
+        return allItems;
     }
 
     private _buildSelectFields(config: ExternalListConfig): string {

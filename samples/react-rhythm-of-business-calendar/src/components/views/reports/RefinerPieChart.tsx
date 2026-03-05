@@ -138,7 +138,7 @@ const RefinerPieChart: FC<RefinerPieChartProps> = ({ cccurrences }) => {
             //console.log(cccurrence.start.date);
             const valuesByRefiner = cccurrence.event.valuesByRefiner();
             valuesByRefiner.forEach((values, refiner) => {
-                if (refiner.id === 1 || refiner.title === "Type") {
+                if (refiner.enableColors) {
                     values.forEach(value => {
                         const refinerValue = value.title;
                         if (!refinerValueCounts[refinerValue]) {

@@ -72,7 +72,7 @@ export class OnlineEventsService implements IEventsService {
             this._eventLoader = new EventLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
             this._approversLoader = new ApproversLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
             const refiners = await this._refinerLoader.all();
-            const typeRefiner = refiners.find(r => r.title === "Type");
+            const typeRefiner = refiners.find(r => r.enableColors);
 
             if (typeRefiner) {
                 this._externalListDataService.setTypeRefiner(typeRefiner);
