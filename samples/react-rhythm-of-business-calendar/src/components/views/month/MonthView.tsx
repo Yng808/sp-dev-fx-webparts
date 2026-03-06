@@ -9,7 +9,7 @@ import { Week } from './Week';
 
 import { ViewNames as strings } from 'ComponentStrings';
 import { FocusZone } from '@fluentui/react';
-// import Legend from './Legend';
+import Legend from './Legend';
 
 const MonthView: FC<IViewProps> = ({ anchorDate, eventCommands, viewCommands, cccurrences }) => {
     const weeks = Builder.build(cccurrences, anchorDate);
@@ -55,7 +55,7 @@ const MonthView: FC<IViewProps> = ({ anchorDate, eventCommands, viewCommands, cc
                 commands={eventCommands}
                 componentRef={detailsCallout}
             />
-            {/* <Legend/> */}
+            <Legend/>
         </FocusZone>
     );
 };

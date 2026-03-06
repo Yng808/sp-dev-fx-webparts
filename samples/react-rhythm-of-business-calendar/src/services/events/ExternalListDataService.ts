@@ -21,16 +21,17 @@ export class ExternalListDataService {
         const enabledConfigs = configs.filter(c => c.enabled);
         if (enabledConfigs.length === 0) { return []; }
 
-        const results = await Promise.allSettled(enabledConfigs.map(c => this.loadEventsFromExternalList(c)));
-        
-        return results.flatMap(result => {
-            if (result.status === 'fulfilled') {
-                return result.value;
-            } else {
-                console.warn('Failed to load external list:', result.reason);
+        const tasks = enabledConfigs.map(config => async () => {
+            try {
+            return await this.loadEventsFromExternalList(config);
+            } catch (error) {
+                console.warn('Failed to load external list:', error);
                 return [];
             }
         });
+
+        const results = await this._runWithConcurrency(tasks, 5);
+        return results.flat();
     }
 
     public async loadEventsFromExternalList(config: ExternalListConfig): Promise<Event[]> {
@@ -39,6 +40,27 @@ export class ExternalListDataService {
         const refinerValue = this._getOrCreateRefinerValue(config);
         events.forEach(e => {e.refinerValues.add(refinerValue);});
         return events;
+    }
+
+    private async _runWithConcurrency<T>(tasks: (() => Promise<T>)[], limit: number ): Promise<T[]> {
+        const results: T[] = [];
+        const executing: Promise<void>[] = [];
+
+        for (const task of tasks) {
+            const p = task().then(r => {
+            results.push(r);
+            });
+
+            executing.push(p);
+
+            if (executing.length >= limit) {
+                await Promise.race(executing);
+                executing.splice(executing.findIndex(e => e === p), 1);
+            }
+        }
+
+        await Promise.all(executing);
+        return results;
     }
 
     private _typeRefiner: Refiner | undefined;
@@ -66,23 +88,44 @@ export class ExternalListDataService {
         if (cached) { return cached; }
 
         if (!this._typeRefiner) {
-            throw new Error("Type refiner has not been initialized.");
+            throw new Error("Refiner has not been initialized.");
         }
 
         const typeRefiner = this._typeRefiner;
-        const listTitle = config.listTitle || "External";
+        const listTitle = (config.listTitle || "External").trim().toLowerCase();
 
         const allValues = typeRefiner.values.get();
 
+        // console.log("External list title:", listTitle);
+
+        // console.log(
+        // "Available refiner values:",
+        // allValues.map(v => ({
+        //     original: v.title,
+        //     normalized: (v.title || "").trim().toLowerCase()
+        // }))
+        // );
+        
         let refinerValue = allValues.find(
-            (rv: RefinerValue) => rv.title === listTitle
+            (rv: RefinerValue) => (rv as any).__externalListId === config.listId
         );
 
         if (!refinerValue) {
+            refinerValue = allValues.find( 
+                (rv: RefinerValue) => (rv.title || "").trim().toLowerCase() === listTitle 
+            );
+
+            if (refinerValue) { 
+                (refinerValue as any).__externalListId = config.listId;
+            }
+        }
+
+        if (!refinerValue) {
             refinerValue = new RefinerValue();
-            refinerValue.title = listTitle;
+            refinerValue.title = config.listTitle || "External";
             refinerValue.order = allValues.length;
             (refinerValue as any).__external = true;
+            (refinerValue as any).__externalListId = config.listId;
             refinerValue.refiner.set(typeRefiner);
             typeRefiner.values.add(refinerValue);
         }
