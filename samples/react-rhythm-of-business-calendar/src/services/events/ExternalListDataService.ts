@@ -96,28 +96,16 @@ export class ExternalListDataService {
 
         const allValues = typeRefiner.values.get();
 
-        // console.log("External list title:", listTitle);
-
-        // console.log(
-        // "Available refiner values:",
-        // allValues.map(v => ({
-        //     original: v.title,
-        //     normalized: (v.title || "").trim().toLowerCase()
-        // }))
-        // );
-        
+        // First try to find an external-generated value already tied to this list id.
         let refinerValue = allValues.find(
-            (rv: RefinerValue) => (rv as any).__externalListId === config.listId
+            (rv: RefinerValue) => (rv as any).__external === true && (rv as any).__externalListId === config.listId
         );
 
+        // Otherwise, match by title (internal or external existing value).
         if (!refinerValue) {
-            refinerValue = allValues.find( 
-                (rv: RefinerValue) => (rv.title || "").trim().toLowerCase() === listTitle 
+            refinerValue = allValues.find(
+                (rv: RefinerValue) => (rv.title || "").trim().toLowerCase() === listTitle
             );
-
-            if (refinerValue) { 
-                (refinerValue as any).__externalListId = config.listId;
-            }
         }
 
         if (!refinerValue) {
@@ -128,9 +116,11 @@ export class ExternalListDataService {
             (refinerValue as any).__externalListId = config.listId;
             refinerValue.refiner.set(typeRefiner);
             typeRefiner.values.add(refinerValue);
+            refinerValue.color = this._parseColor(config.color);
+        } else if ((refinerValue as any).__external === true) {
+            // Keep external-generated values in sync with external config color.
+            refinerValue.color = this._parseColor(config.color);
         }
-
-        refinerValue.color = this._parseColor(config.color);
 
         this._externalRefinerValues.set(cacheKey, refinerValue);
 

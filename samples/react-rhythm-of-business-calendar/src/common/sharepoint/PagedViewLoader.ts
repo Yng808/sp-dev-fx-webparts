@@ -221,8 +221,9 @@ export abstract class PagedViewLoader<E extends ListItemEntity<any>> extends Loa
         await this.prepareToLoadEntities();
 
         let cacheSuccess = false;
+        const hasViewId = !!this.view[ViewId];
 
-        if (this._fastLoadConfig.useCache) {
+        if (this._fastLoadConfig.useCache && hasViewId) {
             cacheSuccess = await this._fastLoad.load(this._fastLoadConfig.expiration);
 
             if (cacheSuccess) {
@@ -272,6 +273,13 @@ export abstract class PagedViewLoader<E extends ListItemEntity<any>> extends Loa
             [ListId]: listId,
             [CurrentChangeToken]: currentChangeToken
         } = list;
+
+        // Some legacy/migrated environments may not have persisted view ids.
+        // In that case, skip incremental change polling instead of throwing.
+        if (!viewId || !listId) {
+            return;
+        }
+
 
         const query: IChangeLogItemQuery = {
             ChangeToken: currentChangeToken,

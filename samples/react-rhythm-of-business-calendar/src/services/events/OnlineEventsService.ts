@@ -36,6 +36,7 @@ export class OnlineEventsService implements IEventsService {
     private _refinerLoader: RefinerLoader;
     private _refinerValueLoader: RefinerValueLoader;
     private _approversLoader: ApproversLoader;
+    private _typeRefinerInitialized = false;
 
     constructor({
         [TeamsJs]: teams,
@@ -71,12 +72,7 @@ export class OnlineEventsService implements IEventsService {
             this._refinerValueLoader = new RefinerValueLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerLoader);
             this._eventLoader = new EventLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
             this._approversLoader = new ApproversLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
-            const refiners = await this._refinerLoader.all();
-            const typeRefiner = refiners.find(r => r.enableColors);
-
-            if (typeRefiner) {
-                this._externalListDataService.setTypeRefiner(typeRefiner);
-            }
+            await this._ensureTypeRefinerInitialized();
             try {
                 const externalConfigs = await this._externalListsLoader.loadExternalListConfigs();
                 
@@ -137,6 +133,7 @@ export class OnlineEventsService implements IEventsService {
     
     public async refreshExternalEvents(): Promise<void> {
         try {
+            await this._ensureTypeRefinerInitialized();
             const externalConfigs =
                 await this._externalListsLoader.loadExternalListConfigs();
 
@@ -161,6 +158,24 @@ export class OnlineEventsService implements IEventsService {
 
         } catch (error) {
             console.error('Error refreshing external events:', error);
+        }
+    }
+
+    private async _ensureTypeRefinerInitialized(): Promise<void> {
+        if (this._typeRefinerInitialized) {
+            return;
+        }
+
+        // Ensure refiner values are loaded before external mapping to avoid duplicates.
+        await this._refinerLoader.all();
+        await this._refinerValueLoader.all();
+
+        const refiners = await this._refinerLoader.all();
+        const typeRefiner = refiners.find(r => r.enableColors);
+
+        if (typeRefiner) {
+            this._externalListDataService.setTypeRefiner(typeRefiner);
+            this._typeRefinerInitialized = true;
         }
     }
 
