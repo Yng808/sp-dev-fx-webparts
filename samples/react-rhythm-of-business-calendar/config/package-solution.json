@@ -2,8 +2,8 @@
     "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
     "solution": {
         "name": "TDC-J6",
-        "id": "55819f95-7767-4c5f-96ef-42d8f35ecf97",
-        "version": "1.7.0.9",
+        "id": "c07d5eb9-fb94-4753-8982-80484e4a2d25",
+        "version": "1.7.0.0",
         "includeClientSideAssets": true,
         "skipFeatureDeployment": true,
         "developer": {

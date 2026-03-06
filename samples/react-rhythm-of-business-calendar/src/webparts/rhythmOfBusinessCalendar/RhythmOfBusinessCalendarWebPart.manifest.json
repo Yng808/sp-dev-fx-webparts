@@ -1,6 +1,6 @@
 {
     "$schema": "https://dev.office.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
-    "id": "580ba0e9-5b9d-49d1-810c-d21cdf06fb41",
+    "id": "86f36633-dfd5-4db3-a1c1-bbaf3a7cb651",
     "alias": "TDC-J6",
     "componentType": "WebPart",
     "version": "*",

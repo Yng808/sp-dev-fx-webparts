@@ -82,13 +82,13 @@
             "environmentSymbol": "Environments.PROD",
             "package": {
                 "name": "TDC-J6",
-                "id": "55819f95-7767-4c5f-96ef-42d8f35ecf97",
+                "id": "c07d5eb9-fb94-4753-8982-80484e4a2d25",
                 "filename": "TDC-J6.sppkg"
             },
             "webparts": [
                 {
                     "manifest": "RhythmOfBusinessCalendarWebPart.manifest.json",
-                    "id": "580ba0e9-5b9d-49d1-810c-d21cdf06fb41",
+                    "id": "86f36633-dfd5-4db3-a1c1-bbaf3a7cb651",
                     "alias": "TDC-J6",
                     "title": "TDC-J6"
                 }
