@@ -1,5 +1,4 @@
 import { useEventsService } from 'services';
-import { useMemo } from 'react';
 import { ExternalListConfig } from 'model/ExternalListConfig';
 
 export interface IEventCreationOption {
@@ -14,7 +13,6 @@ export interface IEventCreationOption {
 export const useExternalListsForEventCreation = () => {
     const eventsService = useEventsService();
     
-    const options = useMemo((): IEventCreationOption[] => {
         const opts: IEventCreationOption[] = [
             {
                 key: 'internal',
@@ -42,7 +40,4 @@ export const useExternalListsForEventCreation = () => {
         }
         
         return opts;
-    }, [eventsService]);
-    
-    return options;
 };

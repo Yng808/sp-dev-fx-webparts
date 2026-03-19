@@ -74,7 +74,7 @@ export class OnlineEventsService implements IEventsService {
             this._approversLoader = new ApproversLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
             await this._ensureTypeRefinerInitialized();
             try {
-                const externalConfigs = await this._externalListsLoader.loadExternalListConfigs();
+                const externalConfigs = await this._loadExternalConfigs();
                 
                 if (externalConfigs.length > 0) {
                     const externalEvents = await this._externalListDataService.loadEventsFromExternalLists(externalConfigs);
@@ -134,8 +134,7 @@ export class OnlineEventsService implements IEventsService {
     public async refreshExternalEvents(): Promise<void> {
         try {
             await this._ensureTypeRefinerInitialized();
-            const externalConfigs =
-                await this._externalListsLoader.loadExternalListConfigs();
+            const externalConfigs = await this._loadExternalConfigs();
 
             if (externalConfigs.length === 0) {
                 this._eventLoader.setExternalEvents([]);
@@ -159,6 +158,10 @@ export class OnlineEventsService implements IEventsService {
         } catch (error) {
             console.error('Error refreshing external events:', error);
         }
+    }
+
+    private async _loadExternalConfigs() {
+        return this._externalListsLoader.loadExternalListConfigs();
     }
 
     private async _ensureTypeRefinerInitialized(): Promise<void> {

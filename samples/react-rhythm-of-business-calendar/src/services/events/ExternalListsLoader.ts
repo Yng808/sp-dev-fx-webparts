@@ -42,7 +42,7 @@ export class ExternalListsLoader {
             } as unknown as CamlQuery)
         : undefined;
 
-        const items = await this.spo.listItems<IListItemResult, ExternalListConfig>(
+        return this.spo.listItems<IListItemResult, ExternalListConfig>(
         ExternalListsConfigList,
         500,
         [
@@ -63,14 +63,12 @@ export class ExternalListsLoader {
         query,
         row => this._mapItemToConfig(row)
         );
-
-        return items
     }
 
     private _mapItemToConfig(row: IListItemResult): ExternalListConfig {
         const r = row as any;
 
-        const config: ExternalListConfig = {
+        return {
         id: String(row.ID),
         siteUrl: r.SiteUrl,
         listId: r.ListId,
@@ -85,7 +83,5 @@ export class ExternalListsLoader {
         dateOnly: r.IsDateOnly === true || r.IsDateOnly === 1 || String(r.IsDateOnly).toLowerCase() === 'yes',
         color: r.Color
         } as ExternalListConfig;
-
-        return config;
     }
 }

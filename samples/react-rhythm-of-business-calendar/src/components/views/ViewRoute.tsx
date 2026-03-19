@@ -14,6 +14,7 @@ import { EventFilter, EventPanel, IEventCommands } from '../events';
 import { CopyLinkDialog, Rail, SwipedEvents, SwipeEventListener } from '../shared';
 import { IViewCommands, useDataRotatorController, useView, ViewNav } from '.';
 import { FilterConfigContext } from 'components/shared/FilterConfigContext';
+import { ExternalListsManagerPanel } from '../externalLists';
 
 import { ViewRoute as strings } from "ComponentStrings";
 
@@ -140,6 +141,7 @@ const ViewRoute: FC = () => {
     ] = useSettings();
 
     const [copyLinkDialog, getLink] = useCopyLinkDialog();
+    const [isExternalListsPanelOpen, { setTrue: openExternalListsPanel, setFalse: closeExternalListsPanel }] = useBoolean(false);
 
     const { width } = useWindowSize();
 
@@ -254,6 +256,12 @@ const ViewRoute: FC = () => {
                     } : undefined
                 },
                 userCanManageSettings && {
+                    key: 'external-lists',
+                    text: 'External Lists',
+                    iconProps: { iconName: 'BulletedList' },
+                    onClick: () => openExternalListsPanel()
+                },
+                userCanManageSettings && {
                     key: 'settings',
                     text: strings.Command_Settings.Text,
                     iconProps: { iconName: 'Settings' },
@@ -284,6 +292,7 @@ const ViewRoute: FC = () => {
             userCanManageSettings,
             userIsAnApprover,
             newEvent,
+            openExternalListsPanel,
             editSettings,
             openMyApprovalsPanel,
             showOnlyCurrentMonth,
@@ -332,6 +341,10 @@ const ViewRoute: FC = () => {
     const handleFormSaved = async () => {
         await eventsService.refreshExternalEvents();
         handleFormDismiss();
+    };
+
+    const handleExternalListsSaved = async () => {
+        await eventsService.refreshExternalEvents();
     };
 
     return (
@@ -644,6 +657,11 @@ const ViewRoute: FC = () => {
             />
             <ConfigureApproversPanel componentRef={configureApproversPanel} />
             <CopyLinkDialog componentRef={copyLinkDialog} />
+            <ExternalListsManagerPanel
+                isOpen={isExternalListsPanelOpen}
+                onDismiss={closeExternalListsPanel}
+                onSaved={handleExternalListsSaved}
+            />
             <SharePointFormPanel
                 isOpen={spFormState.isOpen}
                 siteUrl={spFormState.siteUrl}
