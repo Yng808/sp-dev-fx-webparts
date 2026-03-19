@@ -51,18 +51,18 @@ const normalizeConfig = (value: any, index: number): ExternalListConfig | undefi
 
     return {
         id: toOptionalString(value.id) || `webpart-${index + 1}`,
+        enabled: toBoolean(value.enabled, true),
+        dateOnly: toBoolean(value.dateOnly, true),
         siteUrl,
         listId,
-        listTitle: toOptionalString(value.listTitle),
         viewId: toOptionalString(value.viewId),
+        listTitle: toOptionalString(value.listTitle),
+        color: toOptionalString(value.color) || DEFAULT_EXTERNAL_COLOR,
+        approvalStatus: toOptionalString(value.approvalStatus),
         titleField,
         eventDate,
         endDate,
-        approvalStatus: toOptionalString(value.approvalStatus),
-        locationField: toOptionalString(value.locationField),
-        enabled: toBoolean(value.enabled, true),
-        dateOnly: toBoolean(value.dateOnly, true),
-        color: toOptionalString(value.color) || DEFAULT_EXTERNAL_COLOR
+        locationField: toOptionalString(value.locationField)
     };
 };
 

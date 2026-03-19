@@ -1,18 +1,5 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import {
-    Checkbox,
-    DefaultButton,
-    IconButton,
-    MessageBar,
-    MessageBarType,
-    Panel,
-    PanelType,
-    PrimaryButton,
-    Spinner,
-    Stack,
-    Text,
-    TextField
-} from '@fluentui/react';
+import { Checkbox, DefaultButton, IconButton, MessageBar, MessageBarType, Panel, PanelType, PrimaryButton, Spinner, Stack, Text, TextField } from '@fluentui/react';
 import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
 import { sp } from '@pnp/sp';
 import { IDropdownOption } from 'office-ui-fabric-react/lib/components/Dropdown';
@@ -66,28 +53,28 @@ interface IFieldSummary {
     OutputType?: number;
 }
 
-const gridTemplateColumns = '280px 180px 180px 180px 150px 150px 150px 150px 150px 90px 90px 90px 44px';
+const gridTemplateColumns = '90px 90px 280px 180px 180px 180px 90px 150px 150px 150px 150px 150px 44px';
 
 const createRow = (): IConfigRow => ({
     clientId: `external-list-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    enabled: true,
+    dateOnly: true,
     siteUrl: '',
     listId: '',
+    viewId: '',
+    listTitle: '',
+    color: '#3A86C6',
+    approvalStatus: '',
     titleField: '',
     eventDate: '',
     endDate: '',
-    approvalStatus: '',
-    locationField: '',
-    enabled: true,
-    dateOnly: true,
-    color: '#3A86C6'
+    locationField: ''
 });
 
 const normalizeSiteUrl = (rawValue?: string, allowedOrigin?: string): string => {
     const value = (rawValue || '').trim();
 
-    if (!value) {
-        return '';
-    }
+    if (!value) { return ''; }
 
     try {
         const url = new URL(value);
@@ -114,11 +101,7 @@ const normalizeSiteUrl = (rawValue?: string, allowedOrigin?: string): string => 
     }
 };
 
-const toFieldOptions = (
-    fields: IFieldSummary[],
-    filter: (field: IFieldSummary) => boolean,
-    includeBlank = false
-): IDropdownOption[] => {
+const toFieldOptions = ( fields: IFieldSummary[], filter: (field: IFieldSummary) => boolean, includeBlank = false ): IDropdownOption[] => {
     const options = fields
         .filter(filter)
         .map(field => ({
@@ -186,7 +169,7 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
         try {
             const response = await spHttpClient.get(
                 withCacheBust(
-                    `${listItemsEndpoint}?$select=Id,Title,SiteUrl,ListId,ListTitle,ViewId,TitleField,EventDate,EndDate,ApprovalStatus,LocationField,IsEnabled,IsDateOnly,Color&$orderby=Id`
+                    `${listItemsEndpoint}?$select=Id,Title,IsEnabled,IsDateOnly,SiteUrl,ListId,ViewId,ListTitle,Color,ApprovalStatus,TitleField,EventDate,EndDate,LocationField&$orderby=Id`
                 ),
                 SPHttpClient.configurations.v1
             );
@@ -194,18 +177,18 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
             const nextRows: IConfigRow[] = (data.value || []).map((item: any) => ({
                 clientId: `external-list-${item.Id}`,
                 id: item.Id,
+                enabled: item.IsEnabled === true || item.IsEnabled === 1 || String(item.IsEnabled).toLowerCase() === 'yes',
+                dateOnly: item.IsDateOnly === true || item.IsDateOnly === 1 || String(item.IsDateOnly).toLowerCase() === 'yes',
                 siteUrl: item.SiteUrl || '',
                 listId: item.ListId || '',
-                listTitle: item.ListTitle || '',
                 viewId: item.ViewId || '',
+                listTitle: item.ListTitle || '',
+                color: item.Color || '#3A86C6',
+                approvalStatus: item.ApprovalStatus || '',
                 titleField: item.TitleField || '',
                 eventDate: item.EventDate || '',
                 endDate: item.EndDate || '',
-                approvalStatus: item.ApprovalStatus || '',
-                locationField: item.LocationField || '',
-                enabled: item.IsEnabled === true || item.IsEnabled === 1 || String(item.IsEnabled).toLowerCase() === 'yes',
-                dateOnly: item.IsDateOnly === true || item.IsDateOnly === 1 || String(item.IsDateOnly).toLowerCase() === 'yes',
-                color: item.Color || '#3A86C6'
+                locationField: item.LocationField || ''
             }));
 
             setRows(nextRows);
@@ -309,18 +292,18 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
     const persistRow = useCallback(async (row: IConfigRow): Promise<void> => {
         const payload = {
             Title: row.listTitle || row.listId || 'External List',
+            IsEnabled: row.enabled,
+            IsDateOnly: row.dateOnly,
             SiteUrl: normalizeSiteUrl(row.siteUrl, webOrigin),
             ListId: row.listId,
-            ListTitle: row.listTitle || '',
             ViewId: row.viewId || null,
+            ListTitle: row.listTitle || '',
+            Color: row.color || '',
+            ApprovalStatus: row.approvalStatus || '',
             TitleField: row.titleField,
             EventDate: row.eventDate,
             EndDate: row.endDate || '',
-            ApprovalStatus: row.approvalStatus || '',
-            LocationField: row.locationField || '',
-            IsEnabled: row.enabled,
-            IsDateOnly: row.dateOnly,
-            Color: row.color || ''
+            LocationField: row.locationField || ''
         };
 
         const items = sp.web.lists.getByTitle(ExternalListsConfigList_Title).items;
@@ -406,7 +389,7 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
                 {error && <MessageBar messageBarType={MessageBarType.error}>{error}</MessageBar>}
 
                 <Stack horizontal horizontalAlign="space-between" verticalAlign="center">
-                    <Text variant="mediumPlus">External list sources</Text>
+                    <Text variant="mediumPlus">External Lists Confiugration</Text>
                     <DefaultButton
                         text="Add row"
                         iconProps={{ iconName: 'Add' }}
@@ -431,18 +414,18 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
                                     borderBottom: '1px solid #ddd'
                                 }}
                             >
+                                {headerCell('Show in Calendar')}
+                                {headerCell('Date Only')}
                                 {headerCell('Site URL')}
                                 {headerCell('List')}
-                                {headerCell('List Title')}
                                 {headerCell('View')}
+                                {headerCell('List Title')}
+                                {headerCell('Color')}
+                                {headerCell('Approval Status')}
                                 {headerCell('Event Title')}
                                 {headerCell('Start Date')}
                                 {headerCell('End Date')}
-                                {headerCell('Approval Status')}
                                 {headerCell('Location')}
-                                {headerCell('Enabled')}
-                                {headerCell('Date Only')}
-                                {headerCell('Color')}
                                 <span />
                             </div>
 
@@ -463,6 +446,20 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
                                         marginBottom: 8
                                     }}
                                 >
+                                    <Checkbox
+                                        checked={row.enabled}
+                                        onChange={(_, checked) => updateRow(row.clientId, currentRow => ({
+                                            ...currentRow,
+                                            enabled: !!checked
+                                        }))}
+                                    />
+                                    <Checkbox
+                                        checked={row.dateOnly}
+                                        onChange={(_, checked) => updateRow(row.clientId, currentRow => ({
+                                            ...currentRow,
+                                            dateOnly: !!checked
+                                        }))}
+                                    />
                                     <TextField
                                         value={row.siteUrl}
                                         onChange={(_, value) => updateRow(row.clientId, currentRow => ({
@@ -497,13 +494,6 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
                                         }))}
                                         onError={message => setError(message || undefined)}
                                     />
-                                    <TextField
-                                        value={row.listTitle || ''}
-                                        onChange={(_, value) => updateRow(row.clientId, currentRow => ({
-                                            ...currentRow,
-                                            listTitle: value || ''
-                                        }))}
-                                    />
                                     <AsyncDropdown
                                         key={`${row.clientId}-view-${row.listId}`}
                                         selectedKey={row.viewId}
@@ -513,6 +503,39 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
                                         onChange={(option?: IDropdownOption) => updateRow(row.clientId, currentRow => ({
                                             ...currentRow,
                                             viewId: option?.key ? String(option.key) : ''
+                                        }))}
+                                        onError={message => setError(message || undefined)}
+                                    />
+                                    <TextField
+                                        value={row.listTitle || ''}
+                                        onChange={(_, value) => updateRow(row.clientId, currentRow => ({
+                                            ...currentRow,
+                                            listTitle: value || ''
+                                        }))}
+                                    />
+                                    <input
+                                        type="color"
+                                        value={row.color || '#3A86C6'}
+                                        onChange={event => {
+                                            const color = event.currentTarget.value;
+                                            updateRow(row.clientId, currentRow => ({
+                                                ...currentRow,
+                                                color
+                                            }));
+                                        }}
+                                        style={{ width: 48, height: 32, border: '1px solid #ccc', padding: 0 }}
+                                    />
+                                    <AsyncDropdown
+                                        key={`${row.clientId}-approval-${row.listId}`}
+                                        selectedKey={row.approvalStatus}
+                                        stateKey={row.listId}
+                                        disabled={!row.listId}
+                                        loadOptions={() => loadFieldOptions(row.siteUrl, row.listId).then(fields =>
+                                            toFieldOptions(fields, field => !field.Hidden, true)
+                                        )}
+                                        onChange={(option?: IDropdownOption) => updateRow(row.clientId, currentRow => ({
+                                            ...currentRow,
+                                            approvalStatus: option?.key ? String(option.key) : ''
                                         }))}
                                         onError={message => setError(message || undefined)}
                                     />
@@ -569,20 +592,6 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
                                         onError={message => setError(message || undefined)}
                                     />
                                     <AsyncDropdown
-                                        key={`${row.clientId}-approval-${row.listId}`}
-                                        selectedKey={row.approvalStatus}
-                                        stateKey={row.listId}
-                                        disabled={!row.listId}
-                                        loadOptions={() => loadFieldOptions(row.siteUrl, row.listId).then(fields =>
-                                            toFieldOptions(fields, field => !field.Hidden, true)
-                                        )}
-                                        onChange={(option?: IDropdownOption) => updateRow(row.clientId, currentRow => ({
-                                            ...currentRow,
-                                            approvalStatus: option?.key ? String(option.key) : ''
-                                        }))}
-                                        onError={message => setError(message || undefined)}
-                                    />
-                                    <AsyncDropdown
                                         key={`${row.clientId}-location-${row.listId}`}
                                         selectedKey={row.locationField}
                                         stateKey={row.listId}
@@ -599,32 +608,6 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
                                             locationField: option?.key ? String(option.key) : ''
                                         }))}
                                         onError={message => setError(message || undefined)}
-                                    />
-                                    <Checkbox
-                                        checked={row.enabled}
-                                        onChange={(_, checked) => updateRow(row.clientId, currentRow => ({
-                                            ...currentRow,
-                                            enabled: !!checked
-                                        }))}
-                                    />
-                                    <Checkbox
-                                        checked={row.dateOnly}
-                                        onChange={(_, checked) => updateRow(row.clientId, currentRow => ({
-                                            ...currentRow,
-                                            dateOnly: !!checked
-                                        }))}
-                                    />
-                                    <input
-                                        type="color"
-                                        value={row.color || '#3A86C6'}
-                                        onChange={event => {
-                                            const color = event.currentTarget.value;
-                                            updateRow(row.clientId, currentRow => ({
-                                                ...currentRow,
-                                                color
-                                            }));
-                                        }}
-                                        style={{ width: 48, height: 32, border: '1px solid #ccc', padding: 0 }}
                                     />
                                     <IconButton
                                         iconProps={{ iconName: 'Delete' }}
