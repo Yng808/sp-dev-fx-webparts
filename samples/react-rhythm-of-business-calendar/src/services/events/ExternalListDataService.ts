@@ -21,6 +21,9 @@ export class ExternalListDataService {
         const enabledConfigs = configs.filter(c => c.enabled);
         if (enabledConfigs.length === 0) { return []; }
 
+        // Rebuild the external refiner cache for each refresh so title/color edits are reflected.
+        this._externalRefinerValues.clear();
+
         const tasks = enabledConfigs.map(config => async () => {
             try {
             return await this.loadEventsFromExternalList(config);
@@ -82,10 +85,16 @@ export class ExternalListDataService {
     }
 
     private _getOrCreateRefinerValue(config: ExternalListConfig): RefinerValue {
-        const cacheKey = config.listId;
+        const cacheKey = config.id || `${config.listId}:${config.viewId || ''}:${config.listTitle || ''}`;
 
         const cached = this._externalRefinerValues.get(cacheKey);
-        if (cached) { return cached; }
+        if (cached) {
+            if ((cached as any).__external === true) {
+                cached.title = config.listTitle || "External";
+                cached.color = this._parseColor(config.color);
+            }
+            return cached;
+        }
 
         if (!this._typeRefiner) {
             throw new Error("Refiner has not been initialized.");
@@ -96,9 +105,9 @@ export class ExternalListDataService {
 
         const allValues = typeRefiner.values.get();
 
-        // First try to find an external-generated value already tied to this list id.
+        // First try to find an external-generated value already tied to this specific external config row.
         let refinerValue = allValues.find(
-            (rv: RefinerValue) => (rv as any).__external === true && (rv as any).__externalListId === config.listId
+            (rv: RefinerValue) => (rv as any).__external === true && (rv as any).__externalConfigId === config.id
         );
 
         // Otherwise, match by title (internal or external existing value).
@@ -113,12 +122,16 @@ export class ExternalListDataService {
             refinerValue.title = config.listTitle || "External";
             refinerValue.order = allValues.length;
             (refinerValue as any).__external = true;
+            (refinerValue as any).__externalConfigId = config.id;
             (refinerValue as any).__externalListId = config.listId;
             refinerValue.refiner.set(typeRefiner);
             typeRefiner.values.add(refinerValue);
             refinerValue.color = this._parseColor(config.color);
         } else if ((refinerValue as any).__external === true) {
-            // Keep external-generated values in sync with external config color.
+            // Keep external-generated values in sync with external config title and color.
+            if ((refinerValue as any).__externalConfigId === config.id) {
+                refinerValue.title = config.listTitle || "External";
+            }
             refinerValue.color = this._parseColor(config.color);
         }
 
