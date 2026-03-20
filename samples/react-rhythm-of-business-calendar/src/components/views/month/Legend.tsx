@@ -20,7 +20,7 @@ const Legend: React.FC = () => {
 
             // Filter and set refiner values
             const refinerValuesData = (await refinerValuesAsync.promise)
-                ?.filter(value => value.refiner.get()?.id === 1 && Entity.NotDeletedFilter(value));
+                ?.filter(value => value.refiner.get()?.id === 1 && Entity.NotDeletedFilter(value) && RefinerValue.ActiveFilter(value));
             setRefinerValues(refinerValuesData || []);
         };
 
@@ -29,7 +29,7 @@ const Legend: React.FC = () => {
         // Register for updates to refiners and refiner values
         const updateRefiners = () => setRefiners(refinersAsync.data?.filter(Entity.NotDeletedFilter) || []);
         const updateRefinerValues = () => setRefinerValues(
-            refinerValuesAsync.data?.filter(value => value.refiner.get()?.id === 1 && Entity.NotDeletedFilter(value)) || []
+            refinerValuesAsync.data?.filter(value => value.refiner.get()?.id === 1 && Entity.NotDeletedFilter(value) && RefinerValue.ActiveFilter(value)) || []
         );
 
         refinersAsync.registerComponentForUpdates({ componentShouldRender: updateRefiners });
@@ -46,7 +46,7 @@ const Legend: React.FC = () => {
     const refinerWithValues = refiners.map(refiner => ({
         ...refiner,
         values: refinerValues
-                .filter(value => value.refiner.get()?.id === refiner.id)
+                .filter(value => value.refiner.get()?.id === refiner.id && RefinerValue.ActiveFilter(value))
                 .sort((a, b) => {
                     if (a.title < b.title) return -1;
                     if (a.title > b.title) return 1;

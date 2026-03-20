@@ -112,7 +112,7 @@ const toFieldOptions = ( fields: IFieldSummary[], filter: (field: IFieldSummary)
                 : field.InternalName
         }) as IDropdownOption);
 
-    return includeBlank ? [{ key: '', text: '' }, ...options] : options;
+    return includeBlank ? [{ key: '', text: '(none)' }, ...options] : options;
 };
 
 const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) => {
@@ -527,7 +527,7 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
                                     />
                                     <AsyncDropdown
                                         key={`${row.clientId}-approval-${row.listId}`}
-                                        selectedKey={row.approvalStatus}
+                                        selectedKey={row.approvalStatus || undefined}
                                         stateKey={row.listId}
                                         disabled={!row.listId}
                                         loadOptions={() => loadFieldOptions(row.siteUrl, row.listId).then(fields =>
@@ -581,8 +581,7 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
                                         loadOptions={() => loadFieldOptions(row.siteUrl, row.listId).then(fields =>
                                             toFieldOptions(fields, field =>
                                                 field.TypeAsString === 'DateTime' ||
-                                                (field.TypeAsString === 'Calculated' && field.OutputType === 4),
-                                                true
+                                                (field.TypeAsString === 'Calculated' && field.OutputType === 4)
                                             )
                                         )}
                                         onChange={(option?: IDropdownOption) => updateRow(row.clientId, currentRow => ({
@@ -593,7 +592,7 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
                                     />
                                     <AsyncDropdown
                                         key={`${row.clientId}-location-${row.listId}`}
-                                        selectedKey={row.locationField}
+                                        selectedKey={row.locationField || undefined}
                                         stateKey={row.listId}
                                         disabled={!row.listId}
                                         loadOptions={() => loadFieldOptions(row.siteUrl, row.listId).then(fields =>
