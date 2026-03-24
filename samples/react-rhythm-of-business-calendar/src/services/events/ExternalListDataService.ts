@@ -46,23 +46,24 @@ export class ExternalListDataService {
     }
 
     private async _runWithConcurrency<T>(tasks: (() => Promise<T>)[], limit: number ): Promise<T[]> {
-        const results: T[] = [];
-        const executing: Promise<void>[] = [];
+        const results = new Array<T>(tasks.length);
+        const executing = new Map<number, Promise<void>>();
 
-        for (const task of tasks) {
-            const p = task().then(r => {
-            results.push(r);
+        for (let i = 0; i < tasks.length; i++) {
+            const promise = tasks[i]().then(result => {
+                results[i] = result;
+            }).finally(() => {
+                executing.delete(i);
             });
 
-            executing.push(p);
+            executing.set(i, promise);
 
-            if (executing.length >= limit) {
-                await Promise.race(executing);
-                executing.splice(executing.findIndex(e => e === p), 1);
+            if (executing.size >= limit) {
+                await Promise.race(executing.values());
             }
         }
 
-        await Promise.all(executing);
+        await Promise.all(executing.values());
         return results;
     }
 

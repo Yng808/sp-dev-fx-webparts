@@ -9,10 +9,9 @@ interface ISharePointFormPanelProps {
     listId: string;
     itemId?: number;
     mode: 'new' | 'edit' | 'display';
-    onSaved?: () => void;
 }
 
-export const SharePointFormPanel: FC<ISharePointFormPanelProps> = ({ isOpen, onDismiss, siteUrl, listId,  itemId, mode, onSaved }) => {
+export const SharePointFormPanel: FC<ISharePointFormPanelProps> = ({ isOpen, onDismiss, siteUrl, listId,  itemId, mode }) => {
     const [formUrl, setFormUrl] = useState<string>('');
     const [isLoading, setIsLoading] = useState(true);
 
@@ -39,13 +38,8 @@ export const SharePointFormPanel: FC<ISharePointFormPanelProps> = ({ isOpen, onD
         setIsLoading(false);
     }, [isOpen, siteUrl, listId, itemId, mode]);
 
-    const handleDismiss = () => {
-        if (onSaved) { onSaved(); }
-        onDismiss();
-    };
-
     return (
-        <Panel isOpen={isOpen} onDismiss={handleDismiss} type={PanelType.large} isLightDismiss={false} closeButtonAriaLabel="Close">
+        <Panel isOpen={isOpen} onDismiss={onDismiss} type={PanelType.large} isLightDismiss={false} closeButtonAriaLabel="Close">
         {isLoading ? (
             <div style={{ padding: '20px', textAlign: 'center' }}>
                 <Spinner size={SpinnerSize.large} label="Loading form..." />

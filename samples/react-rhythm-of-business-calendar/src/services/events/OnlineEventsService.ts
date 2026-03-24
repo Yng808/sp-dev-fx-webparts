@@ -37,6 +37,7 @@ export class OnlineEventsService implements IEventsService {
     private _refinerValueLoader: RefinerValueLoader;
     private _approversLoader: ApproversLoader;
     private _typeRefinerInitialized = false;
+    private _refreshExternalEventsPromise: Promise<void> | undefined;
 
     constructor({
         [TeamsJs]: teams,
@@ -132,12 +133,24 @@ export class OnlineEventsService implements IEventsService {
     }
     
     public async refreshExternalEvents(): Promise<void> {
+        if (!this._refreshExternalEventsPromise) {
+            this._refreshExternalEventsPromise = this._refreshExternalEventsCore()
+                .finally(() => {
+                    this._refreshExternalEventsPromise = undefined;
+                });
+        }
+
+        await this._refreshExternalEventsPromise;
+    }
+
+    private async _refreshExternalEventsCore(): Promise<void> {
         try {
             await this._ensureTypeRefinerInitialized();
             const externalConfigs = await this._loadExternalConfigs();
 
             if (externalConfigs.length === 0) {
                 this._eventLoader.setExternalEvents([]);
+                this._eventLoader.asyncData().dataUpdated();
                 return;
             }
 

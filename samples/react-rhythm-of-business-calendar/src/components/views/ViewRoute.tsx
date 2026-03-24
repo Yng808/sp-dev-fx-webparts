@@ -338,11 +338,6 @@ const ViewRoute: FC = () => {
         setSpFormState({ isOpen: false, mode: 'display' });
     };
 
-    const handleFormSaved = async () => {
-        await eventsService.refreshExternalEvents();
-        handleFormDismiss();
-    };
-
     const handleExternalListsSaved = async () => {
         await eventsService.refreshExternalEvents();
     };
@@ -669,7 +664,6 @@ const ViewRoute: FC = () => {
                 itemId={spFormState.itemId}
                 mode={spFormState.mode}
                 onDismiss={handleFormDismiss}
-                onSaved={handleFormSaved}
             />
         </>
     );
