@@ -2,7 +2,7 @@ import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
 import { ExternalListConfig } from 'model';
 import { Event } from 'model/Event';
 import { RefinerValue, Refiner } from 'model';
-import { Color } from 'common';
+import { Color, Entity } from 'common';
 import { ITimeZoneService } from "common/services";
 import moment from 'moment-timezone';
 
@@ -104,17 +104,18 @@ export class ExternalListDataService {
         const typeRefiner = this._typeRefiner;
         const listTitle = (config.listTitle || "External").trim().toLowerCase();
 
-        const allValues = typeRefiner.values.get();
+        const allValues = typeRefiner.values.get().filter(Entity.NotDeletedFilter);
 
         // First try to find an external-generated value already tied to this specific external config row.
         let refinerValue = allValues.find(
             (rv: RefinerValue) => (rv as any).__external === true && (rv as any).__externalConfigId === config.id
         );
 
-        // Otherwise, match by title (internal or external existing value).
+        // Otherwise, match by title, but only to active values. Inactive values should
+        // stay hidden and should not be rebound to external events on refresh.
         if (!refinerValue) {
             refinerValue = allValues.find(
-                (rv: RefinerValue) => (rv.title || "").trim().toLowerCase() === listTitle
+                (rv: RefinerValue) => rv.isActive && (rv.title || "").trim().toLowerCase() === listTitle
             );
         }
 
@@ -127,9 +128,12 @@ export class ExternalListDataService {
             (refinerValue as any).__externalListId = config.listId;
             refinerValue.refiner.set(typeRefiner);
             typeRefiner.values.add(refinerValue);
+            refinerValue.isActive = true;
             refinerValue.color = this._parseColor(config.color);
         } else if ((refinerValue as any).__external === true) {
             // Keep external-generated values in sync with external config title and color.
+            refinerValue.isActive = true;
+            (refinerValue as any).__externalListId = config.listId;
             if ((refinerValue as any).__externalConfigId === config.id) {
                 refinerValue.title = config.listTitle || "External";
             }
