@@ -35,6 +35,7 @@ const calendarViewStackItemStyles: IComponentStyles<IStackItemSlots> = {
 const addRefinerIconProps: IIconProps = { iconName: 'Add' };
 const collapseRefinerRailIconProps: IIconProps = { iconName: 'ClosePaneMirrored' };
 const expandRefinerRailIconProps: IIconProps = { iconName: 'ClosePane' };
+const ExternalEventFollowUpRefreshDelayMs = 20000;
 
 
 
@@ -91,6 +92,8 @@ const ViewRoute: FC = () => {
         itemId?: number;
         mode: 'new' | 'edit' | 'display';
     }>({ isOpen: false, mode: 'display' });
+
+    const externalRefreshTimeoutRef = useRef<number | undefined>(undefined);
 
     const [eventPanel, newEvent, displayEvent] = useEventPanel(anchorDate);
 
@@ -159,6 +162,14 @@ const ViewRoute: FC = () => {
     useEffect(() => {
         return () => backEventListener.cleanup();
     }, [backEventListener]);
+
+    useEffect(() => {
+        return () => {
+            if (externalRefreshTimeoutRef.current !== undefined) {
+                window.clearTimeout(externalRefreshTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const openRefinerRailPanel = useCallback(() => {
         backEventListener.listenForBack();
@@ -334,8 +345,22 @@ const ViewRoute: FC = () => {
     const eventsService = useEventsService();
 
     const handleFormDismiss = async () => {
+        const shouldScheduleFollowUpRefresh = spFormState.mode === 'new';
+
+        if (externalRefreshTimeoutRef.current !== undefined) {
+            window.clearTimeout(externalRefreshTimeoutRef.current);
+            externalRefreshTimeoutRef.current = undefined;
+        }
+
         await eventsService.refreshExternalEvents();
         setSpFormState({ isOpen: false, mode: 'display' });
+
+        if (shouldScheduleFollowUpRefresh) {
+            externalRefreshTimeoutRef.current = window.setTimeout(() => {
+                void eventsService.refreshExternalEvents();
+                externalRefreshTimeoutRef.current = undefined;
+            }, ExternalEventFollowUpRefreshDelayMs);
+        }
     };
 
     const handleExternalListsSaved = async () => {
