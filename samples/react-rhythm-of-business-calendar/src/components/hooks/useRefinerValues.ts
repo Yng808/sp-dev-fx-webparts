@@ -17,7 +17,7 @@ export const useRefinerValues = () => {
     const [initializedDefault, setInitializedDefault] = useState(false);
 
     const defaultButton = useMemo(
-        () => filterButtons?.find(b => b.applyOnLoad), // Find default filter button (if any)
+        () => filterButtons?.find(b => b.applyOnLoad),
         [filterButtons]
     );
 
@@ -25,19 +25,12 @@ export const useRefinerValues = () => {
         () =>
             defaultButton?.filterPrefixes
                 ?.split(";")
-                .map(p => p.trim()),
+                .map(p => p.trim())
+                .filter(Boolean),
         [defaultButton]
     );
 
     const hasDefaultFilter = !!defaultButton;
-
-    
-    const shouldSelectValue = (value: RefinerValue) => {
-        if (!initializedDefault && hasDefaultFilter) {
-            return defaultPrefixes?.includes(value.title);
-        }
-        return true; // fallback = select all
-    };
 
     useEffect(() => {
         const update = () => {
@@ -46,19 +39,11 @@ export const useRefinerValues = () => {
             refiners?.forEach(({ required, blankValue }) => {
                 if (!required && !knownRefinerValues.has(blankValue)) {
                     knownRefinerValues.add(blankValue);
-
-                    if (shouldSelectValue(blankValue)) {
-                        selectedRefinerValues.add(blankValue);
-                    }
+                    selectedRefinerValues.add(blankValue);
                 }
             });
 
             setHasRefiners(refiners?.length > 0);
-
-            if (hasDefaultFilter && !initializedDefault) {
-                setInitializedDefault(true);
-            }
-
             forceUpdate();
         }
 
@@ -67,29 +52,60 @@ export const useRefinerValues = () => {
         const component: IComponent = { componentShouldRender: update };
         refinersAsync.registerComponentForUpdates(component);
         return () => refinersAsync.unregisterComponentForUpdates(component);
-    }, [refinersAsync, selectedRefinerValues, knownRefinerValues, setHasRefiners, forceUpdate, initializedDefault, hasDefaultFilter, defaultPrefixes]);
+    }, [refinersAsync, selectedRefinerValues, knownRefinerValues, setHasRefiners, forceUpdate]);
 
     useEffect(() => {
         const update = () => {
             const refinerValues = refinerValuesAsync.data?.filter(Entity.NotDeletedFilter);
-            refinerValues?.forEach(value => {
+            if (!refinerValues) return;
+
+            // Apply default filter ONCE and correctly
+            if (hasDefaultFilter && !initializedDefault && refinerValues.length > 0) {
+                const hasAnyMatch = refinerValues.some(v =>
+                    defaultPrefixes?.includes(v.title)
+                );
+
+                if (!hasAnyMatch) {
+                    console.warn(
+                        "Default filter has no matching refiner values.",
+                        {
+                            configured: defaultPrefixes,
+                            available: refinerValues.map(v => v.title)
+                        }
+                    );
+                }
+
+                const fullValues = Array.from(refinerValues);
+
+                const filtered = fullValues.filter(v =>
+                    !v.title || defaultPrefixes?.includes(v.title)
+                );
+
+                // STEP 1: reset to ALL (critical)
+                onSelectedRefinerValuesChanged({ added: fullValues, removed: [] });
+
+                // STEP 2: remove non-matching (critical)
+                onSelectedRefinerValuesChanged({ added: [], removed: fullValues.filter(v => !filtered.includes(v)) });
+
+                // update known values
+                refinerValues.forEach(v => knownRefinerValues.add(v));
+
+                setInitializedDefault(true);
+                return;
+            }
+
+            // Normal behavior
+            refinerValues.forEach(value => {
                 if (value.isActive) {
                     if (!knownRefinerValues.has(value)) {
                         knownRefinerValues.add(value);
-
-                        if (shouldSelectValue(value)) {
-                            selectedRefinerValues.add(value);
-                        }
+                        selectedRefinerValues.add(value);
                     }
                 } else {
                     knownRefinerValues.delete(value);
                     selectedRefinerValues.delete(value);
                 }
             });
-
-            if (hasDefaultFilter && !initializedDefault) {
-                setInitializedDefault(true);
-            }
 
             forceUpdate();
         }
@@ -111,19 +127,11 @@ export const useRefinerValues = () => {
                 refiner.values.get().forEach((value: RefinerValue) => {
                     if (!knownRefinerValues.has(value)) {
                         knownRefinerValues.add(value);
-
-                        if (shouldSelectValue(value)) {
-                            selectedRefinerValues.add(value);
-                        }
-
+                        selectedRefinerValues.add(value);
                         changed = true;
                     }
                 });
             });
-
-            if (hasDefaultFilter && !initializedDefault) {
-                setInitializedDefault(true);
-            }
 
             if (changed) forceUpdate();
         };
@@ -132,16 +140,13 @@ export const useRefinerValues = () => {
         const component: IComponent = { componentShouldRender: update };
         eventsAsync.registerComponentForUpdates(component);
         return () => eventsAsync.unregisterComponentForUpdates(component);
-    }, [eventsAsync, refinersAsync, selectedRefinerValues, knownRefinerValues, forceUpdate, initializedDefault, hasDefaultFilter, defaultPrefixes]);
+    }, [eventsAsync, refinersAsync, selectedRefinerValues, knownRefinerValues, forceUpdate]);
 
-    const onSelectedRefinerValuesChanged: OnRefinerSelectionChanged = useCallback(
-        ({ added, removed }) => {
-            added.forEach(v => selectedRefinerValues.add(v));
-            removed.forEach(v => selectedRefinerValues.delete(v));
-            forceUpdate();
-        },
-        [selectedRefinerValues, forceUpdate]
-    );
+    const onSelectedRefinerValuesChanged: OnRefinerSelectionChanged = useCallback(({ added, removed }) => {
+        added.forEach(v => selectedRefinerValues.add(v));
+        removed.forEach(v => selectedRefinerValues.delete(v));
+        forceUpdate();
+    }, [selectedRefinerValues, forceUpdate]);
 
     return [
         hasRefiners,
