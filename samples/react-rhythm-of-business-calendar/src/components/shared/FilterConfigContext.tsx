@@ -5,6 +5,7 @@ export interface IFilterButtonConfig {
   text: string;
   filterPrefixes: string; // semicolon-delimited string e.g. "Birthday;Work Meeting;No;109"
   iconName: string;
+  applyOnLoad?: boolean;
 }
 
 export interface IFilterConfigContext {
