@@ -193,7 +193,7 @@ class MonthlyByDayCadenceGenerator implements ICadenceGenerator {
     ) { }
 
     public *generate(start: Moment): Generator<Moment, undefined> {
-        const { byDay: { day, weekOf } } = this._monthly;
+        const { byDay: { day, weekOf }, every } = this._monthly;
         const current = start.clone();
         // console.log('cadence line 178', current, weekOf, day, this._monthly);
 
@@ -207,7 +207,7 @@ class MonthlyByDayCadenceGenerator implements ICadenceGenerator {
                     minute: start.minute()
                 }); 
 
-            // console.log('cadence line 192', current.add(every, 'months'));
+            console.log('cadence line 192', current.add(every, 'months'));
 
         }
     }
