@@ -357,7 +357,7 @@ const ViewRoute: FC = () => {
 
         if (shouldScheduleFollowUpRefresh) {
             externalRefreshTimeoutRef.current = window.setTimeout(() => {
-                void eventsService.refreshExternalEvents();
+                eventsService.refreshExternalEvents();
                 externalRefreshTimeoutRef.current = undefined;
             }, ExternalEventFollowUpRefreshDelayMs);
         }

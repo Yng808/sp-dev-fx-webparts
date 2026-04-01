@@ -54,6 +54,12 @@ export const useRefinerValues = () => {
         return () => refinersAsync.unregisterComponentForUpdates(component);
     }, [refinersAsync, selectedRefinerValues, knownRefinerValues, setHasRefiners, forceUpdate]);
 
+    const onSelectedRefinerValuesChanged: OnRefinerSelectionChanged = useCallback(({ added, removed }) => {
+        added.forEach(v => selectedRefinerValues.add(v));
+        removed.forEach(v => selectedRefinerValues.delete(v));
+        forceUpdate();
+    }, [selectedRefinerValues, forceUpdate]);
+
     useEffect(() => {
         const update = () => {
             const refinerValues = refinerValuesAsync.data?.filter(Entity.NotDeletedFilter);
@@ -141,12 +147,6 @@ export const useRefinerValues = () => {
         eventsAsync.registerComponentForUpdates(component);
         return () => eventsAsync.unregisterComponentForUpdates(component);
     }, [eventsAsync, refinersAsync, selectedRefinerValues, knownRefinerValues, forceUpdate]);
-
-    const onSelectedRefinerValuesChanged: OnRefinerSelectionChanged = useCallback(({ added, removed }) => {
-        added.forEach(v => selectedRefinerValues.add(v));
-        removed.forEach(v => selectedRefinerValues.delete(v));
-        forceUpdate();
-    }, [selectedRefinerValues, forceUpdate]);
 
     return [
         hasRefiners,

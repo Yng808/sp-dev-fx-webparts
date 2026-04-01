@@ -207,8 +207,8 @@ class MonthlyByDayCadenceGenerator implements ICadenceGenerator {
                     minute: start.minute()
                 }); 
 
-            console.log('cadence line 192', current.add(every, 'months'));
-
+            //console.log('cadence line 192', current.add(every, 'months'));
+            current.add(every, 'months');
         }
     }
 }

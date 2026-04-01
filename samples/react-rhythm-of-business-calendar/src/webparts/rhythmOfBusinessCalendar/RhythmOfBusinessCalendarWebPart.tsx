@@ -124,7 +124,7 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
                                 multiline: true,
                                 resizable: true,
                                 description: "Enter a JSON array of filter button configurations. For example: " +
-                                  `[{"key": "filter-refiners", "text": "Filter refiners starting with A", "filterPrefixes": "Birthday;Work Meeting;No;109", "iconName": "Filter"}]`
+                                  `[{"key": "filter-refiners", "text": "Select certain refiners", "filterPrefixes": "Birthday;Work Meeting;No;", "iconName": "Filter", "applyOnLoad": true}]`
                               })
                             ]
                           },
