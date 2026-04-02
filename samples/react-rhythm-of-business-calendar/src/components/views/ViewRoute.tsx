@@ -21,6 +21,7 @@ import { ViewRoute as strings } from "ComponentStrings";
 import styles from './ViewRoute.module.scss';
 import { SharePointFormPanel } from 'components/events/SharePointFormPanel';
 import { useExternalListsForEventCreation, IEventCreationOption } from '../hooks/useExternalListsForEventCreation';
+import { eventTestCases } from "./eventTestCases";
 
 const RefinerRailPanelDisplayBreakpoint = 1024;
 
@@ -249,6 +250,26 @@ const ViewRoute: FC = () => {
         },
     }));
 
+    const events = useEventsService();
+
+    const runTests = useCallback(async (testCases?) => {
+        const groups = eventTestCases(anchorDate);
+        const testsToRun = testCases ?? Object.values(groups).flat();
+
+        for (const testCase of testsToRun) {
+            console.group(testCase.name);
+            try {
+                const event = testCase.build();
+                events.track(event);
+                await events.persist();
+                console.log("SUCCESS: ", event.id);
+            } catch (error) {
+                console.error("FAILED: ", error);
+            }
+            console.groupEnd();
+        }
+    }, [events, anchorDate]);
+
     const commandBarItems = useCallback(
         (numberOfEventsNeedingApproval: number) => {
             const staticItems: ICommandBarItemProps[] = [
@@ -291,6 +312,17 @@ const ViewRoute: FC = () => {
                     text: 'Hide events/trips outside current month',
                     iconProps: { iconName: showOnlyCurrentMonth ? 'CheckboxComposite' : 'Checkbox' },
                     onClick: () => setShowOnlyCurrentMonth(!showOnlyCurrentMonth)
+                },{
+                    key: 'run-tests',
+                    text: 'Run Test Events',
+                    iconProps: { iconName: 'Play' },
+                    subMenuProps: {
+                        items: Object.entries(eventTestCases(anchorDate)).map(([groupKey, tests]) => ({
+                            key: groupKey,
+                            text: groupKey.toUpperCase(),
+                            onClick: () => runTests(tests)
+                        }))
+                    }
                 }
             ].filter(Boolean) as ICommandBarItemProps[];
             
@@ -311,11 +343,11 @@ const ViewRoute: FC = () => {
             onSelectedRefinerValuesChanged,
             dynamicFilterButtons,
             eventCreationOptions,
-            handleAddEvent
+            handleAddEvent,
+            runTests
         ]
     );
 
-    const events = useEventsService();
     const addEventToOutlook = (event: IEvent) => {
         events.addToOutlook(event.getExceptionOrEvent());
     };
