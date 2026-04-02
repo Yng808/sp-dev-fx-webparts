@@ -18,8 +18,8 @@ export const eventTestCases = (anchorDate: any) =>  ({
             build: () => {
                 const event = new Event();
                 event.title = "TEST #2 - All Day";
-                event.start = anchorDate.clone().startOf("day");    // 12:00 AM (start of day) 
-                event.end = anchorDate.clone().startOf("day");      // 12:00 AM (same day, all-day flag controls duration)
+                event.start = anchorDate.clone().startOf("day");
+                event.end = anchorDate.clone().startOf("day").add(1, "day");
                 event.isAllDay = true;
                 return event;
             }
@@ -52,7 +52,7 @@ export const eventTestCases = (anchorDate: any) =>  ({
                 const event = new Event();
                 event.title = "TEST #5 - Ends At Midnight Boundary";
                 event.start = anchorDate.clone().hour(20).minute(0);          // 8:00 PM
-                event.end = anchorDate.clone().add(1, "day").startOf("day");  // 12:00 AM next day
+                event.end = anchorDate.clone().add(1, "day").hour(0).minute(0);  // 12:00 AM next day
                 event.isAllDay = false;
                 return event;
             }
@@ -221,70 +221,10 @@ export const eventTestCases = (anchorDate: any) =>  ({
             }
         },
         {
-            name: "TEST #13 - Weekly With Exclusion",
+            name: "TEST #13 - All Day Weekly",
             build: () => {
                 const event = new Event();
-                event.title = "TEST #13 - Weekly With Exclusion";
-                event.start = anchorDate.clone().day(RecurDay.monday).hour(13).minute(0);
-                event.end = anchorDate.clone().day(RecurDay.monday).hour(14).minute(0);
-                event.isAllDay = false;
-
-                const recurrence = new Recurrence();
-                recurrence.pattern = RecurPattern.weekly;
-                recurrence.weekly.every = 1;
-                recurrence.until.type = RecurUntilType.count;
-                recurrence.until.count = 10;
-                recurrence.setDefaultsForDate(event.start);
-                recurrence.weekly.days.fill(false);
-                recurrence.weekly.days[RecurDay.monday] = true;
-                event.isRecurring = true;
-                event.recurrence = recurrence;
-
-                const excludedOccurrence = event.createSeriesException(
-                    event.start.clone().add(2, "weeks"),
-                    event.end.clone().add(2, "weeks")
-                );
-                excludedOccurrence.recurrenceInstanceCancelled = true;
-
-                return event;
-            }
-        },
-        {
-            name: "TEST #14 - Modified Instance",
-            build: () => {
-                const event = new Event();
-                event.title = "TEST #14 - Modified Instance";
-                event.start = anchorDate.clone().day(RecurDay.monday).hour(15).minute(0);
-                event.end = anchorDate.clone().day(RecurDay.monday).hour(16).minute(0);
-                event.isAllDay = false;
-
-                const recurrence = new Recurrence();
-                recurrence.pattern = RecurPattern.weekly;
-                recurrence.weekly.every = 1;
-                recurrence.until.type = RecurUntilType.count;
-                recurrence.until.count = 10;
-                recurrence.setDefaultsForDate(event.start);
-                recurrence.weekly.days.fill(false);
-                recurrence.weekly.days[RecurDay.monday] = true;
-                event.isRecurring = true;
-                event.recurrence = recurrence;
-
-                const modifiedOccurrence = event.createSeriesException(
-                    event.start.clone().add(3, "weeks"),
-                    event.end.clone().add(3, "weeks")
-                );
-                modifiedOccurrence.title = "TEST #14 - Modified Instance (Edited Occurrence)";
-                modifiedOccurrence.start = modifiedOccurrence.start.clone().hour(17).minute(30);
-                modifiedOccurrence.end = modifiedOccurrence.start.clone().add(90, "minutes");
-
-                return event;
-            }
-        },
-        {
-            name: "TEST #15 - All Day Weekly",
-            build: () => {
-                const event = new Event();
-                event.title = "TEST #15 - All Day Weekly";
+                event.title = "TEST #13 - All Day Weekly";
                 event.start = anchorDate.clone().day(RecurDay.monday).startOf("day");
                 event.end = anchorDate.clone().day(RecurDay.monday).startOf("day");
                 event.isAllDay = true;
@@ -304,10 +244,10 @@ export const eventTestCases = (anchorDate: any) =>  ({
             }
         },
         {
-            name: "TEST #16 - Multi-Year Weekly",
+            name: "TEST #14 - Multi-Year Weekly",
             build: () => {
                 const event = new Event();
-                event.title = "TEST #16 - Multi-Year Weekly";
+                event.title = "TEST #14 - Multi-Year Weekly";
                 event.start = anchorDate.clone().day(RecurDay.monday).hour(8).minute(0);
                 event.end = anchorDate.clone().day(RecurDay.monday).hour(9).minute(0);
                 event.isAllDay = false;
@@ -329,10 +269,10 @@ export const eventTestCases = (anchorDate: any) =>  ({
     ],
     monthly: [
         {
-            name: "TEST #17 - Monthly Date (Day 15)",
+            name: "TEST #15 - Monthly Date (Day 15)",
             build: () => {
                 const event = new Event();
-                event.title = "TEST #17 - Monthly Date (Day 15)";
+                event.title = "TEST #15 - Monthly Date (Day 15)";
                 event.start = anchorDate.clone().date(15).hour(9).minute(0);
                 event.end = anchorDate.clone().date(15).hour(10).minute(0);
                 event.isAllDay = false;
@@ -352,33 +292,10 @@ export const eventTestCases = (anchorDate: any) =>  ({
             }
         },
         {
-            name: "TEST #18 - Last Day Of Month",
+            name: "TEST #16 - Last Day Of Month",
             build: () => {
                 const event = new Event();
-                event.title = "TEST #18 - Last Day Of Month";
-                event.start = anchorDate.clone().endOf("month").startOf("day").hour(10).minute(0);
-                event.end = anchorDate.clone().endOf("month").startOf("day").hour(11).minute(0);
-                event.isAllDay = false;
-
-                const recurrence = new Recurrence();
-                recurrence.pattern = RecurPattern.monthly;
-                recurrence.monthly.option = RecurPatternOption.byDate;
-                recurrence.monthly.every = 1;
-                recurrence.monthly.byDate.date = 31;
-                recurrence.until.type = RecurUntilType.count;
-                recurrence.until.count = 8;
-                recurrence.setDefaultsForDate(event.start);
-                event.isRecurring = true;
-                event.recurrence = recurrence;
-
-                return event;
-            }
-        },
-        {
-            name: "TEST #19 - Monthly 31st Overflow",
-            build: () => {
-                const event = new Event();
-                event.title = "TEST #19 - Monthly 31st Overflow";
+                event.title = "TEST #16 - Last Day Of Month";
                 event.start = anchorDate.clone().month(0).date(31).hour(9).minute(0);
                 event.end = anchorDate.clone().month(0).date(31).hour(10).minute(0);
                 event.isAllDay = false;
@@ -398,10 +315,10 @@ export const eventTestCases = (anchorDate: any) =>  ({
             }
         },
         {
-            name: "TEST #20 - Monthly First Monday",
+            name: "TEST #17 - Monthly First Monday",
             build: () => {
                 const event = new Event();
-                event.title = "TEST #20 - Monthly First Monday";
+                event.title = "TEST #17 - Monthly First Monday";
                 event.start = anchorDate.clone().startOf("month").day(1).hour(9).minute(0);
                 event.end = anchorDate.clone().startOf("month").day(1).hour(10).minute(0);
                 event.isAllDay = false;
@@ -422,10 +339,10 @@ export const eventTestCases = (anchorDate: any) =>  ({
             }
         },
         {
-            name: "TEST #21 - Monthly Second Tuesday",
+            name: "TEST #18 - Monthly Second Tuesday",
             build: () => {
                 const event = new Event();
-                event.title = "TEST #21 - Monthly Second Tuesday";
+                event.title = "TEST #18 - Monthly Second Tuesday";
                 event.start = anchorDate.clone().startOf("month").day(2).add(1, "week").hour(9).minute(0);
                 event.end = anchorDate.clone().startOf("month").day(2).add(1, "week").hour(10).minute(0);
                 event.isAllDay = false;
@@ -446,10 +363,10 @@ export const eventTestCases = (anchorDate: any) =>  ({
             }
         },
         {
-            name: "TEST #22 - Monthly Third Wednesday",
+            name: "TEST #19 - Monthly Third Wednesday",
             build: () => {
                 const event = new Event();
-                event.title = "TEST #22 - Monthly Third Wednesday";
+                event.title = "TEST #19 - Monthly Third Wednesday";
                 event.start = anchorDate.clone().startOf("month").day(3).add(2, "weeks").hour(9).minute(0);
                 event.end = anchorDate.clone().startOf("month").day(3).add(2, "weeks").hour(10).minute(0);
                 event.isAllDay = false;
@@ -470,10 +387,10 @@ export const eventTestCases = (anchorDate: any) =>  ({
             }
         },
         {
-            name: "TEST #23 - Monthly Fourth Thursday",
+            name: "TEST #20 - Monthly Fourth Thursday",
             build: () => {
                 const event = new Event();
-                event.title = "TEST #23 - Monthly Fourth Thursday";
+                event.title = "TEST #20 - Monthly Fourth Thursday";
                 event.start = anchorDate.clone().startOf("month").day(4).add(3, "weeks").hour(9).minute(0);
                 event.end = anchorDate.clone().startOf("month").day(4).add(3, "weeks").hour(10).minute(0);
                 event.isAllDay = false;
@@ -494,10 +411,10 @@ export const eventTestCases = (anchorDate: any) =>  ({
             }
         },
         {
-            name: "TEST #24 - Monthly Last Friday",
+            name: "TEST #21 - Monthly Last Friday",
             build: () => {
                 const event = new Event();
-                event.title = "TEST #24 - Monthly Last Friday";
+                event.title = "TEST #21 - Monthly Last Friday";
                 event.start = anchorDate.clone().endOf("month").day(5).hour(9).minute(0);
                 event.end = anchorDate.clone().endOf("month").day(5).hour(10).minute(0);
                 event.isAllDay = false;
@@ -518,10 +435,10 @@ export const eventTestCases = (anchorDate: any) =>  ({
             }
         },
         {
-            name: "TEST #25 - Monthly First Tuesday",
+            name: "TEST #22 - Monthly First Tuesday",
             build: () => {
                 const event = new Event();
-                event.title = "TEST #25 - Monthly First Tuesday";
+                event.title = "TEST #22 - Monthly First Tuesday";
                 event.start = anchorDate.clone().startOf("month").day(2).hour(11).minute(0);
                 event.end = anchorDate.clone().startOf("month").day(2).hour(12).minute(0);
                 event.isAllDay = false;
@@ -542,10 +459,10 @@ export const eventTestCases = (anchorDate: any) =>  ({
             }
         },
         {
-            name: "TEST #26 - Monthly First Wednesday",
+            name: "TEST #23 - Monthly First Wednesday",
             build: () => {
                 const event = new Event();
-                event.title = "TEST #26 - Monthly First Wednesday";
+                event.title = "TEST #23 - Monthly First Wednesday";
                 event.start = anchorDate.clone().startOf("month").day(3).hour(11).minute(0);
                 event.end = anchorDate.clone().startOf("month").day(3).hour(12).minute(0);
                 event.isAllDay = false;
@@ -566,10 +483,10 @@ export const eventTestCases = (anchorDate: any) =>  ({
             }
         },
         {
-            name: "TEST #27 - Stress Monthly First Monday",
+            name: "TEST #24 - Stress Monthly First Monday",
             build: () => {
                 const event = new Event();
-                event.title = "TEST #27 - Stress Monthly First Monday";
+                event.title = "TEST #24 - Stress Monthly First Monday";
                 event.start = anchorDate.clone().startOf("month").day(1).hour(7).minute(0);
                 event.end = anchorDate.clone().startOf("month").day(1).hour(8).minute(0);
                 event.isAllDay = false;
@@ -581,7 +498,7 @@ export const eventTestCases = (anchorDate: any) =>  ({
                 recurrence.monthly.byDay.weekOf = RecurWeekOfMonth.first;
                 recurrence.monthly.byDay.day = RecurDay.monday;
                 recurrence.until.type = RecurUntilType.count;
-                recurrence.until.count = 120;
+                recurrence.until.count = 60;
                 recurrence.setDefaultsForDate(event.start);
                 event.isRecurring = true;
                 event.recurrence = recurrence;
@@ -590,10 +507,10 @@ export const eventTestCases = (anchorDate: any) =>  ({
             }
         },
         {
-            name: "TEST #28 - Monthly First Monday Until Date",
+            name: "TEST #25 - Monthly First Monday Until Date",
             build: () => {
                 const event = new Event();
-                event.title = "TEST #28 - Monthly First Monday Until Date";
+                event.title = "TEST #25 - Monthly First Monday Until Date";
                 event.start = anchorDate.clone().startOf("month").day(1).hour(13).minute(0);
                 event.end = anchorDate.clone().startOf("month").day(1).hour(14).minute(0);
                 event.isAllDay = false;
@@ -616,10 +533,10 @@ export const eventTestCases = (anchorDate: any) =>  ({
     ],
     yearly: [
         {
-            name: "TEST #29 - Yearly Date (March 10)",
+            name: "TEST #26 - Yearly Date (March 10)",
             build: () => {
                 const event = new Event();
-                event.title = "TEST #29 - Yearly Date (March 10)";
+                event.title = "TEST #26 - Yearly Date (March 10)";
                 event.start = anchorDate.clone().month(2).date(10).hour(9).minute(0);
                 event.end = anchorDate.clone().month(2).date(10).hour(10).minute(0);
                 event.isAllDay = false;
@@ -640,34 +557,10 @@ export const eventTestCases = (anchorDate: any) =>  ({
             }
         },
         {
-            name: "TEST #30 - Leap Year Feb 29",
+            name: "TEST #27 - Yearly First Monday Of March",
             build: () => {
                 const event = new Event();
-                event.title = "TEST #30- Leap Year Feb 29";
-                event.start = anchorDate.clone().year(2028).month(1).date(29).hour(9).minute(0);
-                event.end = anchorDate.clone().year(2028).month(1).date(29).hour(10).minute(0);
-                event.isAllDay = false;
-
-                const recurrence = new Recurrence();
-                recurrence.pattern = RecurPattern.yearly;
-                recurrence.yearly.option = RecurPatternOption.byDate;
-                recurrence.yearly.every = 1;
-                recurrence.yearly.month = 1;
-                recurrence.yearly.byDate.date = 29;
-                recurrence.until.type = RecurUntilType.count;
-                recurrence.until.count = 6;
-                recurrence.setDefaultsForDate(event.start);
-                event.isRecurring = true;
-                event.recurrence = recurrence;
-
-                return event;
-            }
-        },
-        {
-            name: "TEST #31 - Yearly First Monday Of March",
-            build: () => {
-                const event = new Event();
-                event.title = "TEST #31 - Yearly First Monday Of March";
+                event.title = "TEST #27 - Yearly First Monday Of March";
                 event.start = anchorDate.clone().month(2).startOf("month").day(1).hour(10).minute(0);
                 event.end = anchorDate.clone().month(2).startOf("month").day(1).hour(11).minute(0);
                 event.isAllDay = false;

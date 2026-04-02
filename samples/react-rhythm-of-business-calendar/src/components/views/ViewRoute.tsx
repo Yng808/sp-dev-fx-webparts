@@ -314,7 +314,7 @@ const ViewRoute: FC = () => {
                     onClick: () => setShowOnlyCurrentMonth(!showOnlyCurrentMonth)
                 },{
                     key: 'run-tests',
-                    text: 'Run Test Events',
+                    text: 'Run Tests',
                     iconProps: { iconName: 'Play' },
                     subMenuProps: {
                         items: Object.entries(eventTestCases(anchorDate)).map(([groupKey, tests]) => ({
