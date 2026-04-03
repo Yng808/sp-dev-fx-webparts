@@ -19,7 +19,7 @@ export const eventTestCases = (anchorDate: any) =>  ({
                 const event = new Event();
                 event.title = "TEST #2 - All Day";
                 event.start = anchorDate.clone().startOf("day");
-                event.end = anchorDate.clone().startOf("day").add(1, "day");
+                event.end = anchorDate.clone().startOf("day"); 
                 event.isAllDay = true;
                 return event;
             }
@@ -82,7 +82,7 @@ export const eventTestCases = (anchorDate: any) =>  ({
             }
         },
         {
-            name: "TEST #7 - Daily Weekdays Only", // NEED TO CLARIFY
+            name: "TEST #7 - Daily Weekdays Only",
             build: () => {
                 const event = new Event();
                 event.title = "TEST #7 - Daily Weekdays Only";
