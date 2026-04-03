@@ -43,16 +43,27 @@ export class ContentRowInfo {
         this.items = [];
     }
 
+    private _dateInOccurrenceTimeZone(date: Moment, occurrence: EventOccurrence): Moment {
+        const timezone = occurrence.start?.tz?.() || occurrence.end?.tz?.() || date?.tz?.();
+        const normalizedDate = date.clone();
+
+        if (timezone) {
+            normalizedDate.tz(timezone, true);
+        }
+
+        return normalizedDate;
+    }
+
     public canInclude(cccurrence: EventOccurrence): boolean {
-        const startsInWeek = cccurrence.start.isSameOrAfter(this._startDate);
+        const startDate = this._dateInOccurrenceTimeZone(this._startDate, cccurrence);
+        const startsInWeek = cccurrence.start.isSameOrAfter(startDate);
         const startPosition = startsInWeek ? cccurrence.start.day() : 0;
         return this.lastUsedPosition() <= startPosition;
     }
 
     public include(cccurrence: EventOccurrence): void {
-        const occurrenceTimeZone = cccurrence.start.tz();
-        const weekStart = this._startDate.clone().startOf('day').tz(occurrenceTimeZone, true); // Adjusted to start of the week
-        const weekEnd = this._endDate.clone().endOf('day').tz(occurrenceTimeZone, true);       // Adjusted to end of the week 
+        const weekStart = this._dateInOccurrenceTimeZone(this._startDate, cccurrence).startOf('day');
+        const weekEnd = this._dateInOccurrenceTimeZone(this._endDate, cccurrence).endOf('day');
         // Check if the event overlaps with the current week
         if (
             cccurrence.start.valueOf() < weekEnd.valueOf() && // Event starts before the week ends
@@ -93,9 +104,14 @@ export class Builder {
     
         // Adjust the weekly range to account for the event's timezone
         const filteredEventOccurrences = cccurrences.filter(cccurrence => {
-            const occurrenceTimeZone = cccurrence.start.tz(); // Get the timezone of the event
-            const weekStart = start.clone().tz(occurrenceTimeZone, true); // Start of the week in the event's timezone
-            const weekEnd = end.clone().tz(occurrenceTimeZone, true);     // End of the week in the event's timezone
+            const timezone = cccurrence.start?.tz?.() || cccurrence.end?.tz?.() || start?.tz?.();
+            const weekStart = start.clone();
+            const weekEnd = end.clone();
+
+            if (timezone) {
+                weekStart.tz(timezone, true);
+                weekEnd.tz(timezone, true);
+            }
     
             return (
                 cccurrence.start.valueOf() < weekEnd.valueOf() &&
