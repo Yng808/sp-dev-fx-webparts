@@ -312,7 +312,8 @@ const ViewRoute: FC = () => {
                     text: 'Hide events/trips outside current month',
                     iconProps: { iconName: showOnlyCurrentMonth ? 'CheckboxComposite' : 'Checkbox' },
                     onClick: () => setShowOnlyCurrentMonth(!showOnlyCurrentMonth)
-                },{
+                },
+                userCanManageSettings && {
                     key: 'run-tests',
                     text: 'Run Tests',
                     iconProps: { iconName: 'Play' },
