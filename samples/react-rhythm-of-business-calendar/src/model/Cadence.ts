@@ -109,7 +109,7 @@ class DailyCadenceGenerator implements ICadenceGenerator {
 
     public *generate(start: Moment): Generator<Moment, undefined> {
         const { every } = this._daily;
-        const weekdaysOnly = false;
+        const { weekdaysOnly } = this._daily;
         const current = start.clone();
         //console.log("WeekdaysOnly:", weekdaysOnly);
         //console.log("Every:", );
