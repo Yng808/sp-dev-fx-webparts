@@ -76,12 +76,18 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
     }
 
     private async _buildRefinerValueOptions() {
-        const { [EventsService]: { refinersAsync } } = this.props.services;
+        const { [EventsService]: { refinersAsync, externalListsLoader } } = this.props.services;
 
         await refinersAsync.promise;
 
         const refiners = [...refinersAsync.data];
         refiners.sort(Refiner.OrderAscComparer);
+        const externalConfigs = externalListsLoader.getCachedConfigs().length > 0
+            ? externalListsLoader.getCachedConfigs() : await externalListsLoader.loadExternalListConfigs();
+        const excludedTitles = new Set(
+            externalConfigs.filter(config => config.enabled).map(config => (config.listTitle || "External").trim().toLowerCase())
+        );
+        const selectedValueKeys = new Set(this.entity?.refinerValues.get().map(value => value.key) || []);
 
         const refinerValueToDropdownOption = (value: RefinerValue) => {
             const { key, displayName: text } = value;
@@ -92,12 +98,17 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         for (const refiner of refiners) {
             const { required, allowMultiselect, blankValue } = refiner;
             const options: IDropdownOption[] = [];
+            const shouldExcludeRefinerValue = (value: RefinerValue): boolean => {
+                if (selectedValueKeys.has(value.key)) { return false; }
+                if ((value as any).__external === true) { return true; }
+                return refiner.enableColors && value.isActive && excludedTitles.has((value.title || '').trim().toLowerCase());
+            };
 
             if (!required && !allowMultiselect) {
                 options.push(refinerValueToDropdownOption(blankValue));
             }
 
-            options.push(...refiner.values.filter(Entity.NotDeletedFilter).map(refinerValueToDropdownOption));
+            options.push(...refiner.values.filter(Entity.NotDeletedFilter).filter(value => !shouldExcludeRefinerValue(value)).map(refinerValueToDropdownOption));
 
             refinerValueOptionsByRefiner.set(refiner, options);
         }
