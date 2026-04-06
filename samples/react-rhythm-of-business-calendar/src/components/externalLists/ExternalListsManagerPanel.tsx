@@ -436,7 +436,7 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
                                     borderBottom: '1px solid #ddd'
                                 }}
                             >
-                                {headerCell('Title')}
+                                {headerCell('Dropdown Title')}
                                 {headerCell('Show in Calendar')}
                                 {headerCell('Date Only')}
                                 {headerCell('Site URL')}
@@ -460,7 +460,7 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
                             {rows.map(row => (
                                 <div
                                     key={row.clientId}
-                                style={{
+                                    style={{
                                         display: 'grid',
                                         gridTemplateColumns,
                                         gap: 8,
