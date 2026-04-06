@@ -5,6 +5,7 @@ import { sp } from '@pnp/sp';
 import { IDropdownOption } from 'office-ui-fabric-react/lib/components/Dropdown';
 import { useSpfxContext } from 'services';
 import { ExternalListsConfigList_Title } from '../../schema/lists/ExternalListsConfigList';
+import { Defaults } from '../../schema/Defaults';
 import AsyncDropdown from '../../webparts/rhythmOfBusinessCalendar/components/PropertyPaneAsyncDropdown';
 
 interface IProps {
@@ -16,9 +17,10 @@ interface IProps {
 interface IConfigRow {
     clientId: string;
     id?: number;
+    title: string;
     siteUrl: string;
     listId: string;
-    listTitle?: string;
+    refinerValueId?: string;
     viewId?: string;
     titleField: string;
     eventDate: string;
@@ -27,7 +29,6 @@ interface IConfigRow {
     locationField?: string;
     enabled: boolean;
     dateOnly: boolean;
-    color: string;
 }
 
 interface IListSummary {
@@ -53,17 +54,17 @@ interface IFieldSummary {
     OutputType?: number;
 }
 
-const gridTemplateColumns = '90px 90px 280px 180px 180px 180px 90px 150px 150px 150px 150px 150px 44px';
+const gridTemplateColumns = '160px 90px 90px 280px 180px 180px 160px 150px 150px 150px 150px 150px 44px';
 
 const createRow = (): IConfigRow => ({
     clientId: `external-list-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    title: '',
     enabled: true,
     dateOnly: true,
     siteUrl: '',
     listId: '',
     viewId: '',
-    listTitle: '',
-    color: '#3A86C6',
+    refinerValueId: '',
     approvalStatus: '',
     titleField: '',
     eventDate: '',
@@ -131,6 +132,10 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
         () => `${webUrl}/_api/web/lists/getbytitle('${ExternalListsConfigList_Title.replace(/'/g, "''")}')/items`,
         [webUrl]
     );
+    const refinerValuesEndpoint = useMemo(
+        () => `${webUrl}/_api/web/lists/getbytitle('${Defaults.ListTitles.RefinerValues.replace(/'/g, "''")}')/items`,
+        [webUrl]
+    );
 
     const withCacheBust = useCallback((url: string): string => {
         const separator = url.includes('?') ? '&' : '?';
@@ -169,7 +174,7 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
         try {
             const response = await spHttpClient.get(
                 withCacheBust(
-                    `${listItemsEndpoint}?$select=Id,Title,IsEnabled,IsDateOnly,SiteUrl,ListId,ViewId,ListTitle,Color,ApprovalStatus,TitleField,EventDate,EndDate,LocationField&$orderby=Id`
+                    `${listItemsEndpoint}?$select=Id,Title,IsEnabled,IsDateOnly,SiteUrl,ListId,ViewId,RefinerValueId,ApprovalStatus,TitleField,EventDate,EndDate,LocationField&$orderby=Id`
                 ),
                 SPHttpClient.configurations.v1
             );
@@ -177,13 +182,13 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
             const nextRows: IConfigRow[] = (data.value || []).map((item: any) => ({
                 clientId: `external-list-${item.Id}`,
                 id: item.Id,
+                title: item.Title || '',
                 enabled: item.IsEnabled === true || item.IsEnabled === 1 || String(item.IsEnabled).toLowerCase() === 'yes',
                 dateOnly: item.IsDateOnly === true || item.IsDateOnly === 1 || String(item.IsDateOnly).toLowerCase() === 'yes',
                 siteUrl: item.SiteUrl || '',
                 listId: item.ListId || '',
                 viewId: item.ViewId || '',
-                listTitle: item.ListTitle || '',
-                color: item.Color || '#3A86C6',
+                refinerValueId: item.RefinerValueId ? String(item.RefinerValueId) : '',
                 approvalStatus: item.ApprovalStatus || '',
                 titleField: item.TitleField || '',
                 eventDate: item.EventDate || '',
@@ -273,10 +278,28 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
         return data.value || [];
     }, [readJson, spHttpClient, webOrigin, withCacheBust]);
 
+    const loadRefinerValueOptions = useCallback(async (): Promise<IDropdownOption[]> => {
+        const response = await spHttpClient.get(
+            withCacheBust(
+                `${refinerValuesEndpoint}?$select=Id,Title,Archived&$filter=Archived ne 1&$orderby=Title`
+            ),
+            SPHttpClient.configurations.v1
+        );
+        const data = await readJson(response);
+
+        return (data.value || []).map((item: { Id: number; Title?: string }) => ({
+            key: String(item.Id),
+            text: item.Title || String(item.Id),
+            title: `${item.Title || item.Id} (${item.Id})`
+        }) as IDropdownOption);
+    }, [readJson, refinerValuesEndpoint, spHttpClient, withCacheBust]);
+
     const validateRows = useCallback((): string | undefined => {
         const invalidRow = rows.find(row =>
+            !(row.title || '').trim() ||
             !normalizeSiteUrl(row.siteUrl, webOrigin) ||
             !row.listId ||
+            !(row.refinerValueId || '').trim() ||
             !row.titleField ||
             !row.eventDate ||
             !row.endDate
@@ -286,19 +309,18 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
             return undefined;
         }
 
-        return `Each row needs a same-tenant Site URL, List, Event Title, Start Date, and End Date before saving.`;
+        return `Each row needs a config Title, same-tenant Site URL, List, Refiner Value, Event Title, Start Date, and End Date before saving.`;
     }, [rows, webOrigin]);
 
     const persistRow = useCallback(async (row: IConfigRow): Promise<void> => {
         const payload = {
-            Title: row.listTitle || row.listId || 'External List',
+            Title: (row.title || '').trim(),
             IsEnabled: row.enabled,
             IsDateOnly: row.dateOnly,
             SiteUrl: normalizeSiteUrl(row.siteUrl, webOrigin),
             ListId: row.listId,
             ViewId: row.viewId || null,
-            ListTitle: row.listTitle || '',
-            Color: row.color || '',
+            RefinerValueId: (row.refinerValueId || '').trim(),
             ApprovalStatus: row.approvalStatus || '',
             TitleField: row.titleField,
             EventDate: row.eventDate,
@@ -336,7 +358,7 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
                 try {
                     await persistRow(row);
                 } catch (rowError) {
-                    throw new Error(`Row ${index + 1} (${row.listTitle || row.siteUrl || 'new row'}): ${(rowError as Error).message}`);
+                    throw new Error(`Row ${index + 1} (${row.listId || row.siteUrl || 'new row'}): ${(rowError as Error).message}`);
                 }
             }
 
@@ -414,13 +436,13 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
                                     borderBottom: '1px solid #ddd'
                                 }}
                             >
+                                {headerCell('Title')}
                                 {headerCell('Show in Calendar')}
                                 {headerCell('Date Only')}
                                 {headerCell('Site URL')}
                                 {headerCell('List')}
                                 {headerCell('View')}
-                                {headerCell('List Title')}
-                                {headerCell('Color')}
+                                {headerCell('Refiner Value')}
                                 {headerCell('Approval Status')}
                                 {headerCell('Event Title')}
                                 {headerCell('Start Date')}
@@ -438,7 +460,7 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
                             {rows.map(row => (
                                 <div
                                     key={row.clientId}
-                                    style={{
+                                style={{
                                         display: 'grid',
                                         gridTemplateColumns,
                                         gap: 8,
@@ -446,6 +468,13 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
                                         marginBottom: 8
                                     }}
                                 >
+                                    <TextField
+                                        value={row.title}
+                                        onChange={(_, value) => updateRow(row.clientId, currentRow => ({
+                                            ...currentRow,
+                                            title: value || ''
+                                        }))}
+                                    />
                                     <Checkbox
                                         checked={row.enabled}
                                         onChange={(_, checked) => updateRow(row.clientId, currentRow => ({
@@ -466,7 +495,7 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
                                             ...currentRow,
                                             siteUrl: value || '',
                                             listId: '',
-                                            listTitle: '',
+                                            refinerValueId: '',
                                             viewId: '',
                                             titleField: '',
                                             eventDate: '',
@@ -484,7 +513,6 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
                                         onChange={(option?: IDropdownOption) => updateRow(row.clientId, currentRow => ({
                                             ...currentRow,
                                             listId: String(option?.key || ''),
-                                            listTitle: option?.text || '',
                                             viewId: '',
                                             titleField: '',
                                             eventDate: '',
@@ -506,24 +534,17 @@ const ExternalListsManagerPanel: FC<IProps> = ({ isOpen, onDismiss, onSaved }) =
                                         }))}
                                         onError={message => setError(message || undefined)}
                                     />
-                                    <TextField
-                                        value={row.listTitle || ''}
-                                        onChange={(_, value) => updateRow(row.clientId, currentRow => ({
+                                    <AsyncDropdown
+                                        key={`${row.clientId}-refinerValue`}
+                                        selectedKey={row.refinerValueId}
+                                        stateKey="refiner-values"
+                                        disabled={false}
+                                        loadOptions={loadRefinerValueOptions}
+                                        onChange={(option?: IDropdownOption) => updateRow(row.clientId, currentRow => ({
                                             ...currentRow,
-                                            listTitle: value || ''
+                                            refinerValueId: option?.key ? String(option.key) : ''
                                         }))}
-                                    />
-                                    <input
-                                        type="color"
-                                        value={row.color || '#3A86C6'}
-                                        onChange={event => {
-                                            const color = event.currentTarget.value;
-                                            updateRow(row.clientId, currentRow => ({
-                                                ...currentRow,
-                                                color
-                                            }));
-                                        }}
-                                        style={{ width: 48, height: 32, border: '1px solid #ccc', padding: 0 }}
+                                        onError={message => setError(message || undefined)}
                                     />
                                     <AsyncDropdown
                                         key={`${row.clientId}-approval-${row.listId}`}

@@ -84,8 +84,8 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         refiners.sort(Refiner.OrderAscComparer);
         const externalConfigs = externalListsLoader.getCachedConfigs().length > 0
             ? externalListsLoader.getCachedConfigs() : await externalListsLoader.loadExternalListConfigs();
-        const excludedTitles = new Set(
-            externalConfigs.filter(config => config.enabled).map(config => (config.listTitle || "External").trim().toLowerCase())
+        const excludedRefinerValueIds = new Set(
+            externalConfigs.filter(config => config.enabled && !!config.refinerValueId).map(config => (config.refinerValueId || '').trim())
         );
         const selectedValueKeys = new Set(this.entity?.refinerValues.get().map(value => value.key) || []);
 
@@ -101,7 +101,9 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
             const shouldExcludeRefinerValue = (value: RefinerValue): boolean => {
                 if (selectedValueKeys.has(value.key)) { return false; }
                 if ((value as any).__external === true) { return true; }
-                return refiner.enableColors && value.isActive && excludedTitles.has((value.title || '').trim().toLowerCase());
+                return refiner.enableColors && value.isActive && (
+                    excludedRefinerValueIds.has(String(value.id)) || excludedRefinerValueIds.has(String(value.key))
+                );
             };
 
             if (!required && !allowMultiselect) {

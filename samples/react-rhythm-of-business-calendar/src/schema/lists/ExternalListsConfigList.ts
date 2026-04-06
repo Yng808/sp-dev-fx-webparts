@@ -10,8 +10,7 @@ export interface IExternalListsConfig {
     SiteUrl: string;
     ListId: string;
     ViewId?: string;
-    ListTitle?: string;
-    Color?: string;
+    RefinerValueId?: string;
     ApprovalStatus?: string;
     TitleField: string;
     EventDate: string;
@@ -31,8 +30,7 @@ const ExternalListsConfigList: IListDefinition = {
         { name: "SiteUrl", displayName: "Site URL", type: FieldType.Text, required: true },
         { name: "ListId", displayName: "List ID", type: FieldType.Text, required: true },
         { name: "ViewId", displayName: "View ID", type: FieldType.Text, required: false }, 
-        { name: "ListTitle", displayName: "Refiner Value Title", type: FieldType.Text, required: false },
-        { name: "Color", displayName: "Color", type: FieldType.Text, required: false },
+        { name: "RefinerValueId", displayName: "Refiner Value ID", type: FieldType.Text, required: false },
         { name: "ApprovalStatus", displayName: "Approval Status", type: FieldType.Text, required: false },
         { name: "TitleField", displayName: "Title Field", type: FieldType.Text, required: true },
         { name: "EventDate", displayName: "Start Date", type: FieldType.Text, required: true },

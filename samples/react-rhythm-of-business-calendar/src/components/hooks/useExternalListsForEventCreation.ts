@@ -28,7 +28,7 @@ export const useExternalListsForEventCreation = () => {
             configs.filter(c => c.enabled).forEach((config: ExternalListConfig) => {
                 opts.push({
                     key: config.listId,
-                    text: `Add ${config.listTitle} Event`,
+                    text: `Add ${config.title} Event`,
                     iconProps: { iconName: 'Add' },
                     isExternal: true,
                     listId: config.listId,

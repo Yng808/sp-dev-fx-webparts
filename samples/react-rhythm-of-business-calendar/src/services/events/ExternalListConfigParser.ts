@@ -1,7 +1,5 @@
 import { ExternalListConfig } from "model";
 
-const DEFAULT_EXTERNAL_COLOR = "#3A86C6";
-
 const toOptionalString = (value: unknown): string | undefined => {
     if (value === null || value === undefined) {
         return undefined;
@@ -51,13 +49,13 @@ const normalizeConfig = (value: any, index: number): ExternalListConfig | undefi
 
     return {
         id: toOptionalString(value.id) || `webpart-${index + 1}`,
+        title: toOptionalString(value.title),
         enabled: toBoolean(value.enabled, true),
         dateOnly: toBoolean(value.dateOnly, true),
         siteUrl,
         listId,
         viewId: toOptionalString(value.viewId),
-        listTitle: toOptionalString(value.listTitle),
-        color: toOptionalString(value.color) || DEFAULT_EXTERNAL_COLOR,
+        refinerValueId: toOptionalString(value.refinerValueId),
         approvalStatus: toOptionalString(value.approvalStatus),
         titleField,
         eventDate,
@@ -72,6 +70,7 @@ const buildKey = (config: ExternalListConfig): string => {
         normalize(config.siteUrl),
         normalize(config.listId),
         normalize(config.viewId),
+        normalize(config.refinerValueId),
         normalize(config.titleField),
         normalize(config.eventDate),
         normalize(config.endDate)

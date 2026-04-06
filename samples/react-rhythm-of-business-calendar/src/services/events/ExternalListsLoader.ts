@@ -47,9 +47,10 @@ export class ExternalListsLoader {
         500,
         [
             "ID",
+            "Title",
             "SiteUrl",
             "ListId",
-            "ListTitle",
+            "RefinerValueId",
             "ViewId",
             "TitleField",
             "EventDate",
@@ -57,8 +58,7 @@ export class ExternalListsLoader {
             "ApprovalStatus",
             "LocationField",
             "IsEnabled",
-            "IsDateOnly",
-            "Color"
+            "IsDateOnly"
         ],
         query,
         row => this._mapItemToConfig(row)
@@ -70,9 +70,10 @@ export class ExternalListsLoader {
 
         return {
         id: String(row.ID),
+        title: r.Title,
         siteUrl: r.SiteUrl,
         listId: r.ListId,
-        listTitle: r.ListTitle,
+        refinerValueId: r.RefinerValueId ? String(r.RefinerValueId) : undefined,
         viewId: r.ViewId,
         titleField: r.TitleField,
         eventDate: r.EventDate,
@@ -80,8 +81,7 @@ export class ExternalListsLoader {
         approvalStatus: r.ApprovalStatus,
         locationField: r.LocationField,
         enabled: String(r.IsEnabled).toLowerCase() === "yes",
-        dateOnly: r.IsDateOnly === true || r.IsDateOnly === 1 || String(r.IsDateOnly).toLowerCase() === 'yes',
-        color: r.Color
+        dateOnly: r.IsDateOnly === true || r.IsDateOnly === 1 || String(r.IsDateOnly).toLowerCase() === 'yes'
         } as ExternalListConfig;
     }
 }

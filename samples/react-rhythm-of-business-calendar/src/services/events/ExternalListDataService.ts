@@ -2,7 +2,7 @@ import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
 import { ExternalListConfig } from 'model';
 import { Event } from 'model/Event';
 import { RefinerValue, Refiner } from 'model';
-import { Color, Entity } from 'common';
+import { Entity } from 'common';
 import { ITimeZoneService } from "common/services";
 import moment from 'moment-timezone';
 
@@ -21,7 +21,6 @@ export class ExternalListDataService {
         const enabledConfigs = configs.filter(c => c.enabled);
         if (enabledConfigs.length === 0) { return []; }
 
-        // Rebuild the external refiner cache for each refresh so title/color edits are reflected.
         this._externalRefinerValues.clear();
 
         const tasks = enabledConfigs.map(config => async () => {
@@ -38,9 +37,14 @@ export class ExternalListDataService {
     }
 
     public async loadEventsFromExternalList(config: ExternalListConfig): Promise<Event[]> {
+        const refinerValue = this._getRefinerValue(config);
+        if (!refinerValue) {
+            console.warn(`Skipping external list "${config.listId}" because RefinerValueId "${config.refinerValueId || ''}" was not found.`);
+            return [];
+        }
+
         const items = await this._fetchListItems(config);
         const events = items.map(item => this._mapItemToEvent(item, config));
-        const refinerValue = this._getOrCreateRefinerValue(config);
         events.forEach(e => {e.refinerValues.add(refinerValue);});
         return events;
     }
@@ -73,27 +77,16 @@ export class ExternalListDataService {
         this._typeRefiner = refiner;
     }
 
-    private _parseColor(value?: string): Color {
-        if (value && /^#([0-9A-F]{3}){1,2}$/i.test(value.trim())) {
-            try {
-                return Color.parse(value.trim());
-            } catch { 
-                console.warn("Invalid color value:", value);
-            }
+    private _getRefinerValue(config: ExternalListConfig): RefinerValue | undefined {
+        const refinerValueId = (config.refinerValueId || '').trim();
+        if (!refinerValueId) {
+            return undefined;
         }
-        
-        return Color.parse('#3A86C6');
-    }
 
-    private _getOrCreateRefinerValue(config: ExternalListConfig): RefinerValue {
-        const cacheKey = config.id || `${config.listId}:${config.viewId || ''}:${config.listTitle || ''}`;
+        const cacheKey = config.id || `${config.listId}:${config.viewId || ''}:${refinerValueId}`;
 
         const cached = this._externalRefinerValues.get(cacheKey);
         if (cached) {
-            if ((cached as any).__external === true) {
-                cached.title = config.listTitle || "External";
-                cached.color = this._parseColor(config.color);
-            }
             return cached;
         }
 
@@ -101,43 +94,15 @@ export class ExternalListDataService {
             throw new Error("Refiner has not been initialized.");
         }
 
-        const typeRefiner = this._typeRefiner;
-        const listTitle = (config.listTitle || "External").trim().toLowerCase();
-
-        const allValues = typeRefiner.values.get().filter(Entity.NotDeletedFilter);
-
-        // First try to find an external-generated value already tied to this specific external config row.
-        let refinerValue = allValues.find(
-            (rv: RefinerValue) => (rv as any).__external === true && (rv as any).__externalConfigId === config.id
-        );
-
-        // Otherwise, match by title, but only to active values. Inactive values should
-        // stay hidden and should not be rebound to external events on refresh.
-        if (!refinerValue) {
-            refinerValue = allValues.find(
-                (rv: RefinerValue) => rv.isActive && (rv.title || "").trim().toLowerCase() === listTitle
+        const refinerValue = this._typeRefiner.values
+            .get()
+            .filter(Entity.NotDeletedFilter)
+            .find((rv: RefinerValue) =>
+                rv.isActive && (String(rv.id) === refinerValueId || String(rv.key) === refinerValueId)
             );
-        }
 
         if (!refinerValue) {
-            refinerValue = new RefinerValue();
-            refinerValue.title = config.listTitle || "External";
-            refinerValue.order = allValues.length;
-            (refinerValue as any).__external = true;
-            (refinerValue as any).__externalConfigId = config.id;
-            (refinerValue as any).__externalListId = config.listId;
-            refinerValue.refiner.set(typeRefiner);
-            typeRefiner.values.add(refinerValue);
-            refinerValue.isActive = true;
-            refinerValue.color = this._parseColor(config.color);
-        } else if ((refinerValue as any).__external === true) {
-            // Keep external-generated values in sync with external config title and color.
-            refinerValue.isActive = true;
-            (refinerValue as any).__externalListId = config.listId;
-            if ((refinerValue as any).__externalConfigId === config.id) {
-                refinerValue.title = config.listTitle || "External";
-            }
-            refinerValue.color = this._parseColor(config.color);
+            return undefined;
         }
 
         this._externalRefinerValues.set(cacheKey, refinerValue);
@@ -211,7 +176,7 @@ export class ExternalListDataService {
         if (!postResponse.ok) {
             const errorText = await postResponse.text();
             console.error(`GetItems failed: ${errorText}`);
-            console.warn(`Falling back to all items for "${config.listTitle}"`);
+            console.warn(`Falling back to all items for "${config.listId}"`);
             return await this._fetchAllItems(config, siteUrl);
         }
 
