@@ -36,7 +36,6 @@ const calendarViewStackItemStyles: IComponentStyles<IStackItemSlots> = {
 const addRefinerIconProps: IIconProps = { iconName: 'Add' };
 const collapseRefinerRailIconProps: IIconProps = { iconName: 'ClosePaneMirrored' };
 const expandRefinerRailIconProps: IIconProps = { iconName: 'ClosePane' };
-const ExternalEventFollowUpRefreshDelayMs = 20000;
 
 
 
@@ -377,6 +376,21 @@ const ViewRoute: FC = () => {
 
     const eventsService = useEventsService();
 
+    const pollForRefresh = async (attempt = 0) => {
+        const MAX_ATTEMPTS = 6;
+        const BASE_DELAY = 3000;
+
+        await eventsService.refreshExternalEvents();
+
+        if (attempt >= MAX_ATTEMPTS) return;
+
+        const delay = Math.min(BASE_DELAY * Math.pow(1.5, attempt), 15000);
+        // Delay starts at 3s and increases by 1.5x each retry until capped at 15s
+        externalRefreshTimeoutRef.current = window.setTimeout(() => {
+            pollForRefresh(attempt + 1);
+        }, delay);
+    };
+
     const handleFormDismiss = async () => {
         const shouldScheduleFollowUpRefresh = spFormState.mode === 'new';
 
@@ -388,12 +402,7 @@ const ViewRoute: FC = () => {
         await eventsService.refreshExternalEvents();
         setSpFormState({ isOpen: false, mode: 'display' });
 
-        if (shouldScheduleFollowUpRefresh) {
-            externalRefreshTimeoutRef.current = window.setTimeout(() => {
-                eventsService.refreshExternalEvents();
-                externalRefreshTimeoutRef.current = undefined;
-            }, ExternalEventFollowUpRefreshDelayMs);
-        }
+        if (shouldScheduleFollowUpRefresh) { pollForRefresh(); }
     };
 
     const handleExternalListsSaved = async () => {
