@@ -11,6 +11,8 @@ export interface IExternalListItem {
     [key: string]: any;
 }
 
+type TooltipFieldMap = Record<string, string>;
+
 export class ExternalListDataService {
 
     private readonly _externalRefinerValues = new Map<string, RefinerValue>();
@@ -242,7 +244,7 @@ export class ExternalListDataService {
             fields.push(config.locationField);
         } // else { console.log(`locationField: UNDEFINED (NOT ADDING)`);}
 
-        const result = fields.join(','); 
+        const result = Array.from(new Set(fields.filter(Boolean))).join(',');
         return result;
     }
 
@@ -305,7 +307,27 @@ export class ExternalListDataService {
             event.end = event.isAllDay ? event.start.clone().add(1, 'day') : event.start.clone().add(1, 'hour');
         }
 
+        (event as any).externalTooltipData = this._buildExternalTooltipData(item, config, {
+            title: rawTitle,
+            approvalStatus: statusString,
+            start: startValue === null || startValue === undefined ? '' : String(startValue),
+            end: endValue === null || endValue === undefined ? '' : String(endValue),
+            location: event.location || ''
+        });
+
         return event;
+    }
+
+    private _buildExternalTooltipData(item: IExternalListItem, config: ExternalListConfig, defaults: TooltipFieldMap = {}): TooltipFieldMap {
+        const tooltipData: TooltipFieldMap = {
+            sourceTitle: defaults.title || '',
+            sourceStart: defaults.start || '',
+            sourceEnd: defaults.end || '',
+            sourceLocation: defaults.location || '',
+            approvalStatus: defaults.approvalStatus || ''
+        };
+
+        return tooltipData;
     }
 
     private _parseSharePointDate(value: string, timeZoneId: string, dateOnly?: boolean): moment.Moment {

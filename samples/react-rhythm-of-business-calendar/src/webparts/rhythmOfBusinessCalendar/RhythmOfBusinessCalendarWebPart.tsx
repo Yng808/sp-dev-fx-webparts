@@ -4,7 +4,7 @@ import { Version } from '@microsoft/sp-core-library';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import { IPropertyPaneConfiguration, PropertyPaneCheckbox, PropertyPaneTextField } from '@microsoft/sp-property-pane';
 import { RhythmOfBusinessCalendarApp } from 'apps';
-import { FilterConfigContext } from 'components/shared/FilterConfigContext';
+import { defaultHoverTooltipTitleTemplate, FilterConfigContext } from 'components/shared/FilterConfigContext';
 
 import * as strings from 'RhythmOfBusinessCalendarWebPartStrings';
 import './RhythmOfBusinessCalendar.module.scss';
@@ -25,6 +25,7 @@ export interface IWebPartProps {
     showCOMDecision: boolean;
     comDecisionLabel: string;
     comDecisionChoices: string;
+    hoverTooltipTitleTemplate: string;
 }
 
 export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPart<IWebPartProps> {
@@ -45,6 +46,7 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
         const showCOMDecision = this.properties.showCOMDecision !== undefined ? this.properties.showCOMDecision : true;
         const comDecisionLabel = this.properties.comDecisionLabel !== undefined ? this.properties.comDecisionLabel : 'COM Decision';
         const comDecisionChoices = this.properties.comDecisionChoices !== undefined ? this.properties.comDecisionChoices : 'Undecided;Tentative;Hold;Accept';
+        const hoverTooltipTitleTemplate = this.properties.hoverTooltipTitleTemplate !== undefined ? this.properties.hoverTooltipTitleTemplate : defaultHoverTooltipTitleTemplate;
 
         ReactDom.render(
             <div>
@@ -54,7 +56,7 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
                 >
                     Download as PDF
                 </button>
-                <FilterConfigContext.Provider value={{ filterButtons, showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief, showLocation, showCOMDecision, comDecisionLabel, comDecisionChoices }}>
+                <FilterConfigContext.Provider value={{ filterButtons, showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief, showLocation, showCOMDecision, comDecisionLabel, comDecisionChoices, hoverTooltipTitleTemplate }}>
                     <RhythmOfBusinessCalendarApp webpart={this} />
                 </FilterConfigContext.Provider>
             </div>,
@@ -170,6 +172,18 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
                                 description: "Enter choices separated by semicolons (e.g., Undecided;Tentative;Hold;Accept)",
                                 multiline: true,
                                 value: "Undecided;Tentative;Hold;Accept"
+                              })
+                            ]
+                          },
+                          {
+                            groupName: "Hover Tooltip Settings",
+                            groupFields: [
+                              PropertyPaneTextField('hoverTooltipTitleTemplate', {
+                                label: "Hover Tooltip Title HTML",
+                                multiline: true,
+                                resizable: true,
+                                description: "HTML template for the hover tooltip title. Supported placeholders include {{displayTitle}}, {{title}}, {{comDecision}}, {{location}}, {{start}}, {{end}}, {{timeRange}}, and {{tag}}. Leave blank to turn off the hover tooltip.",
+                                value: defaultHoverTooltipTitleTemplate
                               })
                             ]
                           }

@@ -1,7 +1,9 @@
 import React, { CSSProperties, FC, useContext, useMemo } from 'react';
-import { css, Stack, StackItem, useTheme } from '@fluentui/react';
+import { css, Stack, StackItem, TooltipHost, useTheme } from '@fluentui/react';
 import { useConst } from '@fluentui/react-hooks';
 import { LockIcon, POIIcon, RecentIcon, RepeatAllIcon } from '@fluentui/react-icons-mdl2';
+import { encode } from 'he';
+import { sanitizeHTMLWithDefaults } from 'common';
 import { IEvent } from 'model';
 import { useConfigurationService } from 'services';
 import { FilterConfigContext } from 'components/shared/FilterConfigContext';
@@ -58,10 +60,28 @@ interface IProps {
     size?: EventBarSize;
 }
 
+const tooltipHostStyles = {root: { display: 'block', width: '100%' }};
+
+const buildHoverTemplate = (template: string, data: Record<string, string>): string =>
+    template.replace(/\{\{\s*([\w]+)\s*\}\}/g, (_, key: string) => encode(data[key] || ''));
+
+const getExternalTooltipData = (event: IEvent): Record<string, string> => {
+    const rawData = (event as any).externalTooltipData || (event.getWrappedEvent?.() as any)?.externalTooltipData;
+
+    if (!rawData || typeof rawData !== 'object' || Array.isArray(rawData)) {
+        return {};
+    }
+
+    return Object.keys(rawData).reduce((result, key) => {
+        result[key] = rawData[key] === null || rawData[key] === undefined ? '' : String(rawData[key]);
+        return result;
+    }, {} as Record<string, string>);
+};
+
 export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverride, size = EventBarSize.Compact }) => {
     const { palette: { themePrimary } } = useTheme();
     const { active: { useApprovals } } = useConfigurationService();
-    const { showCOMDecision } = useContext(FilterConfigContext);
+    const { showCOMDecision, hoverTooltipTitleTemplate } = useContext(FilterConfigContext);
 
     const { isPendingApproval, isRejected, title, start, end, isAllDay, location, tag, color, isConfidential, isRecurring, comDecision } = event;
 
@@ -100,10 +120,35 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
     // Prepend the first character of comDecision to the title if it exists (only if showCOMDecision is true)
     const modifiedTitle = (showCOMDecision && comDecision) ? `(${comDecision.charAt(0)}) ${title}` : title;
 
+    const hoverTooltipHtml = useMemo(() => {
+        if (!hoverTooltipTitleTemplate?.trim()) return '';
+
+        const tooltipData = {
+            title: title || '',
+            displayTitle: modifiedTitle || '',
+            comDecision: comDecision || '',
+            location: location || '',
+            start: start?.format(isAllDay ? 'LL' : 'LLL') || '',
+            end: end?.format(isAllDay ? 'LL' : 'LLL') || '',
+            timeRange: startTimeString || '',
+            tag: tag || '',
+            ...getExternalTooltipData(event)
+        };
+
+        return sanitizeHTMLWithDefaults(buildHoverTemplate(hoverTooltipTitleTemplate, tooltipData));
+    }, [comDecision, end, event, hoverTooltipTitleTemplate, isAllDay, location, modifiedTitle, start, startTimeString, tag, title]);
+
+    const tooltipContent = useMemo(() => {
+        if (!hoverTooltipHtml) return undefined;
+
+        return <div dangerouslySetInnerHTML={{ __html: hoverTooltipHtml }} />;
+    }, [hoverTooltipHtml]);
+
 
     return (
+    <TooltipHost content={tooltipContent} styles={tooltipHostStyles}>
         <Stack className={eventClassName} style={style} tokens={useConst({ childrenGap: 2 })}>
-            <Stack horizontal verticalAlign="center" title={modifiedTitle} tokens={useConst({ childrenGap: 6 })}>
+            <Stack horizontal verticalAlign="center" tokens={useConst({ childrenGap: 6 })}>
                 {tag && <span>[{tag}]</span>}
                 
                 <StackItem className={styles.text} style={{ color: style.color }}>
@@ -134,5 +179,6 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
                 </Stack>
             </>}
         </Stack>
+    </TooltipHost>
     );
 }

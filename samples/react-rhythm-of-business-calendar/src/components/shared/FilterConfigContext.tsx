@@ -18,7 +18,10 @@ export interface IFilterConfigContext {
   showCOMDecision: boolean;
   comDecisionLabel: string;
   comDecisionChoices: string;
+  hoverTooltipTitleTemplate: string;
 }
+
+export const defaultHoverTooltipTitleTemplate = '<div>{{displayTitle}}</div>';
 
 export const FilterConfigContext = React.createContext<IFilterConfigContext>({
   filterButtons: [],
@@ -29,5 +32,6 @@ export const FilterConfigContext = React.createContext<IFilterConfigContext>({
   showLocation: true,
   showCOMDecision: true,
   comDecisionLabel: 'COM Decision',
-  comDecisionChoices: 'Undecided;Tentative;Hold;Accept'
+  comDecisionChoices: 'Undecided;Tentative;Hold;Accept',
+  hoverTooltipTitleTemplate: defaultHoverTooltipTitleTemplate
 });
