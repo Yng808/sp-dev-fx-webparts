@@ -279,12 +279,13 @@ export const siteCollectionTermGroupName = (siteUrl: string): string =>
 
 export const sanitizeHTMLWithDefaults = (value: string) => {
     return sanitizeHTML(value, {
-        allowedTags: ['div', 'span', 'strong', 'b', 'p', 'a', 'title', 'h1', 'h2', 'h3', 'h4', 'h5', 'i', 'u',
-            'strike', 'ol', 'ul', 'li', 'font', 'br', 'hr', 'link',
+        allowedTags: ['div', 'span', 'strong', 'b', 'p', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'i', 'u',
+            'strike', 'ol', 'ul', 'li', 'font', 'br', 'hr', // excludes 'title' and 'link' (no document/external injection)
             'table', 'th', 'tr', 'td'],
         allowedAttributes: {
-            a: ['href', 'target', 'data-interception']
+            a: ['href', 'data-interception'] // 'target' excluded to prevent tabnabbing
         },
+        allowedSchemes: ['http', 'https', 'mailto'], // blocks javascript:, data:, etc. in URL attributes (e.g., href)
         allowedStyles: {
             '*': {
                 // Match HEX and RGB
