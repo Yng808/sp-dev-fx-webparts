@@ -21,7 +21,7 @@ export interface IFilterConfigContext {
   hoverTooltipTitleTemplate: string;
 }
 
-export const defaultHoverTooltipTitleTemplate = '<div>{{displayTitle}}</div>';
+export const defaultHoverTooltipTitleTemplate = '<div>{{title}}</div>';
 
 export const FilterConfigContext = React.createContext<IFilterConfigContext>({
   filterButtons: [],

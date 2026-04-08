@@ -310,9 +310,6 @@ export class ExternalListDataService {
         (event as any).externalTooltipData = this._buildExternalTooltipData(item, config, {
             title: rawTitle,
             approvalStatus: statusString,
-            start: startValue === null || startValue === undefined ? '' : String(startValue),
-            end: endValue === null || endValue === undefined ? '' : String(endValue),
-            location: event.location || ''
         });
 
         return event;
@@ -320,11 +317,8 @@ export class ExternalListDataService {
 
     private _buildExternalTooltipData(item: IExternalListItem, config: ExternalListConfig, defaults: TooltipFieldMap = {}): TooltipFieldMap {
         const tooltipData: TooltipFieldMap = {
-            sourceTitle: defaults.title || '',
-            sourceStart: defaults.start || '',
-            sourceEnd: defaults.end || '',
-            sourceLocation: defaults.location || '',
-            approvalStatus: defaults.approvalStatus || ''
+            extTitle: defaults.title || '',
+            extStatus: defaults.approvalStatus || ''
         };
 
         return tooltipData;

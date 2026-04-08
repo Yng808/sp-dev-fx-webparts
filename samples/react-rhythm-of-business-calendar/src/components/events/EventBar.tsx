@@ -131,7 +131,6 @@ export const EventBar: FC<IProps> = ({ event, startsIn, endsIn, timeStringOverri
             start: start?.format(isAllDay ? 'LL' : 'LLL') || '',
             end: end?.format(isAllDay ? 'LL' : 'LLL') || '',
             timeRange: startTimeString || '',
-            tag: tag || '',
             ...getExternalTooltipData(event)
         };
 

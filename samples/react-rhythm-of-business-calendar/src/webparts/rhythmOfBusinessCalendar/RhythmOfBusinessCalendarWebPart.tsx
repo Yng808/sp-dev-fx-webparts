@@ -182,7 +182,7 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
                                 label: "Hover Tooltip Title HTML",
                                 multiline: true,
                                 resizable: true,
-                                description: "HTML template for the hover tooltip title. Supported placeholders include {{displayTitle}}, {{title}}, {{comDecision}}, {{location}}, {{start}}, {{end}}, {{timeRange}}, and {{tag}}. Leave blank to turn off the hover tooltip.",
+                                description: "HTML template for the hover tooltip title. Supported placeholders include {{title}}, {{displayTitle}}, {{comDecision}}, {{location}}, {{start}}, {{end}}, {{timeRange}}, {{extStatus}}, and {{extTitle}}. Leave blank to turn off the hover tooltip.",
                                 value: defaultHoverTooltipTitleTemplate
                               })
                             ]
