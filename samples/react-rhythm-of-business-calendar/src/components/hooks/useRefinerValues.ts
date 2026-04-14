@@ -52,7 +52,7 @@ export const useRefinerValues = () => {
         const component: IComponent = { componentShouldRender: update };
         refinersAsync.registerComponentForUpdates(component);
         return () => refinersAsync.unregisterComponentForUpdates(component);
-    }, [refinersAsync, selectedRefinerValues, knownRefinerValues, setHasRefiners, forceUpdate]);
+    }, [refinersAsync, selectedRefinerValues, knownRefinerValues, forceUpdate]);
 
     const onSelectedRefinerValuesChanged: OnRefinerSelectionChanged = useCallback(({ added, removed }) => {
         added.forEach(v => selectedRefinerValues.add(v));
@@ -65,36 +65,21 @@ export const useRefinerValues = () => {
             const refinerValues = refinerValuesAsync.data?.filter(Entity.NotDeletedFilter);
             if (!refinerValues) return;
 
-            // Apply default filter ONCE and correctly
-            if (hasDefaultFilter && !initializedDefault && refinerValues.length > 0) {
-                const hasAnyMatch = refinerValues.some(v =>
-                    defaultPrefixes?.includes(v.title)
+            // DEFAULT FILTER
+            if (hasDefaultFilter && !initializedDefault && refinerValues.length > 0 && defaultPrefixes?.length) {
+                const fullValues = refinerValues;
+
+                const filteredIds = new Set(
+                    fullValues
+                        .filter(v => !v.title || defaultPrefixes.includes(v.title))
+                        .map(v => v.id)
                 );
 
-                if (!hasAnyMatch) {
-                    console.warn(
-                        "Default filter has no matching refiner values.",
-                        {
-                            configured: defaultPrefixes,
-                            available: refinerValues.map(v => v.title)
-                        }
-                    );
-                }
-
-                const fullValues = Array.from(refinerValues);
-
-                const filtered = fullValues.filter(v =>
-                    !v.title || defaultPrefixes?.includes(v.title)
-                );
-
-                // STEP 1: reset to ALL (critical)
+                // STEP 1: add all
                 onSelectedRefinerValuesChanged({ added: fullValues, removed: [] });
 
-                // STEP 2: remove non-matching (critical)
-                onSelectedRefinerValuesChanged({ added: [], removed: fullValues.filter(v => !filtered.includes(v)) });
-
-                // update known values
-                refinerValues.forEach(v => knownRefinerValues.add(v));
+                // STEP 2: remove non-matching (by id)
+                onSelectedRefinerValuesChanged({ added: [], removed: fullValues.filter(v => !filteredIds.has(v.id)) });
 
                 setInitializedDefault(true);
                 return;
@@ -102,15 +87,10 @@ export const useRefinerValues = () => {
 
             // Normal behavior
             refinerValues.forEach(value => {
-                if (value.isActive) {
                     if (!knownRefinerValues.has(value)) {
                         knownRefinerValues.add(value);
                         selectedRefinerValues.add(value);
                     }
-                } else {
-                    knownRefinerValues.delete(value);
-                    selectedRefinerValues.delete(value);
-                }
             });
 
             forceUpdate();

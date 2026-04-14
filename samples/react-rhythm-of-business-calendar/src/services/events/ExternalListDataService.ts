@@ -100,7 +100,7 @@ export class ExternalListDataService {
             .get()
             .filter(Entity.NotDeletedFilter)
             .find((rv: RefinerValue) =>
-                rv.isActive && (String(rv.id) === refinerValueId || String(rv.key) === refinerValueId)
+                String(rv.id) === refinerValueId || String(rv.key) === refinerValueId
             );
 
         if (!refinerValue) {
