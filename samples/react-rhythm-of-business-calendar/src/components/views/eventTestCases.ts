@@ -198,12 +198,12 @@ export const eventTestCases = (anchorDate: any) =>  ({
             }
         },
         {
-            name: "TEST #12 - Long Event Weekly Monday (3 Day Duration)",
+            name: "TEST #12 - Weekly Multi (Mon-Thu)",
             build: () => {
                 const event = new Event();
-                event.title = "TEST #12 - Long Event Weekly Monday (3 Day Duration)";
+                event.title = "TEST #12 - Weekly Multi (Mon-Thu)";
                 event.start = anchorDate.clone().day(RecurDay.monday).hour(9).minute(0);
-                event.end = anchorDate.clone().day(RecurDay.thursday).hour(9).minute(0);
+                event.end = anchorDate.clone().day(RecurDay.monday).hour(10).minute(0);
                 event.isAllDay = false;
 
                 const recurrence = new Recurrence();
@@ -214,6 +214,10 @@ export const eventTestCases = (anchorDate: any) =>  ({
                 recurrence.setDefaultsForDate(event.start);
                 recurrence.weekly.days.fill(false);
                 recurrence.weekly.days[RecurDay.monday] = true;
+                recurrence.weekly.days[RecurDay.tuesday] = true;
+                recurrence.weekly.days[RecurDay.wednesday] = true;
+                recurrence.weekly.days[RecurDay.thursday] = true;
+
                 event.isRecurring = true;
                 event.recurrence = recurrence;
 
