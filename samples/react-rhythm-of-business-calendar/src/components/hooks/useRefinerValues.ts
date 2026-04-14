@@ -87,10 +87,17 @@ export const useRefinerValues = () => {
 
             // Normal behavior
             refinerValues.forEach(value => {
+                if (value.isActive) {
                     if (!knownRefinerValues.has(value)) {
                         knownRefinerValues.add(value);
                         selectedRefinerValues.add(value);
                     }
+                } else {
+                    if (knownRefinerValues.has(value)) {
+                        knownRefinerValues.delete(value);
+                        selectedRefinerValues.delete(value);
+                    }
+                }
             });
 
             forceUpdate();
@@ -111,7 +118,7 @@ export const useRefinerValues = () => {
             let changed = false;
             refiners.forEach(refiner => {
                 refiner.values.get().forEach((value: RefinerValue) => {
-                    if (!knownRefinerValues.has(value)) {
+                    if (value.isActive && !knownRefinerValues.has(value)) {
                         knownRefinerValues.add(value);
                         selectedRefinerValues.add(value);
                         changed = true;

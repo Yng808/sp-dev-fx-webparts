@@ -152,14 +152,7 @@ export class EventLoader extends PagedViewLoader<Event> {
 
     public setExternalEvents(events: Event[]): void {this._externalEvents = events;}
 
-    public async allWithExternal(): Promise<readonly Event[]> {
-        const internalEvents = await this.all(); 
-        const allEvents = [...internalEvents, ...this._externalEvents];
-
-        return allEvents.filter(event =>
-            event.refinerValues.get().some(v => v.isActive)
-        );
-    }
+    public async allWithExternal(): Promise<readonly Event[]> {const internalEvents = await this.all(); return [...internalEvents, ...this._externalEvents];}
 
     protected readonly extractReferencedUsers = (event: Event) => [...event.contacts, ...event.restrictedToAccounts, event.moderator];
     protected readonly toEntity = (row: IEventListItemResult, event: Event) => toEvent(row, event, this.timezones.siteTimeZone, this._refinerValueLoader, this._entitiesById);
