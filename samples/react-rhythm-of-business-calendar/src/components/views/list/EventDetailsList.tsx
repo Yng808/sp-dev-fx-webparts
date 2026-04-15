@@ -531,7 +531,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     <td>{event.requestStatus}</td>
                                     <td>{event.dvPayGrade}</td>
                                     <td className={styles.tdWrap}>{`${event.dvRank} ${event.dvFirstName} ${event.dvSurname}`}</td>
-                                    <td>{event.parkingStallName ?? 'Unavailable'}</td>
+                                    <td>{event.parkingStalls === -1 ? 'Unavailable' : event.parkingStallName}</td>
                                     <td>
                                         <div>{event.start.format('DD MMM, YYYY')}</div>
                                         <div>{event.start.format('HHmm')}-{event.end.format('HHmm')}</div>
