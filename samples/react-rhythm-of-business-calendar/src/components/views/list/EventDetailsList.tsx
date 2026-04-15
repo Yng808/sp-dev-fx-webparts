@@ -206,6 +206,10 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     }, [startDate, endDate, searchQuery, cccurrences, requestStatusFilter]);
 
     useEffect(() => {
+        setCurrentPage(1);
+    }, [startDate, endDate, searchQuery, requestStatusFilter]);
+
+    useEffect(() => {
     const loadParkingMap = async () => {
         const web = await sp.web.get();
         const siteUrl = web.Url;
