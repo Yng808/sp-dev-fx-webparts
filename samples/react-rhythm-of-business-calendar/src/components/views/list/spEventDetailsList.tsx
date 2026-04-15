@@ -165,6 +165,28 @@ export const fetchEventOccurrenceById = async (siteUrl: string, eventId: number)
 
 // #3 Emails ----------------------------------------------------------------------------------------------------------
 
+export const fetchEmailSettings = async (siteUrl: string) => {
+    const res = await fetch(
+        `${siteUrl}/_api/web/lists/getbytitle('EmailSettings')/items?$select=Title,Value`,
+        {
+        method: "GET",
+        headers: { Accept: "application/json;odata=verbose" }
+        }
+    );
+
+    if (!res.ok) throw new Error('Failed to fetch email settings');
+
+    const data = await res.json();
+
+    const settings: Record<string, string> = {};
+
+    data.d.results.forEach((item: any) => {
+        settings[item.Title] = item.Value;
+    });
+
+    return settings;
+};
+
 // Opens a prefilled Outlook Web compose window
 export function composeEmailInBrowser(to: string, subject: string, body: string) {
   const url = `https://webmail.apps.mil/mail/deeplink/compose?to=${encodeURIComponent(

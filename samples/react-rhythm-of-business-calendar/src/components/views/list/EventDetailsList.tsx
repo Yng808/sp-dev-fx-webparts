@@ -5,7 +5,8 @@ import moment from 'moment';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import styles from './EventDetailsList.module.scss'
 import { sp } from '@pnp/sp';
-import { fetchParkingStalls, fetchEventOccurrenceById, composeEmailInBrowser } from './spEventDetailsList';
+import { fetchParkingStalls, fetchEventOccurrenceById, composeEmailInBrowser, fetchEmailSettings } from './spEventDetailsList';
+import { applyEmailSettings } from './EmailTemplate';
 import { AssignPanel } from './AssignPanel';
 import { EditPanel } from './EditPanel';
 import { ReassignPanel } from './ReassignPanel';
@@ -214,6 +215,26 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         setParkingMap(map);
     };
     loadParkingMap();
+    }, []);
+
+    useEffect(() => {
+        const loadSettings = async () => {
+            try {
+                const web = await sp.web.get();
+                const siteUrl = web.Url;
+                const cached = sessionStorage.getItem('emailSettings');
+                if (cached) {
+                    applyEmailSettings(JSON.parse(cached));
+                    return;
+                }
+                const spSettings = await fetchEmailSettings(siteUrl);
+                sessionStorage.setItem('emailSettings', JSON.stringify(spSettings));
+                applyEmailSettings(spSettings);
+            } catch (err) {
+                console.error('Failed to load email settings', err);
+            }
+        };
+        loadSettings();
     }, []);
 
     const resetFilters = () => { setStartDate(''); setEndDate(''); setSearchQuery(''); setRequestStatusFilter(''); };

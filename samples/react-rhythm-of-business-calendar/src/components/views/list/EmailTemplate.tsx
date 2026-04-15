@@ -7,6 +7,18 @@ interface EmailContent {
   body: string;
 }
 
+let EMAIL_SUBJECT_PREFIX = '';
+let EMAIL_PHONE = '';
+let EMAIL_EMAIL = '';
+let EMAIL_SIGNATURE = '';
+
+export const applyEmailSettings = (settings: Record<string, string>) => {
+  EMAIL_SUBJECT_PREFIX = settings.SUBJECT_PREFIX || EMAIL_SUBJECT_PREFIX;
+  EMAIL_PHONE = settings.PHONE || EMAIL_PHONE;
+  EMAIL_EMAIL = settings.EMAIL || EMAIL_EMAIL;
+  EMAIL_SIGNATURE = settings.SIGNATURE || EMAIL_SIGNATURE;
+};
+
 function formatDateRange(dates: (EventOccurrence | moment.Moment)[]): string {
     if (!dates.length) return '';
     let moments: moment.Moment[];
@@ -22,7 +34,7 @@ function formatDateRange(dates: (EventOccurrence | moment.Moment)[]): string {
 }
 
 function buildSubject(dvRank: string, dvSurname: string, dateRange: string, status: string): string {
-    return `USINDOPACOM DV Parking Request for ${dvRank} ${dvSurname} on ${dateRange}: ${status}`;
+    return `${EMAIL_SUBJECT_PREFIX} ${dvRank} ${dvSurname} on ${dateRange}: ${status}`;
 }
 
 function formatLine(ev: EventOccurrence, stallName: string) {
@@ -80,27 +92,19 @@ export function snapshotGroupEmail(events: EventOccurrence[], parkingMap: { [id:
     const first = sorted[0];
 
     const lines = sorted.map(ev => {
-        const stallName =
-        ev.parkingStalls === -1
-            ? 'Unavailable'
-            : parkingMap[ev.parkingStalls as number] ?? String(ev.parkingStalls ?? '');
+        const stallName = ev.parkingStalls === -1 ? 'Unavailable': ev.parkingStallName || 'Unknown Stall';
         return formatLine(ev, stallName);
     });
 
     return {
         to: first.requestorEmail,
-        subject: `USINDOPACOM DV Parking Request for ${first.dvRank} ${first.dvSurname} on ${formatDateRange(sorted)}`,
+        subject: `${EMAIL_SUBJECT_PREFIX} ${first.dvRank} ${first.dvSurname} on ${formatDateRange(sorted)}`,
         body: `Aloha ${first.requestorRank} ${first.requestorLastName},
 
         This email is to inform you of the status of your request:
 
         ${lines.join('\n')}
-
-        Mahalo!
-
-        USINDOPACOM Protocol
-        Email: indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil
-        COMM: (808)-477-7747`
+        ${EMAIL_SIGNATURE}`
     };
 }
 
@@ -126,15 +130,10 @@ export function assignGroupEmail(events: EventOccurrence[], parkingMap: { [id: n
  
         Map(s) attached for your use & dissemination.
         
-        PLEASE ensure your DV DOES NOT park in another stall if there is another vehicle in stall and call us at (808) 477-7747.
+        PLEASE ensure your DV DOES NOT park in another stall if there is another vehicle in stall and call us at ${EMAIL_PHONE}.
         
-        Please submit any changes or cancellations to indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil
-
-        Mahalo!
-
-        USINDOPACOM Protocol
-        Email: indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil
-        COMM: (808)-477-7747`
+        Please submit any changes or cancellations to ${EMAIL_EMAIL}.
+        ${EMAIL_SIGNATURE}`
     };
 }
 
@@ -148,12 +147,7 @@ export function noParkingAvailableEmail(events: EventOccurrence[]): EmailContent
         body: `Aloha ${first.requestorRank} ${first.requestorLastName},
         
         Unfortunately, there is no parking available for the following date(s): ${formatDateRange(events)}
-
-        Mahalo!
-        
-        USINDOPACOM Protocol
-        Email: indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil
-        COMM: (808)-477-7747`
+        ${EMAIL_SIGNATURE}`
     };
 }
 
@@ -173,18 +167,13 @@ export function fieldsChangedEmail(original: EventOccurrence, updated: Record<st
 
     return {
         to: first.requestorEmail,
-        subject: `USINDOPACOM DV Parking Request for ${rank} ${surname} on ${formatDateRange(sorted)}: Updated`,
+        subject: `${EMAIL_SUBJECT_PREFIX} ${rank} ${surname} on ${formatDateRange(sorted)}: Updated`,
         body: `Aloha ${requestorRank} ${requestorLastName},
 
         This email is to inform you of the change(s) to your request:
 
         ${changesText}
-
-        Mahalo!
-        
-        USINDOPACOM Protocol
-        Email: indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil
-        COMM: (808)-477-7747`
+        ${EMAIL_SIGNATURE}`
     };
 }
 // Multi OR Single: Date(s) Changed
@@ -214,12 +203,7 @@ export function datesChangedEmail(previousEvents: EventOccurrence[], updatedEven
 
         New Date(s):
         ${newRange}
-
-        Mahalo!
-        
-        USINDOPACOM Protocol
-        Email: indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil
-        COMM: (808)-477-7747`
+        ${EMAIL_SIGNATURE}`
     };
 }
 
@@ -232,7 +216,6 @@ export function buildDateChangeNotice(prevRange: string, newRange: string): stri
     New Date(s):
     ${newRange}`;
 }
-
 
 // Multi OR Single: Cancel
 export function cancelGroupEmail(events: EventOccurrence[]): EmailContent {
@@ -257,12 +240,7 @@ export function cancelGroupEmail(events: EventOccurrence[]): EmailContent {
         This email is to inform you that the base parking request for the following dates has been cancelled:
 
         ${formattedDates.join('\n')}
-
-        Mahalo!
-        
-        USINDOPACOM Protocol
-        Email: indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil
-        COMM: (808)-477-7747`
+        ${EMAIL_SIGNATURE}`
     };
 }
 
@@ -276,12 +254,7 @@ export function timeChangedEmail(event: EventOccurrence, newStart: moment.Moment
         This email is to inform you that your base parking request scheduled for ${newStart.format('DD MMM, YYYY')} at ${newStart.format('HHmm')}-${newEnd.format('HHmm')} has been updated to the new time: ${newStart.format('HHmm')}-${newEnd.format('HHmm')}.
 
         Assigned Parking: ${parkingName || 'N/A'}
-
-        Mahalo!
-        
-        USINDOPACOM Protocol
-        Email: indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil
-        COMM: (808)-477-7747`
+        ${EMAIL_SIGNATURE}`
     };
 }
 
@@ -297,11 +270,6 @@ export function cancelEventEmail(event: EventOccurrence): EmailContent {
         body: `Aloha ${event.requestorRank} ${event.requestorLastName},
 
         This email is to inform you that the base parking request for ${event.start.format('DD MMM, YYYY')} - ${event.start.format('HHmm')}-${event.end.format('HHmm')} has been cancelled.
-
-        Mahalo!
-
-        USINDOPACOM Protocol
-        Email: indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil
-        COMM: (808)-477-7747`
+        ${EMAIL_SIGNATURE}`
     };
 }
