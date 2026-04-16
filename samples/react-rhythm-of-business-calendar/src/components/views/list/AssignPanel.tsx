@@ -158,7 +158,7 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
     return (
         <>
         {isPanelOpen && (
-            <div className={styles.panel}>
+            <div className={styles.assignPanel}>
                 <button onClick={closePanel} className={styles.closeButton}>x</button>
                 <div className={styles.flexContainer}>
                     {/* Left Side */}
