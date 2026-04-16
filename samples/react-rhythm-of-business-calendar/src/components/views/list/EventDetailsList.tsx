@@ -124,7 +124,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
     setFilteredEvents(prev => {
         const others = prev.filter(ev => ev.groupID !== groupId);
         return [...others, ...updated].sort((a,b) =>
-        a.groupID - b.groupID || a.start.diff(b.start)
+        b.groupID - a.groupID || b.start.diff(a.start)
         );
     });
     };
