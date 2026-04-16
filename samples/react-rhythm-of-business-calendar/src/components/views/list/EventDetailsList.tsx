@@ -195,9 +195,9 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
         // Sort the filtered events by start date
         filtered.sort((a, b) => {
-        const groupComparison = a.groupID - b.groupID; 
+        const groupComparison = b.groupID - a.groupID; 
         if (groupComparison !== 0) return groupComparison;
-        return moment(a.start).diff(moment(b.start)); // secondary sort
+        return moment(b.start).diff(moment(a.start)); // secondary sort
         });
 
 
