@@ -1,5 +1,5 @@
 import { DateTimeFieldFormatType } from "@pnp/sp/fields";
-import { IListDefinition, FieldType, IViewDefinition, includeStandardViewFields, ITextFieldDefinition, IBooleanFieldDefinition, IUserFieldDefinition, ILookupFieldDefinition, IDateTimeFieldDefinition, ListTemplateType, ITitleFieldDefinition, IRecurrenceFieldDefinition, IIntegerFieldDefinition, IGuidFieldDefinition, RoleOperation, RoleType, IChoiceFieldDefinition } from "common/sharepoint";
+import { IListDefinition, FieldType, IViewDefinition, includeStandardViewFields, ITextFieldDefinition, IBooleanFieldDefinition, IUserFieldDefinition, ILookupFieldDefinition, IDateTimeFieldDefinition, ListTemplateType, ITitleFieldDefinition, IRecurrenceFieldDefinition, IIntegerFieldDefinition, IGuidFieldDefinition, RoleOperation, RoleType, IChoiceFieldDefinition, INumberFieldDefinition } from "common/sharepoint";
 import { EventModerationStatus } from "model";
 import { Defaults } from "../Defaults";
 import { RefinerValuesList } from "./RefinerValuesList";
@@ -250,8 +250,8 @@ const Field_ParkingStallName: ITextFieldDefinition = {
     name: 'ParkingStallName'
 };
 
-const Field_GroupID: IIntegerFieldDefinition = {
-    type: FieldType.Integer,
+const Field_GroupID: INumberFieldDefinition = {
+    type: FieldType.Number,
     name: 'GroupID'
 };
 
