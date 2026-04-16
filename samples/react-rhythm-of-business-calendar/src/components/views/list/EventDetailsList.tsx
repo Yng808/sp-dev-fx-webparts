@@ -286,6 +286,18 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         setIsReassignPanelOpen(true);
     };
 
+    const openSingleAssignPanel = (event: EventOccurrence) => {
+        setGroupIDToDisplay(event.groupID);
+        setEventIdToDisplay(event.id);
+        setIsPanelOpen(true);
+    };
+
+    const openGroupAssignPanel = (groupID: number) => {
+        setGroupIDToDisplay(groupID);
+        setEventIdToDisplay(null);
+        setIsPanelOpen(true);
+    };
+
     // Cancel entire group
     const handleCancelGroup = (groupId: number, event: EventOccurrence) => {
         setConfirmConfig({ message: `Are you sure you want to cancel ALL events in group ${groupId} for ${event.dvRank} ${event.dvFirstName} ${event.dvSurname}?`,
@@ -514,7 +526,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                             <button className={`btn btn-sm me-2 ${styles.emailButton}`} onClick={() => handleSendGroupEmail(event.groupID)}>Email</button>   
                                             {event.requestStatus !== 'Cancelled' && (
                                                 <>
-                                                    <button className={`btn btn-sm me-2 ${styles.assignButton}`} onClick={() => { setGroupIDToDisplay(event.groupID); setIsPanelOpen(true); }}>Assign</button>
+                                                    <button className={`btn btn-sm me-2 ${styles.assignButton}`} onClick={() => openGroupAssignPanel(event.groupID)}>Assign</button>
                                                     <button className={`btn btn-sm me-2 ${styles.editButton}`} onClick={() => openEditPanel(event.groupID, event.id)}>Edit</button>
                                                     <button className={`btn btn-sm me-2 ${styles.changeButton}`} onClick={() => openChangeDatesPanel(event.groupID)}>Change Dates</button>
                                                     <button className={`btn btn-sm me-2 ${styles.cancelButton}`} onClick={() => handleCancelGroup(event.groupID, event)}>Cancel</button>
@@ -526,6 +538,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                                     <td className={styles.tdLarge}>
                                     {event.requestStatus !== 'Cancelled' && (
                                         <div>
+                                            <button className={`btn btn-sm me-2 ${styles.assignButton}`} onClick={() => openSingleAssignPanel(event)}>Assign</button>
                                             <button className={`btn btn-sm me-2 ${styles.changeButton}`} onClick={() => openReassignPanel(event)}>Change Time</button>
                                             <button className={`btn btn-sm me-2 ${styles.cancelButton}`} onClick={() => handleCancel(event)}>Cancel</button>
                                         </div>
