@@ -110,7 +110,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                 options.push(refinerValueToDropdownOption(blankValue));
             }
 
-            options.push(...refiner.values.filter(Entity.NotDeletedFilter).filter(value => !shouldExcludeRefinerValue(value)).map(refinerValueToDropdownOption));
+            options.push(...refiner.values.filter(Entity.NotDeletedFilter).filter(value => value.isActive).filter(value => !shouldExcludeRefinerValue(value)).map(refinerValueToDropdownOption));
 
             refinerValueOptionsByRefiner.set(refiner, options);
         }

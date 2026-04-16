@@ -71,7 +71,7 @@ export const useRefinerValues = () => {
 
                 const filteredIds = new Set(
                     fullValues
-                        .filter(v => !v.title || defaultPrefixes.includes(v.title))
+                        .filter(v => !v.title || v.title.split(";").some(part => defaultPrefixes.includes(part.trim())))
                         .map(v => v.id)
                 );
 
