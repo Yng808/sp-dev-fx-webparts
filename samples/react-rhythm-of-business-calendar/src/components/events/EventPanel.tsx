@@ -730,7 +730,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
 
         return (
             <ResponsiveGrid className={styles.content}>
-                <GridRow>
+                {/* <GridRow>
                     <GridCol sm={12}>
                         <LiveTextField
                             {...liveProps}
@@ -740,7 +740,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             rules={Event.TitleValidations}
                         />
                     </GridCol>
-                </GridRow>
+                </GridRow> */}
                 <GridRow>
                     <GridCol sm={12}>
                         <ResponsiveGrid>
@@ -766,7 +766,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                         disabled={isAllDay}
                                     />
                                 </GridCol>
-                                <GridCol sm={4} lg={3}>
+                                {/* <GridCol sm={4} lg={3}>
                                     <LiveToggle
                                         {...liveProps}
                                         label={strings.Field_AllDayEvent.Label}
@@ -774,7 +774,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                         offText={strings.Field_AllDayEvent.OffText}
                                         propertyName='isAllDay'
                                     />
-                                </GridCol>
+                                </GridCol> */}
                             </GridRow>
                             <GridRow>
                                 {(!isRecurring || isSeriesException) &&
@@ -798,12 +798,12 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                         disabled={isAllDay}
                                     />
                                 </GridCol>
-                                <GridCol sm={4} lg={3}>
+                                {/* <GridCol sm={4} lg={3}>
                                     {!isAllDay && <>
                                         <Label>Duration</Label>
                                         <Text>{humanizeDuration(this.entity.duration)}</Text>
                                     </>}
-                                </GridCol>
+                                </GridCol> */}
                             </GridRow>
 
                             
@@ -820,7 +820,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         </GridCol>
                     </GridRow>
                 }
-                {!isSeriesException &&
+                {/* {!isSeriesException &&
                     <GridRow>
                         <GridCol sm={12} lg={3}>
                             <LiveToggle
@@ -875,57 +875,76 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             }
                         </GridCol>
                     </GridRow>
-                }
+                } */}
                 <GridRow>
-                    <GridCol sm={12}>
-                        <LiveTextField
+                    <GridCol sm={6}>
+                        <LiveDropdown
                             {...liveProps}
-                            label={strings.Field_Location.Label}
-                            propertyName='location'
-                            rules={Event.LocationValidations}
+                            label="DV Pay Grade"
+                            propertyName="dvPayGrade"
+                            options={[
+                                { key: 'O-6', text: 'O-6' },
+                                { key: 'O-7', text: 'O-7' },
+                                { key: 'O-8', text: 'O-8' },
+                                { key: 'O-9', text: 'O-9' },
+                                { key: 'O-10', text: 'O-10' },
+                                { key: 'GS-15', text: 'GS-15' },
+                                { key: 'SES-1', text: 'SES-1' },
+                                { key: 'SES-2', text: 'SES-2' },
+                                { key: 'SES-3', text: 'SES-3' },
+                                { key: 'SES-4', text: 'SES-4' },
+                                { key: 'Other', text: 'Other' }
+                            ]}
+                            getKeyFromValue={(val) => val}
                         />
                     </GridCol>
-                </GridRow> 
+                    <GridCol sm={6}>
+                        <LiveTextField {...liveProps} label="DV Rank/Mr./Mrs./Dr." propertyName="dvRank" />
+                    </GridCol>
+                </GridRow>
                 <GridRow>
-                    <GridCol sm={12}>
+                    <GridCol sm={6}>
                         <LiveTextField
                             {...liveProps}
-                            label={strings.Field_Description.Label}
-                            propertyName='description'
-                            multiline
-                            rows={3}
+                            label="DV First Name"
+                            propertyName="dvFirstName"
+                            updateField={(update) => this.updateField(e => {
+                                update(e);
+                                e.title = `${e.dvFirstName || ''} ${e.dvSurname || ''}`.trim();
+                            })}
+                        />
+                    </GridCol>
+                    <GridCol sm={6}>
+                        <LiveTextField
+                            {...liveProps}
+                            label="DV Last Name (Surname)"
+                            propertyName="dvSurname"
+                            updateField={(update) => this.updateField(e => {
+                                update(e);
+                                e.title = `${e.dvFirstName || ''} ${e.dvSurname || ''}`.trim();
+                            })}
                         />
                     </GridCol>
                 </GridRow>
                 <GridRow>
-                    <GridCol sm={12}>
-                        <LiveUserPicker
-                            {...liveProps}
-                            label={strings.Field_Contacts.Label}
-                            tooltip={strings.Field_Contacts.Tooltip}
-                            propertyName='contacts'
-                            restrictPrincipalType={PrincipalType.All}
-                        />
+                    <GridCol sm={6}>
+                        <LiveTextField {...liveProps} label="Which JDIR/Office is DV Visiting" propertyName="jdirVisiting" />
                     </GridCol>
-                </GridRow>
-                <GridRow>
-                    <GridCol sm={12}>
+                    <GridCol sm={6}>
                     <LiveDropdown
                         {...liveProps}
-                        label="COM Decision"
-                        propertyName="comDecision"
+                        label="Is DV visiting COM, DCOM or COS?"
+                        propertyName="dvVisiting"
                         options={[
-                            { key: 'Undecided', text: 'Undecided' },
-                            { key: 'Tentative', text: 'Tentative' },
-                            { key: 'Hold', text: 'Hold' },
-                            { key: 'Accept', text: 'Accept' }
+                            { key: 'Yes', text: 'Yes' },
+                            { key: 'No', text: 'No' }
                         ]}
-                        required={false}
-                        getKeyFromValue={(val) => val}  // This assumes that the value is the key itself
+                        getKeyFromValue={(val) => val}
                     />
                     </GridCol>
                 </GridRow>
                 <GridRow>
+                    {/*
                     <GridCol sm={12}>
                         <LiveDatePicker
                             {...liveProps}
@@ -1000,7 +1019,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                 </GridRow>
                 <GridRow>
                     <GridCol sm={12}>
-                        {/* {this._renderModerationStatus()} */}
+                        {this._renderModerationStatus()}
                     </GridCol>
                 </GridRow>
                 {confidentialFieldEnabled &&
@@ -1054,6 +1073,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                     <GridCol sm={12}>
                         <ListItemTechnicals entity={this.entity} />
                     </GridCol>
+                    */}
                 </GridRow>
             </ResponsiveGrid>
         );
@@ -1069,7 +1089,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         const onEditSeries = () => { this.edit(seriesMaster.get()); };
 
         return <>
-            <EventOverview className={styles.header} event={this.entity} />
+            {/* <EventOverview className={styles.header} event={this.entity} /> */}
             {isSeriesException &&
                 <MessageBar delayedRender={false} role='alert' messageBarType={MessageBarType.info}>
                     {format(strings.Recurrence.EditingInstanceWarning, recurrenceExceptionInstanceDate.format('LL'))}.

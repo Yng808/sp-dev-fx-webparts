@@ -192,12 +192,14 @@ const ViewRoute: FC = () => {
     const commandBarItems = useCallback(
         (numberOfEventsNeedingApproval: number) => {
             const staticItems: ICommandBarItemProps[] = [
-                // {
-                //   key: 'new-event',
-                //   text: strings.Command_NewEvent.Text,
-                //   iconProps: { iconName: 'Add' },
-                //   onClick: () => newEvent()
-                // },
+                {
+                  key: 'new-event',
+                  text: strings.Command_NewEvent.Text,
+                  iconProps: { iconName: 'Add' },
+                  onClick: () => newEvent()
+                },
+                {}
+                // ,
                 // userCanManageSettings && {
                 //   key: 'settings',
                 //   text: strings.Command_Settings.Text,
