@@ -245,7 +245,8 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                         return (
                         <>
                             <h6>Assignment for: {matchedEvent?.dvPayGrade || ''} {matchedEvent?.dvSurname || ''}</h6>
-                            <h6>GroupID: {matchedEvent?.groupID || ''} _ Bridge: {matchedEvent?.dvVisiting || ''}</h6>
+                            <h6>GroupID: {matchedEvent?.groupID || ''}</h6>
+                            <h6>Bridge: {matchedEvent?.dvVisiting || ''}</h6>
                         </>
                         );
                     })()}
