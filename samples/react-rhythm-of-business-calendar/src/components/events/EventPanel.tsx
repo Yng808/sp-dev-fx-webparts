@@ -5,7 +5,7 @@ import { FocusZone, format, ICommandBarItemProps, IDropdownOption, Label, Link, 
 import { Entity, ErrorHandler, humanizeDuration, mapToArray, now, User, ValidationRule } from 'common';
 import { EntityPanelBase, IEntityPanelProps, IDataPanelBaseState, ResponsiveGrid, GridRow, GridCol, LiveText, LiveUpdate, IDataPanelBase, LiveToggle, LiveUserPicker, LiveTextField, LiveTimePicker, LiveDatePicker, Validation, ITransformer, LiveMultiselectDropdown, LiveDropdown } from "common/components";
 import { Event, Refiner, RefinerValue, RecurPattern, EventModerationStatus, Approvers, humanizeRecurrencePattern } from "model";
-import { withServices, ServicesProp, EventsServiceProp, EventsService, ConfigurationServiceProp, ConfigurationService, DirectoryServiceProp, DirectoryService } from 'services';
+import { withServices, ServicesProp, EventsServiceProp, EventsService, ConfigurationServiceProp, ConfigurationService, DirectoryServiceProp, DirectoryService, TimeZoneService, TimeZoneServiceProp } from 'services';
 import { EventOverview } from '../events';
 import { RefinerValuePill } from '../refiners';
 import { ListItemTechnicals } from '../shared';
@@ -16,7 +16,7 @@ import { PersistConcurrencyFailureMessage, Validation as validationStrings, Even
 import styles from './EventPanel.module.scss';
 import EventAttachments from './EventAttachments';
 import { fetchBookedParkingForEvent, fetchParkingStalls, filterAvailableParking, formatParkingOptions } from 'components/views/list/spEventDetailsList';
-import moment from 'moment';
+import { Moment } from 'moment-timezone';
 
 export class RefinerValueValidationRule extends ValidationRule<Event> {
     constructor(
@@ -36,7 +36,7 @@ export interface IEventPanel extends IDataPanelBase<Event> {
 interface IOwnProps {
     commands: IEventCommands;
 }
-type IProps = IOwnProps & IEntityPanelProps<Event> & ServicesProp<DirectoryServiceProp & ConfigurationServiceProp & EventsServiceProp>;
+type IProps = IOwnProps & IEntityPanelProps<Event> & ServicesProp<DirectoryServiceProp & ConfigurationServiceProp & EventsServiceProp & TimeZoneServiceProp>;
 
 interface IOwnState {
     refinerValueOptionsByRefiner: Map<Refiner, IDropdownOption[]>;
@@ -78,11 +78,16 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
     public componentDidMount(): void {
         super.componentDidMount?.();
     }
+
+    private _toSiteTimeZone(date: Moment): Moment {
+        const { [TimeZoneService]: { siteTimeZone } } = this.props.services;
+        return date?.clone().tz(siteTimeZone.momentId, true);
+    }
     
     private async _loadAvailableParking() {
         const event = this.entity; 
-        const start = event.start;
-        const end = event.end;
+        const start = this._toSiteTimeZone(event.start);
+        const end = this._toSiteTimeZone(event.end);
 
         this._parkingOptions = [];
         this.forceUpdate();
