@@ -14,7 +14,7 @@ export const useEventPanel = (anchorDate: Moment) => {
         try {
             const event = new Event();
             event.startDate = date || anchorDate;
-            event.requestStatus ='New';
+            event.requestStatus ='Approved';
             event.dvVisiting = 'No';
             event.groupID = (Date.now() * 10000) + 621355968000000000;
 

@@ -1,7 +1,7 @@
-import { PrincipalType } from '@pnp/sp';
+import { PrincipalType, sp } from '@pnp/sp';
 import { Guid } from '@microsoft/sp-core-library';
 import React from 'react';
-import { FocusZone, format, ICommandBarItemProps, IDropdownOption, Label, Link, MessageBar, MessageBarType, Stack, Text } from "@fluentui/react";
+import { FocusZone, format, ICommandBarItemProps, IDropdownOption, Label, Link, MessageBar, MessageBarType, Stack, Text, PrimaryButton } from "@fluentui/react";
 import { Entity, ErrorHandler, humanizeDuration, mapToArray, now, User, ValidationRule } from 'common';
 import { EntityPanelBase, IEntityPanelProps, IDataPanelBaseState, ResponsiveGrid, GridRow, GridCol, LiveText, LiveUpdate, IDataPanelBase, LiveToggle, LiveUserPicker, LiveTextField, LiveTimePicker, LiveDatePicker, Validation, ITransformer, LiveMultiselectDropdown, LiveDropdown } from "common/components";
 import { Event, Refiner, RefinerValue, RecurPattern, EventModerationStatus, Approvers, humanizeRecurrencePattern } from "model";
@@ -15,6 +15,8 @@ import { PersistConcurrencyFailureMessage, Validation as validationStrings, Even
 
 import styles from './EventPanel.module.scss';
 import EventAttachments from './EventAttachments';
+import { fetchBookedParkingForEvent, fetchParkingStalls, filterAvailableParking, formatParkingOptions } from 'components/views/list/spEventDetailsList';
+import moment from 'moment';
 
 export class RefinerValueValidationRule extends ValidationRule<Event> {
     constructor(
@@ -44,12 +46,14 @@ type IState = IOwnState & IDataPanelBaseState<Event>;
 
 class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEventPanel {
     private readonly _refinerValueValidationRulesByRefiner = new Map<Refiner, RefinerValueValidationRule>();
+    private _parkingOptions: IDropdownOption[] = [];
 
     protected get title() {
         return this.entity?.displayName || (this.isNew ? strings.NewEvent : '');
     }
 
     protected resetState(): IState {
+        this._parkingOptions = [];
         this._buildRefinerValueOptions();
         this._buildRefinerValueValidationRules();
 
@@ -73,6 +77,37 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
 
     public componentDidMount(): void {
         super.componentDidMount?.();
+    }
+    
+    private async _loadAvailableParking() {
+        const event = this.entity; 
+        const start = event.start;
+        const end = event.end;
+
+        this._parkingOptions = [];
+        this.forceUpdate();
+
+        if (!start || !end || !end.isAfter(start)) {
+            alert("Invalid time range");
+            return;
+        }
+
+        try {
+            const web = await sp.web.get();
+            const siteUrl = web.Url;
+
+            const ignoreIds = event.id ? [event.id] : [];
+            const allParking = await fetchParkingStalls(siteUrl);
+            const bookedIds = await fetchBookedParkingForEvent(siteUrl, start, end, ignoreIds);
+
+            const available = filterAvailableParking(allParking, bookedIds);
+            this._parkingOptions = formatParkingOptions(available);
+
+            this.forceUpdate();
+        } catch (err) {
+            console.error(err);
+            alert("Failed to load parking");
+        }
     }
 
     private async _buildRefinerValueOptions() {
@@ -882,6 +917,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             {...liveProps}
                             label="DV Pay Grade"
                             propertyName="dvPayGrade"
+                            required
                             options={[
                                 { key: 'O-6', text: 'O-6' },
                                 { key: 'O-7', text: 'O-7' },
@@ -919,6 +955,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             {...liveProps}
                             label="DV Last Name (Surname)"
                             propertyName="dvSurname"
+                            required
                             updateField={(update) => this.updateField(e => {
                                 update(e);
                                 e.title = `${e.dvFirstName || ''} ${e.dvSurname || ''}`.trim();
@@ -935,12 +972,37 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         {...liveProps}
                         label="Is DV visiting COM, DCOM or COS?"
                         propertyName="dvVisiting"
+                        required
                         options={[
                             { key: 'Yes', text: 'Yes' },
                             { key: 'No', text: 'No' }
                         ]}
                         getKeyFromValue={(val) => val}
                     />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
+                    <GridCol sm={6}>
+                        <LiveDropdown
+                            {...liveProps}
+                            label="Parking Stall"
+                            propertyName="parkingStalls"
+                            required
+                            options={this._parkingOptions}
+                            getKeyFromValue={(val) => val}
+                            updateField={(update) =>
+                                this.updateField(e => {
+                                    update(e);
+                                    const selected = this._parkingOptions.find(opt => opt.key === e.parkingStalls);
+                                    e.parkingStallName = selected?.text || '';
+                                })
+                            }
+                        />
+                    </GridCol>
+                    <GridCol sm={6}>
+                        <Stack verticalAlign="end" styles={{ root: { marginTop: 28 } }}>
+                            <PrimaryButton text="Search Available Parking" onClick={() => this._loadAvailableParking()}/>
+                        </Stack>
                     </GridCol>
                 </GridRow>
                 <GridRow>

@@ -2,21 +2,21 @@ import { EventOccurrence } from 'model';
 import moment from 'moment';
 
 interface EmailContent {
-  to: string;
-  subject: string;
-  body: string;
+    to: string;
+    subject: string;
+    body: string;
 }
 
 let EMAIL_SUBJECT_PREFIX = '';
-let EMAIL_PHONE = '';
+export let EMAIL_PHONE = '';
 let EMAIL_EMAIL = '';
 let EMAIL_SIGNATURE = '';
 
 export const applyEmailSettings = (settings: Record<string, string>) => {
-  EMAIL_SUBJECT_PREFIX = settings.SUBJECT_PREFIX || EMAIL_SUBJECT_PREFIX;
-  EMAIL_PHONE = settings.PHONE || EMAIL_PHONE;
-  EMAIL_EMAIL = settings.EMAIL || EMAIL_EMAIL;
-  EMAIL_SIGNATURE = settings.SIGNATURE || EMAIL_SIGNATURE;
+    EMAIL_SUBJECT_PREFIX = settings.SUBJECT_PREFIX || EMAIL_SUBJECT_PREFIX;
+    EMAIL_PHONE = settings.PHONE || EMAIL_PHONE;
+    EMAIL_EMAIL = settings.EMAIL || EMAIL_EMAIL;
+    EMAIL_SIGNATURE = settings.SIGNATURE || EMAIL_SIGNATURE;
 };
 
 function formatDateRange(dates: (EventOccurrence | moment.Moment)[]): string {
@@ -259,7 +259,7 @@ export function timeChangedEmail(event: EventOccurrence, newStart: moment.Moment
 }
 
 export function buildTimeChangeNotice(ev: EventOccurrence, newStart: moment.Moment, newEnd: moment.Moment): string {
-  return `This email is to inform you that your base parking request scheduled for ${ev.start.format('DD MMM, YYYY')} at ${ev.start.format('HHmm')}-${ev.end.format('HHmm')} has been updated to the new time: ${newStart.format('HHmm')}-${newEnd.format('HHmm')}.`;
+    return `This email is to inform you that your base parking request scheduled for ${ev.start.format('DD MMM, YYYY')} at ${ev.start.format('HHmm')}-${ev.end.format('HHmm')} has been updated to the new time: ${newStart.format('HHmm')}-${newEnd.format('HHmm')}.`;
 }
 
 // Single: Cancel

@@ -81,11 +81,7 @@ export const formatParkingOptions = (availableParking: ParkingSpot[]): IDropdown
 };
 
 // Returns details (payGrade, surname) for occupied stalls in a date range
-export const fetchOccupiedParkingDetails = async (
-    siteUrl: string,
-    eventStart: moment.Moment,
-    eventEnd: moment.Moment
-): Promise<OccupiedStall[]> => {
+export const fetchOccupiedParkingDetails = async (siteUrl: string, eventStart: moment.Moment, eventEnd: moment.Moment): Promise<OccupiedStall[]> => {
     const response = await fetch(
         `${siteUrl}/_api/web/lists/getbytitle('Rob Calendar Events2')/items` +
         `?$select=ParkingStallsId,DVRank,DVSurname,EventDate,EndDate` +
