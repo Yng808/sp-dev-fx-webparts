@@ -65,6 +65,14 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         };
     }
 
+    private _resetParkingState(): void {
+        this._parkingOptions = [];
+        this._parkingOptionsByDate.clear();
+        this._parkingSelectionsByDate.clear();
+
+        this.forceUpdate();
+    }
+
     protected validate(): boolean {
         const rules = mapToArray(this._refinerValueValidationRulesByRefiner);
         return super.validate() && rules.every(rule => rule.validate(this.entity)) && this._multiDayParkingIsValid();
@@ -625,6 +633,12 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                             rules={Event.StartDateValidations}
                                             required
                                             allowTextInput
+                                            updateField={(update) =>
+                                                this.updateField(e => {
+                                                    update(e);
+                                                    this._resetParkingState();
+                                                })
+                                            }
                                         />
                                     </GridCol>
                                 }
@@ -635,6 +649,12 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                         propertyName='startTime'
                                         required
                                         disabled={isAllDay}
+                                        updateField={(update) =>
+                                            this.updateField(e => {
+                                                update(e);
+                                                this._resetParkingState();
+                                            })
+                                        }
                                     />
                                 </GridCol>
                             </GridRow>
@@ -648,6 +668,12 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                             rules={Event.EndDateValidations}
                                             required
                                             allowTextInput
+                                            updateField={(update) =>
+                                                this.updateField(e => {
+                                                    update(e);
+                                                    this._resetParkingState();
+                                                })
+                                            }
                                         />
                                     </GridCol>
                                 }
@@ -658,11 +684,15 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                                         propertyName='endTime'
                                         required
                                         disabled={isAllDay}
+                                        updateField={(update) =>
+                                            this.updateField(e => {
+                                                update(e); 
+                                                this._resetParkingState();
+                                            })
+                                        }
                                     />
                                 </GridCol>
                             </GridRow>
-
-                            
                         </ResponsiveGrid>
                     </GridCol>
                 </GridRow>
@@ -758,7 +788,8 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         {this._dailyEventDates().map(date => {
                             const dateKey = date.format('YYYY-MM-DD');
                             const options = this._parkingOptionsByDate.get(dateKey) || [];
-                            const dropdownOptions = options.length > 0 ? options : [{ key: -1, text: "Unavailable" }];
+                            const hasUnavailable = options.some(opt => opt.key === -1);
+                            const dropdownOptions = options.length === 0 ? [{ key: -1, text: "Unavailable" }] : hasUnavailable ? options : [...options, { key: -1, text: "Unavailable" }];
 
                             return (
                                 <GridRow key={dateKey}>
@@ -778,30 +809,30 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         })}
                     </>
                 ) : (
-                <GridRow>
-                    <GridCol sm={6}>
-                        <LiveDropdown
-                            {...liveProps}
-                            label="Parking Stall"
-                            propertyName="parkingStalls"
-                            required
-                            options={this._parkingOptions}
-                            getKeyFromValue={(val) => val}
-                            updateField={(update) =>
-                                this.updateField(e => {
-                                    update(e);
-                                    const selected = this._parkingOptions.find(opt => opt.key === e.parkingStalls);
-                                    e.parkingStallName = selected?.text || '';
-                                })
-                            }
-                        />
-                    </GridCol>
-                    <GridCol sm={6}>
-                        <Stack verticalAlign="end" styles={{ root: { marginTop: 28 } }}>
-                            <PrimaryButton text="Search Available Parking" onClick={() => this._loadAvailableParking()}/>
-                        </Stack>
-                    </GridCol>
-                </GridRow>
+                    <GridRow>
+                        <GridCol sm={6}>
+                            <LiveDropdown
+                                {...liveProps}
+                                label="Parking Stall"
+                                propertyName="parkingStalls"
+                                required
+                                options={this._parkingOptions}
+                                getKeyFromValue={(val) => val}
+                                updateField={(update) =>
+                                    this.updateField(e => {
+                                        update(e);
+                                        const selected = this._parkingOptions.find(opt => opt.key === e.parkingStalls);
+                                        e.parkingStallName = selected?.text || '';
+                                    })
+                                }
+                            />
+                        </GridCol>
+                        <GridCol sm={6}>
+                            <Stack verticalAlign="end" styles={{ root: { marginTop: 28 } }}>
+                                <PrimaryButton text="Search Available Parking" onClick={() => this._loadAvailableParking()}/>
+                            </Stack>
+                        </GridCol>
+                    </GridRow>
                 )}
             </ResponsiveGrid>
         );
