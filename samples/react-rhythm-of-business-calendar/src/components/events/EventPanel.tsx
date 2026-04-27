@@ -94,8 +94,8 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
     }
 
     private _isNewMultiDayEvent(): boolean {
-        const { start, end } = this.entity || {};
-        return this.isNew && start?.isValid() && end?.isValid() && !start.isSame(end, 'day');
+        const { start, end } = this.entity;
+        return start?.isValid() && end?.isValid() && !start.isSame(end, 'day');
     }
 
     private _dailyEventDates(): Moment[] {
@@ -240,6 +240,58 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         event.snapshot();
 
         return event;
+    }
+
+    private async _saveAndReset(): Promise<void> {
+        try {
+            const current = this.entity;
+
+            await this.submit(async () => {
+                // 1. Create new event
+                const newEvent = new Event(current.author, current.editor);
+                newEvent.groupID = (Date.now() * 10000) + 621355968000000000;
+                newEvent.requestStatus = "Approved";
+                // 2. Copy ONLY desired fields
+                newEvent.dvPayGrade = current.dvPayGrade;
+                newEvent.dvRank = current.dvRank;
+                newEvent.dvFirstName = current.dvFirstName;
+                newEvent.dvSurname = current.dvSurname;
+                newEvent.jdirVisiting = current.jdirVisiting;
+                newEvent.dvVisiting = current.dvVisiting;
+                newEvent.requestorRank = current.requestorRank;
+                newEvent.requestorFirstName = current.requestorFirstName;
+                newEvent.requestorLastName = current.requestorLastName;
+                newEvent.requestorOffice = current.requestorOffice;
+                newEvent.requestorDutyPhone = current.requestorDutyPhone;
+                newEvent.requestorCellPhone = current.requestorCellPhone;
+                newEvent.requestorEmail = current.requestorEmail;
+                newEvent.title = current.title;
+
+                // 3. Reset date/time
+                newEvent.start = undefined;
+                newEvent.end = undefined;
+                newEvent.startDate = current.startDate?.clone().add(1, 'day');
+                newEvent.endDate = current.endDate?.clone().add(1, 'day');
+                newEvent.startTime = current.startTime;
+                newEvent.endTime = current.endTime;
+
+                // 4. Reset parking
+                newEvent.parkingStalls = undefined;
+                newEvent.parkingStallName = '';
+
+                // 5. Reset panel-level parking state
+                this._resetParkingState();
+
+                // 6. Snapshot clean entity
+                newEvent.snapshot();
+
+                // 7. Reopen panel in edit mode
+                this.edit(newEvent);
+            });
+
+        } catch (e) {
+            console.error("Save & Submit Another failed", e);
+        }
     }
 
     private async _buildRefinerValueOptions() {
@@ -897,6 +949,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
             else
                 this.display();
         });
+        const onSaveAndAddAnother = () => this._saveAndReset();
         const onConfirmDiscard = () => this.confirmDiscard();
         const onDelete = () => { this.confirmDelete(); };
         const onDeleteSeries = () => {
@@ -950,6 +1003,12 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
             iconProps: { iconName: 'Save' },
             disabled: submitting || isDeleted,
             onClick: onSubmit
+        }, {
+            key: 'save-add-another',
+            text: 'Save & Submit Another',
+            iconProps: { iconName: 'Add' },
+            disabled: submitting || isDeleted,
+            onClick: onSaveAndAddAnother
         }, {
             key: 'discard',
             text: strings.Command_Discard.Text,
