@@ -11,11 +11,11 @@ const EMAIL_SUBJECT_PREFIX = `USINDOPACOM DV Parking Request for`;
 const EMAIL_PHONE = `808-477-7747`;
 const EMAIL_EMAIL = `indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil`;
 const EMAIL_SIGNATURE = `
+                        Mahalo!
 
-Mahalo!
-USINDOPACOM Protocol
-Email: indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil
-COMM: 808-477-7747`;
+                        USINDOPACOM Protocol
+                        Email: indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil
+                        COMM: 808-477-7747`;
 
 function formatDateRange(dates: (EventOccurrence | moment.Moment)[]): string {
     if (!dates.length) return '';
