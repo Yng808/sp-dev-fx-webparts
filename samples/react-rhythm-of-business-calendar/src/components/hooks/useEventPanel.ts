@@ -5,6 +5,39 @@ import { Event, IEvent } from "model";
 import { IEventPanel } from "../events";
 import { useDirectoryService } from 'services';
 
+const parseRequestorName = (title: string, email: string): { firstName: string; lastName: string } => {
+    const normalizedTitle = (title || '').trim();
+    const emailAlias = (email || '').split('@')[0];
+    const emailNameParts = emailAlias
+        .split(/[._-]+/)
+        .map(part => part.trim())
+        .filter(Boolean);
+
+    if (emailNameParts.length >= 2) {
+        return {
+            firstName: emailNameParts[0],
+            lastName: emailNameParts[emailNameParts.length - 1]
+        };
+    }
+
+    if (normalizedTitle.includes(',')) {
+        const [lastNamePart, firstNamePart] = normalizedTitle.split(',', 2);
+        const firstName = (firstNamePart || '').trim().split(/\s+/)[0] || '';
+
+        return {
+            firstName,
+            lastName: (lastNamePart || '').trim()
+        };
+    }
+
+    const titleParts = normalizedTitle.split(/\s+/).filter(Boolean);
+
+    return {
+        firstName: titleParts[0] || '',
+        lastName: titleParts.slice(1).join(' ') || ''
+    };
+};
+
 export const useEventPanel = (anchorDate: Moment) => {
     const forceUpdate = useForceUpdate();
 
@@ -21,9 +54,9 @@ export const useEventPanel = (anchorDate: Moment) => {
             const currentUser = directoryService.currentUser;
 
             if (currentUser) {
-                const nameParts = (currentUser.title || '').split(' ');
-                event.requestorFirstName = nameParts[0] || '';
-                event.requestorLastName = nameParts.slice(1).join(' ') || '';
+                const { firstName, lastName } = parseRequestorName(currentUser.title, currentUser.email);
+                event.requestorFirstName = firstName;
+                event.requestorLastName = lastName;
                 event.requestorEmail = currentUser.email || '';
             }
 
