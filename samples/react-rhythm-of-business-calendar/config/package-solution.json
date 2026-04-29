@@ -3,7 +3,7 @@
     "solution": {
         "name": "PARKR",
         "id": "343fc4a8-44f5-41b9-b439-17cd8f23db2a",
-        "version": "1.5.0.4",
+        "version": "1.5.0.5",
         "includeClientSideAssets": true,
         "skipFeatureDeployment": true,
         "developer": {
