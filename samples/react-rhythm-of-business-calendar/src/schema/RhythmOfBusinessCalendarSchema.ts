@@ -1,5 +1,5 @@
 import { IElementDefinitions, IListDefinition, buildLiveSchema } from "common/sharepoint";
-import { ConfigurationList, IEventsListDefinition, EventsList, RefinersList, RefinerValuesList, ApproversList, IRefinersListDefinition, IRefinerValuesListDefinition, IApproversListDefinition, DVParkingStallsList, IDVParkingStallsListDefinition, EmailSettingsList, IEmailSettingsListDefinition } from "./lists";
+import { ConfigurationList, IEventsListDefinition, EventsList, RefinersList, RefinerValuesList, ApproversList, IRefinersListDefinition, IRefinerValuesListDefinition, IApproversListDefinition, DVParkingStallsList, IDVParkingStallsListDefinition } from "./lists";
 
 export const CurrentSchemaVersion: number = 1.0;
 
@@ -10,7 +10,6 @@ export interface IRhythmOfBusinessCalendarSchema extends IElementDefinitions {
     refinerValuesList: IRefinerValuesListDefinition;
     approversList: IApproversListDefinition;
     dvParkingStallsList: IDVParkingStallsListDefinition;
-    emailSettingsList: IEmailSettingsListDefinition;
 }
 
 export const RhythmOfBusinessCalendarSchema = buildLiveSchema<IRhythmOfBusinessCalendarSchema>({
@@ -21,8 +20,7 @@ export const RhythmOfBusinessCalendarSchema = buildLiveSchema<IRhythmOfBusinessC
         RefinersList,
         RefinerValuesList,
         ApproversList,
-        DVParkingStallsList,
-        EmailSettingsList
+        DVParkingStallsList
     ],
     upgrades: [
     ],
@@ -31,6 +29,5 @@ export const RhythmOfBusinessCalendarSchema = buildLiveSchema<IRhythmOfBusinessC
     refinersList: RefinersList,
     refinerValuesList: RefinerValuesList,
     approversList: ApproversList,
-    dvParkingStallsList: DVParkingStallsList,
-    emailSettingsList: EmailSettingsList
+    dvParkingStallsList: DVParkingStallsList
 });

@@ -1,6 +1,6 @@
 import { IAsyncData } from "common";
 import { IService, IServiceDescriptor, DeveloperService, SharePointService, TimeZoneService, DirectoryService, LiveUpdateService, useServices } from "common/services";
-import { Approvers, EmailSetting, Event, ReadonlyEventMap, Refiner, RefinerValue } from "model";
+import { Approvers, Event, ReadonlyEventMap, Refiner, RefinerValue } from "model";
 import { ConfigurationService } from "../configuration";
 import { OnlineEventsService } from "./OnlineEventsService";
 
@@ -14,13 +14,11 @@ export interface IEventsService extends IService {
     readonly refinerValuesAsync: IAsyncData<readonly RefinerValue[]>;
 
     readonly approversAsync: IAsyncData<readonly Approvers[]>;
-    readonly emailSettingAsync: IAsyncData<readonly EmailSetting[]>;
 
     track(event: Event): void;
     track(refiner: Refiner): void;
     track(refinerValue: RefinerValue): void;
     track(approver: Approvers): void;
-    track(emailSetting: EmailSetting): void;
 
     persist(): Promise<void>;
 
