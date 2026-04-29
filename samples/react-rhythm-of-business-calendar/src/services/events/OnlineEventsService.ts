@@ -5,7 +5,7 @@ import { format } from '@fluentui/react';
 import { Color, Entity, humanizeFixedList, IAsyncData, multifilter, now, User } from 'common';
 import { ServiceContext, DeveloperService, DeveloperServiceProp, SharePointServiceProp, SharePointService, ISharePointService, TimeZoneServiceProp, TimeZoneService, ITimeZoneService, LiveUpdateServiceProp, LiveUpdateService, ILiveUpdateService, DirectoryService, DirectoryServiceProp, IDirectoryService, TeamsJs } from 'common/services';
 import { RoleType } from 'common/sharepoint';
-import { Approvers, Event, EventModerationStatus, humanizeDateRange, humanizeRecurrencePattern, ReadonlyEventMap, Refiner, RefinerValue } from 'model';
+import { Approvers, Event, EventModerationStatus, humanizeDateRange, humanizeRecurrencePattern, ReadonlyEventMap, Refiner, RefinerValue, EmailSetting } from 'model';
 import { ConfigurationService, IConfigurationService, ConfigurationServiceProp } from '../configuration';
 import { IEventsService } from './EventsServiceDescriptor';
 import { EventLoader } from './EventLoader';
@@ -13,6 +13,7 @@ import { iCalendarFileBuilder } from './iCalendarFileBuilder';
 import { RefinerLoader } from './RefinerLoader';
 import { RefinerValueLoader } from './RefinerValueLoader';
 import { ApproversLoader } from './ApproversLoader';
+import { EmailSettingLoader } from './EmailSettingLoader';
 import { Defaults } from './Defaults';
 
 import { AppName, ApprovalEmails as strings } from 'ComponentStrings';
@@ -29,6 +30,7 @@ export class OnlineEventsService implements IEventsService {
     private _refinerLoader: RefinerLoader;
     private _refinerValueLoader: RefinerValueLoader;
     private _approversLoader: ApproversLoader;
+    private _emailSettingLoader: EmailSettingLoader;
 
     constructor({
         [TeamsJs]: teams,
@@ -59,6 +61,7 @@ export class OnlineEventsService implements IEventsService {
             this._refinerValueLoader = new RefinerValueLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerLoader);
             this._eventLoader = new EventLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
             this._approversLoader = new ApproversLoader(schema, this._timezones, this._spo, this._liveUpdate, this._refinerValueLoader);
+            this._emailSettingLoader = new EmailSettingLoader(schema, this._timezones, this._spo, this._liveUpdate);
         }
     }
 
@@ -82,11 +85,16 @@ export class OnlineEventsService implements IEventsService {
         return this._approversLoader.asyncData();
     }
 
+    public get emailSettingAsync(): IAsyncData<readonly EmailSetting[]> {
+        return this._emailSettingLoader.asyncData();
+    }
+
     public track(event: Event): void;
     public track(refiner: Refiner): void;
     public track(refinerValue: RefinerValue): void;
     public track(approvers: Approvers): void;
-    public track(entity: Event | Refiner | RefinerValue | Approvers): void {
+    public track(EmailSetting: EmailSetting): void;
+    public track(entity: Event | Refiner | RefinerValue | Approvers | EmailSetting): void {
         if (entity instanceof Event) {
             this._eventLoader.track(entity);
         } else if (entity instanceof Refiner) {
@@ -96,6 +104,8 @@ export class OnlineEventsService implements IEventsService {
             this._refinerValueLoader.track(entity);
         } else if (entity instanceof Approvers) {
             this._approversLoader.track(entity);
+        } else if (entity instanceof EmailSetting) {
+            this._emailSettingLoader.track(entity);
         }
     }
 
@@ -104,6 +114,7 @@ export class OnlineEventsService implements IEventsService {
         await this._refinerValueLoader.persist();
         await this._approversLoader.persist();
         await this._eventLoader.persist();
+        await this._emailSettingLoader.persist();
         await this._handleRestrictedPermissionsEvents();
         await this._handleEventApprovals();
     }

@@ -11,6 +11,7 @@ import { useApprovals, useCopyLinkDialog, useExecuteEventDeepLink, useEventPanel
 import { Refiners, RefinerPanel } from '../refiners';
 import { SettingsPanel } from '../settings';
 import { EventFilter, EventPanel, IEventCommands } from '../events';
+import { applyEmailSettingsList } from './list/EmailTemplate';
 import { CopyLinkDialog, Rail, SwipedEvents, SwipeEventListener } from '../shared';
 import { IViewCommands, useDataRotatorController, useView, ViewNav } from '.';
 import { FilterConfigContext } from 'components/shared/FilterConfigContext';
@@ -56,13 +57,14 @@ const ViewRoute: FC = () => {
         [view, anchorDate]
     );
 
-    const { eventsAsync, refinersAsync, refinerValuesAsync, approversAsync } =
+    const { eventsAsync, refinersAsync, refinerValuesAsync, approversAsync, emailSettingAsync } =
         useEventsService();
     const [asyncWatchers] = useState([
         eventsAsync,
         refinersAsync,
         refinerValuesAsync,
         approversAsync,
+        emailSettingAsync,
     ]);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [showOnlyCurrentMonth, setShowOnlyCurrentMonth] =
@@ -409,6 +411,14 @@ const ViewRoute: FC = () => {
                         </StackItem>
                     )}
                     <StackItem grow styles={calendarViewStackItemStyles}>
+                    <AsyncDataComponent
+                        dataAsync={emailSettingAsync}
+                        hideSpinners
+                    >
+                    {(emailSettings) => {
+                        applyEmailSettingsList(emailSettings);
+
+                        return (
                         <AsyncDataComponent
                             dataAsync={approversAsync}
                             hideSpinners
@@ -543,6 +553,9 @@ const ViewRoute: FC = () => {
                                 </AsyncDataComponent>
                             )}
                         </AsyncDataComponent>
+                        );
+                    }}
+                    </AsyncDataComponent>
                     </StackItem>
                 </Stack>
             </SwipedEvents>

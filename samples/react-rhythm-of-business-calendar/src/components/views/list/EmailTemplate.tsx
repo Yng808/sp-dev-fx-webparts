@@ -1,4 +1,4 @@
-import { EventOccurrence } from 'model';
+import { EmailSetting, EventOccurrence } from 'model';
 import moment from 'moment';
 
 interface EmailContent {
@@ -7,16 +7,39 @@ interface EmailContent {
     body: string;
 }
 
-let EMAIL_SUBJECT_PREFIX = '';
-export let EMAIL_PHONE = '';
-let EMAIL_EMAIL = '';
-let EMAIL_SIGNATURE = '';
+interface IEmailTemplateSettings {
+    subjectPrefix: string;
+    phone: string;
+    email: string;
+    signature: string;
+}
 
-export const applyEmailSettings = (settings: Record<string, string>) => {
-    EMAIL_SUBJECT_PREFIX = settings.SUBJECT_PREFIX || EMAIL_SUBJECT_PREFIX;
-    EMAIL_PHONE = settings.PHONE || EMAIL_PHONE;
-    EMAIL_EMAIL = settings.EMAIL || EMAIL_EMAIL;
-    EMAIL_SIGNATURE = settings.SIGNATURE || EMAIL_SIGNATURE;
+const emailTemplateSettings: IEmailTemplateSettings = {
+    subjectPrefix: '',
+    phone: '',
+    email: '',
+    signature: ''
+};
+
+export const applyEmailSettingsList = (settings: readonly EmailSetting[]) => {
+    settings.forEach(setting => {
+        if (!setting?.title) return;
+
+        switch (setting.title) {
+            case 'SUBJECT_PREFIX':
+                emailTemplateSettings.subjectPrefix = setting.value || '';
+                break;
+            case 'PHONE':
+                emailTemplateSettings.phone = setting.value || '';
+                break;
+            case 'EMAIL':
+                emailTemplateSettings.email = setting.value || '';
+                break;
+            case 'SIGNATURE':
+                emailTemplateSettings.signature = setting.value || '';
+                break;
+        }
+    });
 };
 
 function formatDateRange(dates: (EventOccurrence | moment.Moment)[]): string {
@@ -34,7 +57,7 @@ function formatDateRange(dates: (EventOccurrence | moment.Moment)[]): string {
 }
 
 function buildSubject(dvRank: string, dvSurname: string, dateRange: string, status: string): string {
-    return `${EMAIL_SUBJECT_PREFIX} ${dvRank} ${dvSurname} on ${dateRange}: ${status}`;
+    return `${emailTemplateSettings.subjectPrefix} ${dvRank} ${dvSurname} on ${dateRange}: ${status}`;
 }
 
 function formatLine(ev: EventOccurrence, stallName: string) {
@@ -98,13 +121,13 @@ export function snapshotGroupEmail(events: EventOccurrence[], parkingMap: { [id:
 
     return {
         to: first.requestorEmail,
-        subject: `${EMAIL_SUBJECT_PREFIX} ${first.dvRank} ${first.dvSurname} on ${formatDateRange(sorted)}`,
+        subject: `${emailTemplateSettings.subjectPrefix} ${first.dvRank} ${first.dvSurname} on ${formatDateRange(sorted)}`,
         body: `Aloha ${first.requestorRank} ${first.requestorLastName},
 
         This email is to inform you of the status of your request:
 
         ${lines.join('\n')}
-        ${EMAIL_SIGNATURE}`
+        ${emailTemplateSettings.signature}`
     };
 }
 
@@ -130,10 +153,10 @@ export function assignGroupEmail(events: EventOccurrence[], parkingMap: { [id: n
  
         Map(s) attached for your use & dissemination.
         
-        PLEASE ensure your DV DOES NOT park in another stall if there is another vehicle in stall and call us at ${EMAIL_PHONE}.
+        PLEASE ensure your DV DOES NOT park in another stall if there is another vehicle in stall and call us at ${emailTemplateSettings.phone}.
         
-        Please submit any changes or cancellations to ${EMAIL_EMAIL}.
-        ${EMAIL_SIGNATURE}`
+        Please submit any changes or cancellations to ${emailTemplateSettings.email}.
+        ${emailTemplateSettings.signature}`
     };
 }
 
@@ -147,7 +170,7 @@ export function noParkingAvailableEmail(events: EventOccurrence[]): EmailContent
         body: `Aloha ${first.requestorRank} ${first.requestorLastName},
         
         Unfortunately, there is no parking available for the following date(s): ${formatDateRange(events)}
-        ${EMAIL_SIGNATURE}`
+        ${emailTemplateSettings.signature}`
     };
 }
 
@@ -167,13 +190,13 @@ export function fieldsChangedEmail(original: EventOccurrence, updated: Record<st
 
     return {
         to: first.requestorEmail,
-        subject: `${EMAIL_SUBJECT_PREFIX} ${rank} ${surname} on ${formatDateRange(sorted)}: Updated`,
+        subject: `${emailTemplateSettings.subjectPrefix} ${rank} ${surname} on ${formatDateRange(sorted)}: Updated`,
         body: `Aloha ${requestorRank} ${requestorLastName},
 
         This email is to inform you of the change(s) to your request:
 
         ${changesText}
-        ${EMAIL_SIGNATURE}`
+        ${emailTemplateSettings.signature}`
     };
 }
 // Multi OR Single: Date(s) Changed
@@ -203,7 +226,7 @@ export function datesChangedEmail(previousEvents: EventOccurrence[], updatedEven
 
         New Date(s):
         ${newRange}
-        ${EMAIL_SIGNATURE}`
+        ${emailTemplateSettings.signature}`
     };
 }
 
@@ -240,7 +263,7 @@ export function cancelGroupEmail(events: EventOccurrence[]): EmailContent {
         This email is to inform you that the base parking request for the following dates has been cancelled:
 
         ${formattedDates.join('\n')}
-        ${EMAIL_SIGNATURE}`
+        ${emailTemplateSettings.signature}`
     };
 }
 
@@ -254,7 +277,7 @@ export function timeChangedEmail(event: EventOccurrence, newStart: moment.Moment
         This email is to inform you that your base parking request scheduled for ${newStart.format('DD MMM, YYYY')} at ${newStart.format('HHmm')}-${newEnd.format('HHmm')} has been updated to the new time: ${newStart.format('HHmm')}-${newEnd.format('HHmm')}.
 
         Assigned Parking: ${parkingName || 'N/A'}
-        ${EMAIL_SIGNATURE}`
+        ${emailTemplateSettings.signature}`
     };
 }
 
@@ -270,6 +293,6 @@ export function cancelEventEmail(event: EventOccurrence): EmailContent {
         body: `Aloha ${event.requestorRank} ${event.requestorLastName},
 
         This email is to inform you that the base parking request for ${event.start.format('DD MMM, YYYY')} - ${event.start.format('HHmm')}-${event.end.format('HHmm')} has been cancelled.
-        ${EMAIL_SIGNATURE}`
+        ${emailTemplateSettings.signature}`
     };
 }

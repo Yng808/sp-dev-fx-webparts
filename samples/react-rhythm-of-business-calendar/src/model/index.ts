@@ -8,3 +8,4 @@ export { Recurrence, RecurDay, RecurPattern, RecurPatternOption, RecurWeekOfMont
 export { Refiner, type RefinerMap, type ReadonlyRefinerMap } from "./Refiner";
 export { RefinerValue, type RefinerValueMap, type ReadonlyRefinerValueMap } from "./RefinerValue";
 export { ViewKeys, DefaultViewKey } from './ViewKeys';
+export { EmailSetting } from './EmailSetting';

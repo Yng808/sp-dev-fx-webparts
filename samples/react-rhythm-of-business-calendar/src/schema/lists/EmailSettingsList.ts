@@ -12,7 +12,7 @@ const Field_Value: ITextFieldDefinition = {
 };
 
 const View_AllSettings: IViewDefinition = {
-    title: "All Settings",
+    title: "All Items",
     rowLimit: 50,
     paged: true,
     default: true,
