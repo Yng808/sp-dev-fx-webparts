@@ -294,6 +294,7 @@ define([], function () {
             Field_QuarterViewGroupByRefiner: { Label: "Quarter view - group by", Tooltip: "Determines how events are grouped in the quarter view" },
             Field_UseApprovals: { Label: "Use approvals", OnText: "Yes", OffText: "No", Tooltip: "Turn on or off approval workflow for events" },
             Field_AllowConfidentialEvents: { Label: "Allow confidential events", OnText: "Yes", OffText: "No", Tooltip: "Turn on or off the ability for users to create events that are only visible to specific people or groups" },
+            Field_ShowRunTests: { Label: "Show Run Tests", OnText: "Yes", OffText: "No", Tooltip: "Show or hide the Run Tests command for users who can manage settings" },
             Field_Refiners: { Label: "Refiners" },
             Command_ConfigureApprovers: { Text: "Configure Approvers", Tooltip: "Create an approval matrix to define who will approve which events" },
             Command_AddRefiner: { Text: "Add refiner" },

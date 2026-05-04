@@ -312,7 +312,7 @@ const ViewRoute: FC = () => {
                     iconProps: { iconName: showOnlyCurrentMonth ? 'CheckboxComposite' : 'Checkbox' },
                     onClick: () => setShowOnlyCurrentMonth(!showOnlyCurrentMonth)
                 },
-                userCanManageSettings && {
+                userCanManageSettings && config.showRunTests && {
                     key: 'run-tests',
                     text: 'Run Tests',
                     iconProps: { iconName: 'Play' },
@@ -333,6 +333,7 @@ const ViewRoute: FC = () => {
         },
         [
             userCanManageSettings,
+            config.showRunTests,
             userIsAnApprover,
             newEvent,
             openExternalListsPanel,

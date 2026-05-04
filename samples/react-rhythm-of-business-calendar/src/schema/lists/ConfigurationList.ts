@@ -67,6 +67,13 @@ const Field_AllowConfidentialEvents: IBooleanFieldDefinition = {
     default: "No"
 };
 
+export const Field_ShowRunTests: IBooleanFieldDefinition = {
+    type: FieldType.Boolean,
+    name: 'ShowRunTests',
+    displayName: "Show Run Tests",
+    default: "No"
+};
+
 const View_AllItems: IViewDefinition = {
     title: "All Configurations",
     rowLimit: 1,
@@ -82,7 +89,8 @@ const View_AllItems: IViewDefinition = {
         Field_RefinerRailInitiallyExpanded,
         Field_QuarterViewGroupByRefinerId,
         Field_UseApprovals,
-        Field_AllowConfidentialEvents
+        Field_AllowConfidentialEvents,
+        Field_ShowRunTests
     )
 };
 
@@ -112,7 +120,8 @@ export const ConfigurationList: IConfigurationListDefinition = {
         Field_RefinerRailInitiallyExpanded,
         Field_QuarterViewGroupByRefinerId,
         Field_UseApprovals,
-        Field_AllowConfidentialEvents
+        Field_AllowConfidentialEvents,
+        Field_ShowRunTests
     ],
     views: [View_AllItems],
     view_AllItems: View_AllItems

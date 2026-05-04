@@ -291,6 +291,7 @@ declare module 'ComponentStrings' {
         Field_QuarterViewGroupByRefiner: IFieldStrings;
         Field_UseApprovals: IToggleFieldStrings;
         Field_AllowConfidentialEvents: IToggleFieldStrings;
+        Field_ShowRunTests: IToggleFieldStrings;
         Field_Refiners: IFieldStrings;
         Command_ConfigureApprovers: IButtonStrings;
         Command_AddRefiner: IButtonStrings;

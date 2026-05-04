@@ -15,6 +15,7 @@ interface IState {
     quarterViewGroupByRefinerId: number;
     useApprovals: boolean;
     allowConfidentialEvents: boolean;
+    showRunTests: boolean;
 }
 
 export class Configuration extends ListItemEntity<IState> {
@@ -32,6 +33,7 @@ export class Configuration extends ListItemEntity<IState> {
         this.state.quarterViewGroupByRefinerId = undefined;
         this.state.useApprovals = false;
         this.state.allowConfidentialEvents = false;
+        this.state.showRunTests = false;
 
         this._schema = RhythmOfBusinessCalendarSchema;
     }
@@ -66,6 +68,9 @@ export class Configuration extends ListItemEntity<IState> {
 
     public get allowConfidentialEvents(): boolean { return this.state.allowConfidentialEvents; }
     public set allowConfidentialEvents(val: boolean) { this.state.allowConfidentialEvents = val; }
+
+    public get showRunTests(): boolean { return this.state.showRunTests; }
+    public set showRunTests(val: boolean) { this.state.showRunTests = val; }
 }
 
 export type ConfigurationMap = Map<number, Configuration>;

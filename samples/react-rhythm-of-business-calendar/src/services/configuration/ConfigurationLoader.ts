@@ -14,6 +14,7 @@ interface IConfigurationListItemResult extends IListItemResult {
     readonly QuarterViewGroupByRefinerId: SPField.Query_Number;
     readonly UseApprovals: SPField.Query_Boolean;
     readonly AllowConfidentialEvents: SPField.Query_Boolean;
+    readonly ShowRunTests: SPField.Query_Boolean;
 }
 
 interface IConfigurationUpdateListItem extends IUpdateListItem {
@@ -27,6 +28,7 @@ interface IConfigurationUpdateListItem extends IUpdateListItem {
     readonly QuarterViewGroupByRefinerId: SPField.Update_Number;
     readonly UseApprovals: SPField.Update_Boolean;
     readonly AllowConfidentialEvents: SPField.Update_Boolean;
+    readonly ShowRunTests: SPField.Update_Boolean;
 }
 
 const toConfiguration = async (row: IConfigurationListItemResult, config: Configuration): Promise<void> => {
@@ -40,6 +42,7 @@ const toConfiguration = async (row: IConfigurationListItemResult, config: Config
     config.quarterViewGroupByRefinerId = SPField.fromInt(row, 'QuarterViewGroupByRefinerId', undefined);
     config.useApprovals = SPField.fromYesNo(row, 'UseApprovals', false);
     config.allowConfidentialEvents = SPField.fromYesNo(row, 'AllowConfidentialEvents', false);
+    config.showRunTests = SPField.fromYesNo(row, 'ShowRunTests', false);
 };
 
 const toUpdateListItem = (config: Configuration): IConfigurationUpdateListItem => {
@@ -55,7 +58,8 @@ const toUpdateListItem = (config: Configuration): IConfigurationUpdateListItem =
             RefinerRailInitiallyExpanded: config.refinerRailInitiallyExpanded,
             QuarterViewGroupByRefinerId: config.quarterViewGroupByRefinerId || 0,
             UseApprovals: config.useApprovals,
-            AllowConfidentialEvents: config.allowConfidentialEvents
+            AllowConfidentialEvents: config.allowConfidentialEvents,
+            ShowRunTests: config.showRunTests
         },
         // 1.1 fields
         ...(config.schemaVersion >= 1.1 && {

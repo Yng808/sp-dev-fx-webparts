@@ -227,6 +227,18 @@ class SettingsPanel extends EntityPanelBase<Configuration, IProps, IState> imple
                         />
                     </GridCol>
                 </GridRow>
+                <GridRow>
+                    <GridCol>
+                        <LiveToggle
+                            {...liveProps}
+                            label={strings.Field_ShowRunTests.Label}
+                            onText={strings.Field_ShowRunTests.OnText}
+                            offText={strings.Field_ShowRunTests.OffText}
+                            tooltip={strings.Field_ShowRunTests.Tooltip}
+                            propertyName='showRunTests'
+                        />
+                    </GridCol>
+                </GridRow>
                 {useRefiners &&
                     <GridRow>
                         <GridCol>
