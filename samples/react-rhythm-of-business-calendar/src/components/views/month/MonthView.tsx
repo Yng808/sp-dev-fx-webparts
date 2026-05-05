@@ -10,9 +10,11 @@ import { Week } from './Week';
 import { ViewNames as strings } from 'ComponentStrings';
 import { FocusZone } from '@fluentui/react';
 import Legend from './Legend';
+import { useTimeZoneService } from 'services';
 
 const MonthView: FC<IViewProps> = ({ anchorDate, eventCommands, viewCommands, cccurrences }) => {
-    const weeks = Builder.build(cccurrences, anchorDate);
+    const { siteTimeZone } = useTimeZoneService();
+    const weeks = Builder.build(cccurrences, anchorDate, siteTimeZone);
     const detailsCallout = useRef<IEventDetailsCallout>();
 
    

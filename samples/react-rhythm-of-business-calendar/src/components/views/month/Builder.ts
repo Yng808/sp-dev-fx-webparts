@@ -1,8 +1,8 @@
 import { sumBy } from "lodash";
 import { Moment } from "moment-timezone";
 import { MomentRange } from "common";
+import { ITimeZone } from "common/services";
 import { EventOccurrence } from 'model';
-import { useTimeZoneService } from "services";
 
 export class ItemInfo {
     constructor(
@@ -40,7 +40,8 @@ export class ContentRowInfo {
 
     constructor(
         private readonly _startDate: Moment,
-        private readonly _endDate: Moment
+        private readonly _endDate: Moment,
+        private readonly _siteTimeZone: ITimeZone
     ) {
 
         this.items = [];
@@ -59,13 +60,11 @@ export class ContentRowInfo {
     public include(cccurrence: EventOccurrence) {
         const { start, end } = cccurrence;
         const cccurrenceTimezone = cccurrence.start.tz();
-        const timeZoneService = useTimeZoneService();
-        const siteTimeZone = timeZoneService.siteTimeZone;
 
         // console.log('siteTimezone:', siteTimeZone);
 
-        const thisStartDateInTimezone = cccurrenceTimezone ? this._startDate.clone().tz(cccurrenceTimezone, true) : this._startDate.clone().tz(siteTimeZone.momentId, true);
-        const thisEndDateInTimezone = cccurrenceTimezone ? this._endDate.clone().tz(cccurrenceTimezone, true) : this._endDate.clone().tz(siteTimeZone.momentId, true);
+        const thisStartDateInTimezone = cccurrenceTimezone ? this._startDate.clone().tz(cccurrenceTimezone, true) : this._startDate.clone().tz(this._siteTimeZone.momentId, true);
+        const thisEndDateInTimezone = cccurrenceTimezone ? this._endDate.clone().tz(cccurrenceTimezone, true) : this._endDate.clone().tz(this._siteTimeZone.momentId, true);
 
         const startsInWeek = start.isSameOrAfter(thisStartDateInTimezone);
         const endsInWeek = end.isSameOrBefore(thisEndDateInTimezone);
@@ -110,7 +109,8 @@ export class WeekInfo {
 
     constructor(
         public readonly start: Moment,
-        public readonly end: Moment
+        public readonly end: Moment,
+        private readonly _siteTimeZone: ITimeZone
     ) {
     }
 
@@ -145,7 +145,7 @@ export class WeekInfo {
             let availableRow = this.contentRows.find(row => row.canInclude(cccurrence));
 
             if (!availableRow) {
-                availableRow = new ContentRowInfo(this.start, this.end);
+                availableRow = new ContentRowInfo(this.start, this.end, this._siteTimeZone);
                 this.contentRows.push(availableRow);
             }
 
@@ -166,16 +166,16 @@ export class Builder {
         return { start, end };
     }
 
-    public static build(cccurrences: readonly EventOccurrence[], anchorDate: Moment): WeekInfo[] {
+    public static build(cccurrences: readonly EventOccurrence[], anchorDate: Moment, siteTimeZone: ITimeZone): WeekInfo[] {
         // console.log('inside builder build');
         // console.log('inside builder cccurrences:', cccurrences);
-        const weeks = this._createWeeks(anchorDate);
+        const weeks = this._createWeeks(anchorDate, siteTimeZone);
         this._fillWeeksWithEvents(weeks, cccurrences);
         //console.log('end builder build');
         return weeks;
     }
 
-    private static _createWeeks(anchorDate: Moment): WeekInfo[] {
+    private static _createWeeks(anchorDate: Moment, siteTimeZone: ITimeZone): WeekInfo[] {
         const weeks: WeekInfo[] = [];
 
         const { start, end } = Builder.dateRange(anchorDate);
@@ -184,7 +184,7 @@ export class Builder {
         do {
             const weekStart = date.clone();
             const weekEnd = date.clone().endOf('week');
-            weeks.push(new WeekInfo(weekStart, weekEnd));
+            weeks.push(new WeekInfo(weekStart, weekEnd, siteTimeZone));
             date.add(1, 'week');
         } while (date.isBefore(end));
 
