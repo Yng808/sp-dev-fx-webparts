@@ -25,22 +25,7 @@ export class ExternalListsLoader {
     }
 
     private async _load(enabledOnly: boolean): Promise<ExternalListConfig[]> {
-        const query: CamlQuery | undefined = enabledOnly
-        ? ({
-            ViewXml: `
-                <View>
-                <Query>
-                    <Where>
-                    <Eq>
-                        <FieldRef Name="IsEnabled" />
-                        <Value Type="Boolean">1</Value>
-                    </Eq>
-                    </Where>
-                </Query>
-                </View>
-            `
-            } as unknown as CamlQuery)
-        : undefined;
+        const query = enabledOnly ? new CamlQuery(CamlQuery.where(CamlQuery.eq("IsEnabled", "1", "Boolean"))) : CamlQuery.none;
 
         return this.spo.listItems<IListItemResult, ExternalListConfig>(
         ExternalListsConfigList,
