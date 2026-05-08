@@ -766,6 +766,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             propertyName="dvPayGrade"
                             required
                             options={[
+                                { key: 'E-9', text: 'E-9' },
                                 { key: 'O-6', text: 'O-6' },
                                 { key: 'O-7', text: 'O-7' },
                                 { key: 'O-8', text: 'O-8' },

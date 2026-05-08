@@ -4,8 +4,9 @@ import { useForceUpdate } from "@fluentui/react-hooks";
 import { Event, IEvent } from "model";
 import { IEventPanel } from "../events";
 import { useDirectoryService } from 'services';
+import { EMAIL_PHONE } from "../views/list/EmailTemplate";
 
-const parseRequestorName = (title: string, email: string): { firstName: string; lastName: string } => {
+const parseRequestorName = (title: string, email: string): { firstName: string; lastName: string; rank: string } => {
     const normalizedTitle = (title || '').trim();
     const emailAlias = (email || '').split('@')[0];
     const emailNameParts = emailAlias
@@ -13,10 +14,32 @@ const parseRequestorName = (title: string, email: string): { firstName: string; 
         .map(part => part.trim())
         .filter(Boolean);
 
-    if (emailNameParts.length >= 2) {
+    if (emailNameParts.length >= 3) {
+        const surnameParts = emailNameParts.slice(1, -1);
+        const surnameWithoutMiddleInitial = surnameParts.length > 1 && /^[a-z]$/i.test(surnameParts[0])
+            ? surnameParts.slice(1)
+            : surnameParts;
+
         return {
             firstName: emailNameParts[0],
-            lastName: emailNameParts[emailNameParts.length - 1]
+            lastName: surnameWithoutMiddleInitial.join(' ').replace(/\d+$/g, ''),
+            rank: emailNameParts[emailNameParts.length - 1]
+        };
+    }
+
+    if (emailNameParts.length === 2) {
+        return {
+            firstName: emailNameParts[0],
+            lastName: emailNameParts[1].replace(/\d+$/g, ''),
+            rank: ''
+        };
+    }
+
+    if (emailNameParts.length === 1) {
+        return {
+            firstName: emailNameParts[0],
+            lastName: '',
+            rank: ''
         };
     }
 
@@ -26,7 +49,8 @@ const parseRequestorName = (title: string, email: string): { firstName: string; 
 
         return {
             firstName,
-            lastName: (lastNamePart || '').trim()
+            lastName: (lastNamePart || '').trim(),
+            rank: ''
         };
     }
 
@@ -34,7 +58,8 @@ const parseRequestorName = (title: string, email: string): { firstName: string; 
 
     return {
         firstName: titleParts[0] || '',
-        lastName: titleParts.slice(1).join(' ') || ''
+        lastName: titleParts.slice(1).join(' ') || '',
+        rank: ''
     };
 };
 
@@ -50,13 +75,16 @@ export const useEventPanel = (anchorDate: Moment) => {
             event.requestStatus ='Approved';
             event.dvVisiting = 'No';
             event.groupID = (Date.now() * 10000) + 621355968000000000;
-
+            event.requestorOffice = 'Protocol';
+            event.requestorCellPhone = EMAIL_PHONE
+            event.requestorDutyPhone = EMAIL_PHONE
             const currentUser = directoryService.currentUser;
 
             if (currentUser) {
-                const { firstName, lastName } = parseRequestorName(currentUser.title, currentUser.email);
+                const { firstName, lastName, rank } = parseRequestorName(currentUser.title, currentUser.email);
                 event.requestorFirstName = firstName;
                 event.requestorLastName = lastName;
+                event.requestorRank = rank;
                 event.requestorEmail = currentUser.email || '';
             }
 

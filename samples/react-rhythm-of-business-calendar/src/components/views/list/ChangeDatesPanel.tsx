@@ -86,6 +86,7 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
                     EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
                     EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss'),
                     ParkingStallsId: null,
+                    ParkingStallName: "",
                     RequestStatus: 'New'
                 });
             } else {
@@ -93,6 +94,7 @@ export const ChangeDatesPanel: FC<ChangeDatesPanelProps> = ({ isChangeDatesPanel
                 await sp.web.lists.getByTitle('Rob Calendar Events2').items.add({
                     Title: templateEvent.title || 'Event', GroupID: templateEvent.groupID, DVPayGrade: templateEvent.dvPayGrade, DVRank: templateEvent.dvRank, DVFirstName: templateEvent.dvFirstName, DVSurname: templateEvent.dvSurname, JDIRVisiting: templateEvent.jdirVisiting, DVVisiting: templateEvent.dvVisiting, RequestorRank: templateEvent.requestorRank, RequestorFirstName: templateEvent.requestorFirstName, RequestorLastName: templateEvent.requestorLastName, RequestorOffice: templateEvent.requestorOffice, RequestorDutyPhone: templateEvent.requestorDutyPhone, RequestorCellPhone: templateEvent.requestorCellPhone, RequestorEmail: templateEvent.requestorEmail,
                     ParkingStallsId: null,
+                    ParkingStallName: "",
                     RequestStatus: 'New',
                     EventDate: newStart.format('YYYY-MM-DDTHH:mm:ss'),
                     EndDate: newEnd.format('YYYY-MM-DDTHH:mm:ss')

@@ -8,7 +8,7 @@ interface EmailContent {
 }
 
 const EMAIL_SUBJECT_PREFIX = `USINDOPACOM DV Parking Request for`;
-const EMAIL_PHONE = `808-477-7747`;
+export const EMAIL_PHONE = `808-477-7747`;
 const EMAIL_EMAIL = `indopacom.hmsmith.pcj0.mbx.j01-protocol@us.navy.mil`;
 const EMAIL_SIGNATURE = `
                         Mahalo!

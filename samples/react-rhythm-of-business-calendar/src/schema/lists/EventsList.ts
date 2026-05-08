@@ -174,7 +174,7 @@ const Field_RequestStatus: IChoiceFieldDefinition = {
 const Field_DVPayGrade: IChoiceFieldDefinition = {
     type: FieldType.Choice,
     name: 'DVPayGrade',
-    choices: ['O-6', 'O-7', 'O-8', 'O-9', 'O-10', 'GS-15', 'SES-1', 'SES-2', 'SES-3', 'SES-4'],
+    choices: ['E-9','O-6', 'O-7', 'O-8', 'O-9', 'O-10', 'GS-15', 'SES-1', 'SES-2', 'SES-3', 'SES-4'],
     default: ''
 };
 
