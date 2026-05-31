@@ -19,6 +19,23 @@ interface IProps<E extends ListItemEntity<any>, P extends PropsOfType<E, T>, T e
     updateField: (update: (data: E) => void, callback?: () => any) => void;
 }
 
+const toPickerDate = (value?: Moment): Date | undefined =>
+    value?.isValid()
+        ? new Date(value.year(), value.month(), value.date())
+        : undefined;
+
+const fromPickerDate = (value: Date, currentValue?: Moment): Moment => {
+    const dateParts = {
+        year: value.getFullYear(),
+        month: value.getMonth(),
+        date: value.getDate()
+    };
+
+    return currentValue?.isValid()
+        ? currentValue.clone().set(dateParts)
+        : moment(dateParts);
+};
+
 const LiveDatePicker = <E extends ListItemEntity<any>, P extends PropsOfType<E, T>, T extends DataType>(props: IProps<E, P, T>) => {
     const {
         entity,
@@ -35,8 +52,11 @@ const LiveDatePicker = <E extends ListItemEntity<any>, P extends PropsOfType<E, 
     const value = getCurrentValue(entity, propertyName) as T;
     const updateValue = useCallback((val: LiveType<E, P>) => updateField(e => setValue(e, propertyName, val)), [updateField, propertyName]);
     const renderValue = useCallback((val: LiveType<E, P>) => <span>{(val as DataType)?.isValid() ? (val as DataType).format('dddd, MMMM DD, YYYY') : ''}</span>, []);
-    const formatDate = useCallback((val: Date) => formatMoment(moment(val)), [formatMoment]);
-    const onChange = useCallback((value: Date) => updateField(e => setValue(e, propertyName, moment(value) as LiveType<E, P>)), [updateField, propertyName]);
+    const formatDate = useCallback((val: Date) => formatMoment(fromPickerDate(val)), [formatMoment]);
+    const onChange = useCallback((selectedDate?: Date | null) => {
+        if (!selectedDate) return;
+        updateField(e => setValue(e, propertyName, fromPickerDate(selectedDate, value) as LiveType<E, P>));
+    }, [updateField, propertyName, value]);
 
     return (
         <Validation entity={entity} rules={rules} active={showValidationFeedback}>
@@ -52,7 +72,7 @@ const LiveDatePicker = <E extends ListItemEntity<any>, P extends PropsOfType<E, 
                         ariaLabel={ariaLabel}
                         isRequired={!label && required}
                         formatDate={formatDate}
-                        value={value?.isValid() && value?.toDate()}
+                        value={toPickerDate(value)}
                         onSelectDate={onChange}
                     />
                     {!label && renderLiveUpdateMark()}
