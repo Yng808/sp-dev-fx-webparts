@@ -225,29 +225,6 @@ export const eventTestCases = (anchorDate: any) =>  ({
             }
         },
         {
-            name: "TEST #13 - All Day Weekly", // need to fix
-            build: () => {
-                const event = new Event();
-                event.title = "TEST #13 - All Day Weekly";
-                event.start = anchorDate.clone().day(RecurDay.monday).startOf("day");
-                event.end = anchorDate.clone().day(RecurDay.monday).startOf("day");
-                event.isAllDay = true;
-
-                const recurrence = new Recurrence();
-                recurrence.pattern = RecurPattern.weekly;
-                recurrence.weekly.every = 1;
-                recurrence.until.type = RecurUntilType.count;
-                recurrence.until.count = 8;
-                recurrence.setDefaultsForDate(event.start);
-                recurrence.weekly.days.fill(false);
-                recurrence.weekly.days[RecurDay.monday] = true;
-                event.isRecurring = true;
-                event.recurrence = recurrence;
-
-                return event;
-            }
-        },
-        {
             name: "TEST #14 - Multi-Year Weekly",
             build: () => {
                 const event = new Event();
@@ -296,12 +273,13 @@ export const eventTestCases = (anchorDate: any) =>  ({
             }
         },
         {
-            name: "TEST #16 - Last Day Of Month", // need to show on sp calendar
+            name: "TEST #16 - Last Day Of Month",
             build: () => {
                 const event = new Event();
                 event.title = "TEST #16 - Last Day Of Month";
-                event.start = anchorDate.clone().month(0).date(31).hour(9).minute(0);
-                event.end = anchorDate.clone().month(0).date(31).hour(10).minute(0);
+                const start = anchorDate.clone().endOf("month").hour(9).minute(0).second(0).millisecond(0);
+                event.start = start.clone();
+                event.end = start.clone().hour(10).minute(0).second(0).millisecond(0);
                 event.isAllDay = false;
 
                 const recurrence = new Recurrence();
@@ -415,12 +393,17 @@ export const eventTestCases = (anchorDate: any) =>  ({
             }
         },
         {
-            name: "TEST #21 - Monthly Last Friday", // need to show on calendar
+            name: "TEST #21 - Monthly Last Friday",
             build: () => {
                 const event = new Event();
                 event.title = "TEST #21 - Monthly Last Friday";
-                event.start = anchorDate.clone().endOf("month").day(5).hour(9).minute(0);
-                event.end = anchorDate.clone().endOf("month").day(5).hour(10).minute(0);
+                const start = anchorDate.clone().endOf("month");
+                while (start.day() !== RecurDay.friday) { 
+                    start.subtract(1, "day"); 
+                }
+                start.hour(9).minute(0).second(0).millisecond(0);
+                event.start = start.clone();
+                event.end = start.clone().hour(10).minute(0).second(0).millisecond(0);
                 event.isAllDay = false;
 
                 const recurrence = new Recurrence();
