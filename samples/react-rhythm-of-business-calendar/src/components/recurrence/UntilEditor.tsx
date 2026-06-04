@@ -18,6 +18,11 @@ const countTextFieldStyles: Partial<ITextFieldStyles> = {
 };
 
 const formatDatePickerDate = (date: Date) => { const m = moment(date); return m.isValid() ? m.format('l') : ''; };
+const toDatePickerValue = (date?: moment.Moment): Date | undefined => date?.isValid() ? new Date(date.year(), date.month(), date.date()) : undefined;
+const fromDatePickerValue = (date: Date, reference?: moment.Moment): moment.Moment => {
+    const selected = moment(date);
+    return reference?.isValid() ? reference.clone().year(selected.year()).month(selected.month()).date(selected.date()).startOf('day') : selected;
+};
 
 interface IProps {
     entity: Event;
@@ -62,10 +67,10 @@ export const UntilEditor: FC<IProps> = ({
 
     const onChangedDate = useCallback(
         (val: Date) => {
-            const m = moment(val);
+            const m = fromDatePickerValue(val, date);
             updateField(() => until.date = m.isValid() ? m : undefined);
         },
-        [updateField]
+        [updateField, date]
     );
 
     const onRenderFieldForeverChoiceGroupOption = useCallback((props: IChoiceGroupOptionProps, render: FC<IChoiceGroupOptionProps>) =>
@@ -103,7 +108,7 @@ export const UntilEditor: FC<IProps> = ({
                         allowTextInput
                         ariaLabel={strings.Field_UntilDate.AriaLabel}
                         formatDate={formatDatePickerDate}
-                        value={date?.toDate()}
+                        value={toDatePickerValue(date)}
                         onSelectDate={onChangedDate}
                     />
                 }} />

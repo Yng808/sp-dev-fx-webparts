@@ -9,6 +9,13 @@ import { Validation } from './Validation';
 
 type DataType = Moment;
 
+const toDatePickerValue = (date?: Moment): Date | undefined => date?.isValid() ? new Date(date.year(), date.month(), date.date()) : undefined;
+
+const fromDatePickerValue = (date: Date, reference?: Moment): Moment => {
+    const selected = moment(date);
+    return reference?.isValid() ? reference.clone().year(selected.year()).month(selected.month()).date(selected.date()).startOf('day') : selected;
+};
+
 interface IProps<E extends ListItemEntity<any>, P extends PropsOfType<E, T>, T extends DataType> extends Omit<IDatePickerProps, 'value' | 'onSelectDate' | 'formatDate' | 'isRequired'> {
     entity: E;
     propertyName: P;
@@ -36,7 +43,7 @@ const LiveDatePicker = <E extends ListItemEntity<any>, P extends PropsOfType<E, 
     const updateValue = useCallback((val: LiveType<E, P>) => updateField(e => setValue(e, propertyName, val)), [updateField, propertyName]);
     const renderValue = useCallback((val: LiveType<E, P>) => <span>{(val as DataType)?.isValid() ? (val as DataType).format('dddd, MMMM DD, YYYY') : ''}</span>, []);
     const formatDate = useCallback((val: Date) => formatMoment(moment(val)), [formatMoment]);
-    const onChange = useCallback((value: Date) => updateField(e => setValue(e, propertyName, moment(value) as LiveType<E, P>)), [updateField, propertyName]);
+    const onChange = useCallback((date: Date) => updateField(e => setValue(e, propertyName, fromDatePickerValue(date, value) as LiveType<E, P>)), [updateField, propertyName, value]);
 
     return (
         <Validation entity={entity} rules={rules} active={showValidationFeedback}>
@@ -52,7 +59,7 @@ const LiveDatePicker = <E extends ListItemEntity<any>, P extends PropsOfType<E, 
                         ariaLabel={ariaLabel}
                         isRequired={!label && required}
                         formatDate={formatDate}
-                        value={value?.isValid() && value?.toDate()}
+                        value={toDatePickerValue(value)}
                         onSelectDate={onChange}
                     />
                     {!label && renderLiveUpdateMark()}
