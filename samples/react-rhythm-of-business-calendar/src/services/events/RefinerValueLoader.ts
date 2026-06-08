@@ -11,6 +11,7 @@ interface IRefinerValueListItemResult extends IListItemResult {
     Color: SPField.Query_Text;
     Tag: SPField.Query_Text;
     Archived: SPField.Query_Boolean;
+    IsDefault: SPField.Query_Boolean;
 }
 
 interface IRefinerValueUpdateListItem extends IUpdateListItem {
@@ -19,6 +20,7 @@ interface IRefinerValueUpdateListItem extends IUpdateListItem {
     Color: SPField.Update_Text;
     Tag: SPField.Update_Text;
     Archived: SPField.Update_Boolean;
+    IsDefault: SPField.Update_Boolean;
 }
 
 const toRefinerValue = async (row: IRefinerValueListItemResult, value: RefinerValue, refinerLoader: RefinerLoader): Promise<void> => {
@@ -28,6 +30,7 @@ const toRefinerValue = async (row: IRefinerValueListItemResult, value: RefinerVa
     value.color = row.Color ? Color.parse(row.Color) : new Color(255, 255, 255);
     value.tag = row.Tag;
     value.isActive = !SPField.fromYesNo(row, 'Archived', false);
+    value.isDefault = SPField.fromYesNo(row, 'IsDefault');
 };
 
 const toUpdateListItem = (value: RefinerValue): IRefinerValueUpdateListItem => {
@@ -37,7 +40,8 @@ const toUpdateListItem = (value: RefinerValue): IRefinerValueUpdateListItem => {
         RefinerId: value.refiner.get()?.id,
         Color: value.color?.toHexString() || '',
         Tag: value.tag,
-        Archived: !value.isActive
+        Archived: !value.isActive,
+        IsDefault: value.isDefault
     };
 };
 

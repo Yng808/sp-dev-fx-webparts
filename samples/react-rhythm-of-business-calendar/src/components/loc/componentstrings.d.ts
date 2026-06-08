@@ -269,6 +269,9 @@ declare module 'ComponentStrings' {
         Field_UseColors: IToggleFieldStrings;
         Field_UseTags: IToggleFieldStrings;
         Field_CustomSort: IToggleFieldStrings;
+        Field_EditableByAdminsOnly: IToggleFieldStrings;
+        Field_DefaultValue: IFieldStrings;
+        DefaultValue_None: string;
         Field_RefinerValues: IFieldStrings;
         Field_RefinerValue_Name: ITextFieldStrings;
         Field_RefinerValue_Tag: ITextFieldStrings;

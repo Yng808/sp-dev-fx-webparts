@@ -41,6 +41,13 @@ const Field_Archived: IBooleanFieldDefinition = {
     default: 'No'
 };
 
+export const Field_IsDefault: IBooleanFieldDefinition = {
+    type: FieldType.Boolean,
+    name: 'IsDefault',
+    displayName: 'Default value',
+    default: 'No'
+};
+
 const View_AllRefinerValues: IViewDefinition = {
     title: "All Refiner Values",
     rowLimit: 1000,
@@ -51,7 +58,8 @@ const View_AllRefinerValues: IViewDefinition = {
         Field_Refiner,
         Field_Tag,
         Field_Color,
-        Field_Archived
+        Field_Archived,
+        Field_IsDefault
     )
 };
 
@@ -105,7 +113,8 @@ export const RefinerValuesList: IRefinerValuesListDefinition = {
         Field_Refiner,
         Field_Tag,
         Field_Color,
-        Field_Archived
+        Field_Archived,
+        Field_IsDefault
     ],
     views: [
         View_AllRefinerValues,

@@ -24,6 +24,7 @@ interface IState {
     tag: string;
     color: Color;
     isActive: boolean;
+    isDefault: boolean;
 }
 
 export class RefinerValue extends ListItemEntity<IState> {
@@ -49,6 +50,7 @@ export class RefinerValue extends ListItemEntity<IState> {
         this.state.tag = "";
         this.state.color = new Color(255, 255, 255);
         this.state.isActive = true;
+        this.state.isDefault = false;
 
         this.refiner = ManyToOneRelationship.create<RefinerValue, Refiner>(this, 'values', 'refiner');
         this.includeInBoundedContext(this.refiner);
@@ -72,6 +74,9 @@ export class RefinerValue extends ListItemEntity<IState> {
 
     public get isActive(): boolean { return this.state.isActive; }
     public set isActive(val: boolean) { this.state.isActive = val; }
+
+    public get isDefault(): boolean { return this.state.isDefault; }
+    public set isDefault(val: boolean) { this.state.isDefault = val; }
 
     protected validationRules(): ValidationRule<RefinerValue>[] {
         return [

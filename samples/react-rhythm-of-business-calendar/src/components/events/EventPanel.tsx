@@ -20,12 +20,15 @@ import EventAttachments from './EventAttachments';
 
 export class RefinerValueValidationRule extends ValidationRule<Event> {
     constructor(
-        private _refiner: Refiner
+        private _refiner: Refiner,
+        private _currentUserIsSiteAdmin: boolean
     ) {
         super((e: Event) => this._isValid(e), validationStrings.Refiners.Required);
     }
 
     private _isValid({ refinerValues }: Event): boolean {
+        if (this._refiner.editableByAdminsOnly && !this._currentUserIsSiteAdmin) return true;
+
         return !this._refiner.required || refinerValues.get().some(v => v.refiner.get() === this._refiner);
     }
 }
@@ -119,7 +122,10 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
     }
 
     private async _buildRefinerValueValidationRules() {
-        const { [EventsService]: { refinersAsync } } = this.props.services;
+        const {
+            [DirectoryService]: { currentUserIsSiteAdmin },
+            [EventsService]: { refinersAsync }
+        } = this.props.services;
 
         await refinersAsync.promise;
 
@@ -128,7 +134,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         this._refinerValueValidationRulesByRefiner.clear();
 
         for (const refiner of refiners.filter(Entity.NotDeletedFilter)) {
-            const rule = new RefinerValueValidationRule(refiner);
+            const rule = new RefinerValueValidationRule(refiner, currentUserIsSiteAdmin);
             this._refinerValueValidationRulesByRefiner.set(refiner, rule);
         }
     }
@@ -599,7 +605,10 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
     }
 
     protected renderEditContent(): JSX.Element {
-        const { [ConfigurationService]: { active: config } } = this.props.services;
+        const {
+            [ConfigurationService]: { active: config },
+            [DirectoryService]: { currentUserIsSiteAdmin }
+        } = this.props.services;
         const { refiners, refinerValueOptionsByRefiner, showValidationFeedback } = this.state;
         const event = this.entity;
         const { isAllDay, start, isConfidential, isRecurring, isSeriesException, recurrence, recurrenceExceptionInstanceDate } = event;
@@ -824,7 +833,10 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                 )}
                 
                 <GridRow>
-                    {refiners.filter(Entity.NotDeletedFilter).map(refiner => {
+                    {refiners
+                        .filter(Entity.NotDeletedFilter)
+                        .filter(refiner => currentUserIsSiteAdmin || !refiner.editableByAdminsOnly)
+                        .map(refiner => {
                         const { displayName, required, allowMultiselect } = refiner;
                         const rules = [this._refinerValueValidationRulesByRefiner.get(refiner)];
 

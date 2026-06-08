@@ -12,6 +12,7 @@ interface IState {
     enableColors: boolean;
     enableTags: boolean;
     customSort: boolean;
+    editableByAdminsOnly: boolean;
 }
 
 export class Refiner extends ListItemEntity<IState> {
@@ -34,6 +35,7 @@ export class Refiner extends ListItemEntity<IState> {
         this.state.enableColors = false;
         this.state.enableTags = false;
         this.state.customSort = false;
+        this.state.editableByAdminsOnly = false;
 
         this._refinerValuesSorting = { comparer: RefinerValue.TitleAscComparer };
         this.values = OneToManyRelationship.create<Refiner, RefinerValue>(this, 'refiner', this._refinerValuesSorting);
@@ -73,6 +75,9 @@ export class Refiner extends ListItemEntity<IState> {
         else
             this._refinerValuesSorting.comparer = RefinerValue.TitleAscComparer;
     }
+
+    public get editableByAdminsOnly(): boolean { return this.state.editableByAdminsOnly; }
+    public set editableByAdminsOnly(val: boolean) { this.state.editableByAdminsOnly = val; }
 
     public delete() {
         super.delete();

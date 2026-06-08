@@ -12,6 +12,7 @@ interface IRefinerListItemResult extends IListItemResult {
     EnableColors: SPField.Query_Boolean;
     EnableTags: SPField.Query_Boolean;
     CustomSort: SPField.Query_Boolean;
+    EditableByAdminsOnly: SPField.Query_Boolean;
 }
 
 interface IRefinerUpdateListItem extends IUpdateListItem {
@@ -22,6 +23,7 @@ interface IRefinerUpdateListItem extends IUpdateListItem {
     EnableColors: SPField.Update_Boolean;
     EnableTags: SPField.Update_Boolean;
     CustomSort: SPField.Update_Boolean;
+    EditableByAdminsOnly: SPField.Update_Boolean;
 }
 
 const toRefiner = (row: IRefinerListItemResult, refiner: Refiner): void => {
@@ -33,6 +35,7 @@ const toRefiner = (row: IRefinerListItemResult, refiner: Refiner): void => {
     refiner.enableColors = SPField.fromYesNo(row, 'EnableColors');
     refiner.enableTags = SPField.fromYesNo(row, 'EnableTags');
     refiner.customSort = SPField.fromYesNo(row, 'CustomSort');
+    refiner.editableByAdminsOnly = SPField.fromYesNo(row, 'EditableByAdminsOnly');
 };
 
 const toUpdateListItem = (refiner: Refiner): IRefinerUpdateListItem => {
@@ -44,7 +47,8 @@ const toUpdateListItem = (refiner: Refiner): IRefinerUpdateListItem => {
         InitiallyExpanded: refiner.initiallyExpanded,
         EnableColors: refiner.enableColors,
         EnableTags: refiner.enableTags,
-        CustomSort: refiner.customSort
+        CustomSort: refiner.customSort,
+        EditableByAdminsOnly: refiner.editableByAdminsOnly
     };
 };
 

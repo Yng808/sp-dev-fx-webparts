@@ -1,10 +1,10 @@
 import { max } from 'lodash';
 import React, { CSSProperties } from 'react';
 import { DragDropContext, Draggable, Droppable, DropResult } from 'react-beautiful-dnd';
-import { ActionButton, FocusZone, ICommandBarItemProps, IconButton, ITextFieldStyles, Label, Stack, StackItem, Text, TooltipHost } from "@fluentui/react";
+import { ActionButton, Dropdown, FocusZone, ICommandBarItemProps, IconButton, IDropdownOption, ITextFieldStyles, Label, Stack, StackItem, Text, TooltipHost } from "@fluentui/react";
 import { GripperDotsVerticalIcon } from '@fluentui/react-icons-mdl2';
 import { Entity, ErrorHandler, IAsyncData, inverseFilter, multifilter, ValidationRule } from 'common';
-import { EntityPanelBase, IEntityPanelProps, IDataPanelBaseState, ResponsiveGrid, GridRow, GridCol, LiveText, LiveUpdate, LiveTextField, IDataPanelBase, LiveRelationship, CalloutColorPicker, LiveToggle } from "common/components";
+import { EntityPanelBase, IEntityPanelProps, IDataPanelBaseState, ResponsiveGrid, GridRow, GridCol, LiveText, LiveUpdate, LiveTextField, IDataPanelBase, LiveRelationship, CalloutColorPicker, LiveToggle, InfoTooltip } from "common/components";
 import { Refiner, RefinerValue } from "model";
 import { withServices, ServicesProp, EventsServiceProp, EventsService, DirectoryService, DirectoryServiceProp } from 'services';
 import { ListItemTechnicals } from '../shared';
@@ -102,6 +102,7 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
         try {
             const values = this.entity.values.filter(Entity.NotDeletedFilter).sort(this.entity.values.sorting.comparer);
             values.forEach((value, idx) => value.order = idx);
+            this._normalizeDefaultValue(this.entity);
 
             events.track(this.entity);
             await events.persist();
@@ -145,6 +146,44 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                 values[i].order++;
             }
         }
+    }
+
+    private _defaultValue(refiner: Refiner): RefinerValue {
+        return refiner.values
+            .filter(Entity.NotDeletedFilter)
+            .filter(RefinerValue.ActiveFilter)
+            .sort(refiner.values.sorting.comparer)
+            .find(value => value.isDefault);
+    }
+
+    private _defaultValueOptions(refiner: Refiner): IDropdownOption[] {
+        const activeValues = refiner.values
+            .filter(Entity.NotDeletedFilter)
+            .filter(RefinerValue.ActiveFilter)
+            .sort(refiner.values.sorting.comparer);
+
+        return [
+            { key: '', text: strings.DefaultValue_None },
+            ...activeValues.map(value => ({ key: value.key, text: value.displayName, data: value }))
+        ];
+    }
+
+    private _setDefaultValue(refiner: Refiner, defaultValue?: RefinerValue): void {
+        refiner.values.forEach(value => value.isDefault = value === defaultValue);
+    }
+
+    private _normalizeDefaultValue(refiner: Refiner): void {
+        let defaultFound = false;
+
+        refiner.values.filter(() => true).sort(refiner.values.sorting.comparer).forEach(value => {
+            if (value.isDeleted || !value.isActive) {
+                value.isDefault = false;
+            } else if (value.isDefault && !defaultFound) {
+                defaultFound = true;
+            } else if (value.isDefault) {
+                value.isDefault = false;
+            }
+        });
     }
 
     protected renderDisplayContent(): JSX.Element {
@@ -192,6 +231,19 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                             <LiveText label={strings.Field_CustomSort.Label} {...liveProps} propertyName='customSort' tooltip={strings.Field_CustomSort.Tooltip}>
                                 {val => <Text tabIndex={0}>{val ? strings.Field_CustomSort.OnText : strings.Field_CustomSort.OffText}</Text>}
                             </LiveText>
+                        </GridCol>
+                    </GridRow>
+                    <GridRow>
+                        <GridCol sm={6} lg={4}>
+                            <LiveText label={strings.Field_EditableByAdminsOnly.Label} {...liveProps} propertyName='editableByAdminsOnly' tooltip={strings.Field_EditableByAdminsOnly.Tooltip}>
+                                {val => <Text tabIndex={0}>{val ? strings.Field_EditableByAdminsOnly.OnText : strings.Field_EditableByAdminsOnly.OffText}</Text>}
+                            </LiveText>
+                        </GridCol>
+                        <GridCol sm={6} lg={4}>
+                            <InfoTooltip text={strings.Field_DefaultValue.Tooltip}>
+                                <Label>{strings.Field_DefaultValue.Label}</Label>
+                            </InfoTooltip>
+                            <Text tabIndex={0}>{this._defaultValue(this.entity)?.displayName || strings.DefaultValue_None}</Text>
                         </GridCol>
                     </GridRow>
                     <GridRow>
@@ -324,6 +376,33 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                     </GridCol>
                 </GridRow>
                 <GridRow>
+                    <GridCol sm={6} lg={4}>
+                        <LiveToggle
+                            {...liveProps}
+                            label={strings.Field_EditableByAdminsOnly.Label}
+                            onText={strings.Field_EditableByAdminsOnly.OnText}
+                            offText={strings.Field_EditableByAdminsOnly.OffText}
+                            tooltip={strings.Field_EditableByAdminsOnly.Tooltip}
+                            propertyName='editableByAdminsOnly'
+                        />
+                    </GridCol>
+                    <GridCol sm={6} lg={4}>
+                        <Dropdown
+                            label={strings.Field_DefaultValue.Label}
+                            options={this._defaultValueOptions(entity)}
+                            selectedKey={this._defaultValue(entity)?.key || ''}
+                            onChange={(ev, option) => this.updateField(refiner => this._setDefaultValue(refiner, option?.data as RefinerValue))}
+                            onRenderLabel={(dropdownProps, defaultRender) =>
+                                <Stack horizontal>
+                                    <InfoTooltip text={strings.Field_DefaultValue.Tooltip}>
+                                        {defaultRender(dropdownProps)}
+                                    </InfoTooltip>
+                                </Stack>
+                            }
+                        />
+                    </GridCol>
+                </GridRow>
+                <GridRow>
                     <GridCol>
                         <Label>{strings.Field_RefinerValues.Label}</Label>
                         <DragDropContext onDragEnd={this._onRefinerValueDragEnd}>
@@ -422,6 +501,14 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                                                                                     {multifilter(entity.events.get(), Entity.NotDeletedFilter, inverseFilter(Entity.NewAndGhostableFilter)).length > 0
                                                                                         ? <LiveToggle
                                                                                             {...liveProps}
+                                                                                            updateField={(update, callback) => {
+                                                                                                this.updateField(refiner => {
+                                                                                                    update(entity);
+                                                                                                    if (!entity.isActive) {
+                                                                                                        entity.isDefault = false;
+                                                                                                    }
+                                                                                                }, callback);
+                                                                                            }}
                                                                                             className={styles.archiveToggle}
                                                                                             ariaLabel={strings.Field_RefinerValue_Archive.AriaLabel}
                                                                                             onText={strings.Field_RefinerValue_Archive.OnText}
@@ -434,7 +521,12 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                                                                                                 <IconButton
                                                                                                     iconProps={{ iconName: 'Delete' }}
                                                                                                     ariaLabel={strings.Command_DeleteRefinerValue.AriaLabel}
-                                                                                                    onClick={() => { this.updateField(e => entity.delete()); }}
+                                                                                                    onClick={() => {
+                                                                                                        this.updateField(e => {
+                                                                                                            entity.isDefault = false;
+                                                                                                            entity.delete();
+                                                                                                        });
+                                                                                                    }}
                                                                                                 />
                                                                                             </TooltipHost>
                                                                                         )

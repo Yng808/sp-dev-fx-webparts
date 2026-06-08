@@ -56,6 +56,13 @@ const Field_CustomSort: IBooleanFieldDefinition = {
     default: 'No'
 };
 
+export const Field_EditableByAdminsOnly: IBooleanFieldDefinition = {
+    type: FieldType.Boolean,
+    name: 'EditableByAdminsOnly',
+    displayName: 'Editable by admins only',
+    default: 'No'
+};
+
 const View_AllRefiners: IViewDefinition = {
     title: "All Refiners",
     rowLimit: 100,
@@ -68,7 +75,8 @@ const View_AllRefiners: IViewDefinition = {
         Field_InitiallyExpanded,
         Field_EnableColors,
         Field_EnableTags,
-        Field_CustomSort
+        Field_CustomSort,
+        Field_EditableByAdminsOnly
     ),
     query: `
         <OrderBy>
@@ -104,7 +112,8 @@ export const RefinersList: IRefinersListDefinition = {
         Field_InitiallyExpanded,
         Field_EnableColors,
         Field_EnableTags,
-        Field_CustomSort
+        Field_CustomSort,
+        Field_EditableByAdminsOnly
     ],
     views: [
         View_AllRefiners

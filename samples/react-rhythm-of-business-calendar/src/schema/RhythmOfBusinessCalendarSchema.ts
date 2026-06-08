@@ -1,7 +1,7 @@
-import { AddListFieldUpgradeAction, DeleteListFieldUpgradeAction, IElementDefinitions, IListDefinition, buildLiveSchema } from "common/sharepoint";
-import { ConfigurationList, Field_ShowRunTests, IEventsListDefinition, EventsList, RefinersList, RefinerValuesList, ApproversList, IRefinersListDefinition, IRefinerValuesListDefinition,IApproversListDefinition,ExternalListsConfigList, Field_Color, Field_ListTitle, Field_RefinerValueId } from "./lists";
+import { AddListFieldUpgradeAction, AddOrUpdateViewUpgradeAction, DeleteListFieldUpgradeAction, IElementDefinitions, IListDefinition, buildLiveSchema } from "common/sharepoint";
+import { ConfigurationList, Field_ShowRunTests, IEventsListDefinition, EventsList, RefinersList, RefinerValuesList, ApproversList, IRefinersListDefinition, IRefinerValuesListDefinition,IApproversListDefinition,ExternalListsConfigList, Field_Color, Field_ListTitle, Field_RefinerValueId, Field_EditableByAdminsOnly, Field_IsDefault } from "./lists";
 
-export const CurrentSchemaVersion: number = 1.1;
+export const CurrentSchemaVersion: number = 1.2;
 
 export interface IRhythmOfBusinessCalendarSchema extends IElementDefinitions {
     configurationList: IListDefinition;
@@ -36,6 +36,30 @@ class DeleteExternalListColorFieldUpgradeAction extends DeleteListFieldUpgradeAc
     }
 }
 
+class AddEditableByAdminsOnlyFieldUpgradeAction extends AddListFieldUpgradeAction {
+    constructor() {
+        super(RefinersList, Field_EditableByAdminsOnly);
+    }
+}
+
+class AddRefinerValueIsDefaultFieldUpgradeAction extends AddListFieldUpgradeAction {
+    constructor() {
+        super(RefinerValuesList, Field_IsDefault);
+    }
+}
+
+class UpdateAllRefinersViewUpgradeAction extends AddOrUpdateViewUpgradeAction {
+    constructor() {
+        super(RefinersList, RefinersList.view_AllRefiners);
+    }
+}
+
+class UpdateAllRefinerValuesViewUpgradeAction extends AddOrUpdateViewUpgradeAction {
+    constructor() {
+        super(RefinerValuesList, RefinerValuesList.view_AllRefinerValues);
+    }
+}
+
 export const RhythmOfBusinessCalendarSchema = buildLiveSchema<IRhythmOfBusinessCalendarSchema>({
     version: CurrentSchemaVersion,
     lists: [
@@ -55,6 +79,16 @@ export const RhythmOfBusinessCalendarSchema = buildLiveSchema<IRhythmOfBusinessC
                 new AddExternalListRefinerValueIdFieldUpgradeAction(),
                 new DeleteExternalListListTitleFieldUpgradeAction(),
                 new DeleteExternalListColorFieldUpgradeAction()
+            ]
+        },
+        {
+            fromVersion: 1.1,
+            toVersion: 1.2,
+            actions: [
+                new AddEditableByAdminsOnlyFieldUpgradeAction(),
+                new AddRefinerValueIsDefaultFieldUpgradeAction(),
+                new UpdateAllRefinersViewUpgradeAction(),
+                new UpdateAllRefinerValuesViewUpgradeAction()
             ]
         }
     ],
