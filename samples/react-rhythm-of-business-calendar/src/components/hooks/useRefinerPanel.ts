@@ -1,7 +1,7 @@
 import { max } from "lodash";
 import { useCallback, useRef } from "react";
 import { useForceUpdate } from "@fluentui/react-hooks";
-import { Refiner } from "model";
+import { ApprovalStatusRefinerTitle, Refiner } from "model";
 import { useEventsService } from "services";
 import { IRefinerPanel } from "../refiners";
 
@@ -23,7 +23,11 @@ export const useRefinerPanel = () => {
 
     const editRefiner = useCallback(async (refiner: Refiner) => {
         try {
-            await refinerPanel.current.edit(refiner);
+            if (refiner.title === ApprovalStatusRefinerTitle) {
+                await refinerPanel.current.readonly(refiner);
+            } else {
+                await refinerPanel.current.edit(refiner);
+            }
         } finally { forceUpdate(); }
     }, [refinerPanel, forceUpdate]);
 

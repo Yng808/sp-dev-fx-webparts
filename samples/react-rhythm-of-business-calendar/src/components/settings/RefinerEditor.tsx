@@ -3,7 +3,7 @@ import { DragDropContext, Draggable, Droppable, DropResult } from 'react-beautif
 import { useConst, useForceUpdate } from '@fluentui/react-hooks';
 import { ActionButton, IconButton, IIconProps, IStackTokens, Stack, Text, TooltipHost } from '@fluentui/react';
 import { GripperDotsVerticalIcon } from '@fluentui/react-icons-mdl2';
-import { Refiner } from 'model';
+import { ApprovalStatusRefinerTitle, Refiner } from 'model';
 import { useEventsService } from 'services';
 
 import { SettingsPanel as strings } from "ComponentStrings";
@@ -24,6 +24,7 @@ interface IRefinerItemProps {
 
 export const RefinerItem: FC<IRefinerItemProps> = ({ index, refiner, onEditRefiner }) => {
     const { key, displayName } = refiner;
+    const isApprovalStatusRefiner = refiner.title === ApprovalStatusRefinerTitle;
     const onclickEdit = useCallback(
         () => onEditRefiner(refiner),
         [refiner, onEditRefiner]
@@ -31,16 +32,18 @@ export const RefinerItem: FC<IRefinerItemProps> = ({ index, refiner, onEditRefin
 
     const stackTokens: IStackTokens = useConst({ childrenGap: 12 });
     const gripperIconStyle: CSSProperties = useConst({ position: 'relative', top: -2 });
-    const editIconProps: IIconProps = useConst({ iconName: 'Edit' });
+    const editIconProps: IIconProps = { iconName: isApprovalStatusRefiner ? 'View' : 'Edit' };
 
     return (
-        <Draggable draggableId={`refiner-${key}`} index={index}>
+        <Draggable draggableId={`refiner-${key}`} index={index} isDragDisabled={isApprovalStatusRefiner}>
             {({ innerRef, draggableProps, dragHandleProps }, { isDragging, draggingOver }) => (
                 <div ref={innerRef} {...draggableProps}>
                     <Stack horizontal verticalAlign='center' tokens={stackTokens} className={styles.refiner}>
-                        <span {...dragHandleProps} aria-label={strings.Command_ReorderRefiner.AriaLabel}>
-                            <Text><GripperDotsVerticalIcon style={gripperIconStyle} /></Text>
-                        </span>
+                        {!isApprovalStatusRefiner &&
+                            <span {...dragHandleProps} aria-label={strings.Command_ReorderRefiner.AriaLabel}>
+                                <Text><GripperDotsVerticalIcon style={gripperIconStyle} /></Text>
+                            </span>
+                        }
                         <Text className={styles.name}>
                             {displayName}
                         </Text>

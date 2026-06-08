@@ -5,7 +5,7 @@ import { format } from '@fluentui/react';
 import { Color, Entity, humanizeFixedList, IAsyncData, IComponent, multifilter, now, User } from 'common';
 import { ServiceContext, DeveloperService, DeveloperServiceProp, SharePointServiceProp, SharePointService, ISharePointService, TimeZoneServiceProp, TimeZoneService, ITimeZoneService, LiveUpdateServiceProp, LiveUpdateService, ILiveUpdateService, DirectoryService, DirectoryServiceProp, IDirectoryService, TeamsJs } from 'common/services';
 import { RoleType } from 'common/sharepoint';
-import { Approvers, Event, EventModerationStatus, humanizeDateRange, humanizeRecurrencePattern, ReadonlyEventMap, Refiner, RefinerValue } from 'model';
+import { ApprovalStatusRefinerTitle, Approvers, Event, EventModerationStatus, humanizeDateRange, humanizeRecurrencePattern, ReadonlyEventMap, Refiner, RefinerValue } from 'model';
 import { ConfigurationService, IConfigurationService, ConfigurationServiceProp } from '../configuration';
 import { IEventsService } from './EventsServiceDescriptor';
 import { EventLoader } from './EventLoader';
@@ -19,6 +19,10 @@ import { ExternalListsLoader } from './ExternalListsLoader';
 import { SPHttpClient } from '@microsoft/sp-http';
 import moment from 'moment-timezone';
 import { AppName, ApprovalEmails as strings } from 'ComponentStrings';
+
+const ApprovalStatusRefinerValueOrderByName = new Map<string, number>(
+    EventModerationStatus.all.map((status, index) => [status.name, index] as const)
+);
 
 export class OnlineEventsService implements IEventsService {
     private readonly _teams: IMicrosoftTeams;
@@ -211,6 +215,75 @@ export class OnlineEventsService implements IEventsService {
         return this._approversLoader.asyncData();
     }
 
+    public async ensureApprovalStatusRefiner(): Promise<void> {
+        const refiners = await this._refinerLoader.all();
+        await this._refinerValueLoader.all();
+
+        const activeRefiners = refiners.filter(Entity.NotDeletedFilter);
+        let refiner = activeRefiners.find(r => r.title === ApprovalStatusRefinerTitle);
+
+        if (!refiner) {
+            refiner = new Refiner();
+            refiner.title = ApprovalStatusRefinerTitle;
+            refiner.order = activeRefiners.reduce((largest, r) => Math.max(largest, r.order), -1) + 1;
+        } else if (!refiner.hasSnapshot) {
+            refiner.snapshot();
+        }
+
+        refiner.allowMultiselect = false;
+        refiner.required = false;
+        refiner.initiallyExpanded = true;
+        refiner.enableColors = false;
+        refiner.enableTags = false;
+        refiner.customSort = true;
+        refiner.editableByAdminsOnly = true;
+
+        const valuesToPersist = new Set<RefinerValue>();
+        const statusValues = new Set<RefinerValue>();
+
+        for (const status of EventModerationStatus.all) {
+            let value = refiner.values
+                .filter(Entity.NotDeletedFilter)
+                .find(v => v.title === status.name);
+
+            if (!value) {
+                value = new RefinerValue();
+                value.title = status.name;
+                value.refiner.set(refiner);
+                this.track(value);
+            } else if (!value.hasSnapshot) {
+                value.snapshot();
+            }
+
+            value.order = ApprovalStatusRefinerValueOrderByName.get(status.name) ?? 0;
+            value.isActive = true;
+            value.isDefault = status === EventModerationStatus.Pending;
+
+            valuesToPersist.add(value);
+            statusValues.add(value);
+        }
+
+        refiner.values
+            .filter(Entity.NotDeletedFilter)
+            .filter(value => !statusValues.has(value) && value.isDefault)
+            .forEach(value => {
+                if (!value.hasSnapshot) value.snapshot();
+                value.isDefault = false;
+                valuesToPersist.add(value);
+            });
+
+        this.track(refiner);
+
+        await this._refinerLoader.persist(refiner);
+
+        for (const value of valuesToPersist) {
+            await this._refinerValueLoader.persist(value);
+            value.immortalize();
+        }
+
+        refiner.immortalize();
+    }
+
     public track(event: Event): void;
     public track(refiner: Refiner): void;
     public track(refinerValue: RefinerValue): void;
@@ -236,6 +309,7 @@ export class OnlineEventsService implements IEventsService {
         await this._refinerLoader.persist();
         await this._refinerValueLoader.persist();
         await this._approversLoader.persist();
+        await this._syncApprovalStatusRefinerForChangedEvents();
         await this._eventLoader.persist();
         await this._handleRestrictedPermissionsEvents();
         await this._handleEventApprovals();
@@ -289,6 +363,55 @@ export class OnlineEventsService implements IEventsService {
         }
 
         return path;
+    }
+
+    private async _syncApprovalStatusRefinerForChangedEvents(): Promise<void> {
+        const { active: { useApprovals } } = this._configurations;
+
+        if (!useApprovals) return;
+
+        const changedEvents = this._eventLoader.entitiesWithChanges.filter(Entity.NotDeletedFilter);
+        if (changedEvents.length === 0) return;
+
+        const approvalStatusRefiner = await this._approvalStatusRefiner();
+        if (!approvalStatusRefiner) return;
+
+        const valuesByStatusName = new Map(
+            approvalStatusRefiner.values
+                .filter(Entity.NotDeletedFilter)
+                .filter(RefinerValue.ActiveFilter)
+                .map(value => [value.title, value] as const)
+        );
+
+        for (const event of changedEvents) {
+            const statusValue = valuesByStatusName.get(event.moderationStatus?.name || EventModerationStatus.Pending.name);
+            if (statusValue) {
+                this._setApprovalStatusRefinerValue(event, approvalStatusRefiner, statusValue);
+            }
+        }
+    }
+
+    private async _approvalStatusRefiner(): Promise<Refiner> {
+        const refiners = await this._refinerLoader.all();
+        await this._refinerValueLoader.all();
+
+        return refiners
+            .filter(Entity.NotDeletedFilter)
+            .find(refiner => refiner.title === ApprovalStatusRefinerTitle);
+    }
+
+    private _setApprovalStatusRefinerValue(event: Event, refiner: Refiner, value: RefinerValue): void {
+        const currentValues = event.refinerValues.get();
+        const currentStatusValues = currentValues.filter(v => v.refiner.get() === refiner);
+
+        if (currentStatusValues.length === 1 && currentStatusValues[0] === value) {
+            return;
+        }
+
+        event.refinerValues.set([
+            ...currentValues.filter(v => v.refiner.get() !== refiner),
+            value
+        ]);
     }
 
     private async _handleRestrictedPermissionsEvents(): Promise<void> {

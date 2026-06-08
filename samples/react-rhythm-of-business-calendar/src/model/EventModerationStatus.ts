@@ -1,3 +1,5 @@
+export const ApprovalStatusRefinerTitle = "Approval Status";
+
 export class EventModerationStatus {
     public static readonly Pending = new EventModerationStatus("Pending");
     public static readonly Approved = new EventModerationStatus("Approved");

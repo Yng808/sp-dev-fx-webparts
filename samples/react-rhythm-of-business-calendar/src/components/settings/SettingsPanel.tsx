@@ -92,10 +92,17 @@ class SettingsPanel extends EntityPanelBase<Configuration, IProps, IState> imple
     }
 
     protected async persistChangesCore() {
-        const { [ConfigurationService]: configurations } = this.props.services;
+        const {
+            [ConfigurationService]: configurations,
+            [EventsService]: events
+        } = this.props.services;
 
         try {
             await configurations.persist();
+
+            if (this.entity.useApprovals) {
+                await events.ensureApprovalStatusRefiner();
+            }
         } catch (e) {
             if (ErrorHandler.is_412_PRECONDITION_FAILED(e)) {
                 const message = await ErrorHandler.message(e);

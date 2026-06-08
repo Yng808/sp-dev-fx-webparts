@@ -4,7 +4,7 @@ import React from 'react';
 import { FocusZone, format, ICommandBarItemProps, IDropdownOption, Label, Link, MessageBar, MessageBarType, Stack, Text } from "@fluentui/react";
 import { Entity, ErrorHandler, humanizeDuration, mapToArray, now, User, ValidationRule } from 'common';
 import { EntityPanelBase, IEntityPanelProps, IDataPanelBaseState, ResponsiveGrid, GridRow, GridCol, LiveText, LiveUpdate, IDataPanelBase, LiveToggle, LiveUserPicker, LiveTextField, LiveTimePicker, LiveDatePicker, Validation, ITransformer, LiveMultiselectDropdown, LiveDropdown } from "common/components";
-import { Event, Refiner, RefinerValue, RecurPattern, EventModerationStatus, Approvers, humanizeRecurrencePattern } from "model";
+import { ApprovalStatusRefinerTitle, Event, Refiner, RefinerValue, RecurPattern, EventModerationStatus, Approvers, humanizeRecurrencePattern } from "model";
 import { withServices, ServicesProp, EventsServiceProp, EventsService, ConfigurationServiceProp, ConfigurationService, DirectoryServiceProp, DirectoryService } from 'services';
 import { EventOverview } from '../events';
 import { RefinerValuePill } from '../refiners';
@@ -17,6 +17,8 @@ import { PersistConcurrencyFailureMessage, Validation as validationStrings, Even
 
 import styles from './EventPanel.module.scss';
 import EventAttachments from './EventAttachments';
+
+const ModerationStatusChangedFromApprovalStatusRefiner = '__moderationStatusChangedFromApprovalStatusRefiner';
 
 export class RefinerValueValidationRule extends ValidationRule<Event> {
     constructor(
@@ -148,9 +150,15 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
         const { isApproved, isRejected, isDeleted, isConfidential } = this.entity;
 
         const userCanApprove = currentUserIsSiteAdmin || this._currentUserIsAnApprover();
+        const moderationStatusChangedFromApprovalStatusRefiner =
+            (this.entity as any)[ModerationStatusChangedFromApprovalStatusRefiner] === true;
 
         try {
-            if (isRejected && !userCanApprove) {
+            if (useApprovals && moderationStatusChangedFromApprovalStatusRefiner && userCanApprove) {
+                this.entity.moderator = currentUser;
+                this.entity.moderationTimestamp = now();
+            }
+            else if (isRejected && !userCanApprove) {
                 this.entity.moderationStatus = EventModerationStatus.Pending;
             }
             else if (!isApproved && (!useApprovals || userCanApprove)) {
@@ -178,6 +186,8 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
             } else {
                 throw e;
             }
+        } finally {
+            delete (this.entity as any)[ModerationStatusChangedFromApprovalStatusRefiner];
         }
     }
 
@@ -838,6 +848,9 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                         .filter(refiner => currentUserIsSiteAdmin || !refiner.editableByAdminsOnly)
                         .map(refiner => {
                         const { displayName, required, allowMultiselect } = refiner;
+                        const isApprovalStatusRefiner = config.useApprovals &&
+                            currentUserIsSiteAdmin &&
+                            refiner.title === ApprovalStatusRefinerTitle;
                         const rules = [this._refinerValueValidationRulesByRefiner.get(refiner)];
 
                         const transformer: ITransformer<RefinerValue[]> = {
@@ -858,7 +871,15 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                             updateField: (update: (event: Event) => void) => {
                                 this.updateField(event => {
                                     update(event);
-                                    event.moderationStatus = EventModerationStatus.Pending;
+
+                                    if (isApprovalStatusRefiner) {
+                                        const statusValue = event.refinerValues.find(v => v.refiner.get() === refiner);
+                                        event.moderationStatus = EventModerationStatus.fromName(statusValue?.title || EventModerationStatus.Pending.name);
+                                        (event as any)[ModerationStatusChangedFromApprovalStatusRefiner] = true;
+                                    } else {
+                                        event.moderationStatus = EventModerationStatus.Pending;
+                                        delete (event as any)[ModerationStatusChangedFromApprovalStatusRefiner];
+                                    }
                                 });
                             }
                         }

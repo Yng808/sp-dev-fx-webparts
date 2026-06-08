@@ -2,7 +2,7 @@ export { Approvers, type ApproversMap, type ReadonlyApproversMap } from "./Appro
 export { type IEvent } from "./IEvent";
 export { Event, type EventMap, type ReadonlyEventMap } from "./Event";
 export { EventOccurrence } from "./EventOccurrence";
-export { EventModerationStatus } from "./EventModerationStatus";
+export { ApprovalStatusRefinerTitle, EventModerationStatus } from "./EventModerationStatus";
 export * from './humanize';
 export { Recurrence, RecurDay, RecurPattern, RecurPatternOption, RecurWeekOfMonth, RecurUntilType, DailyRecurrence, WeeklyRecurrence, MonthlyRecurrence, YearlyRecurrence, RecurUntil } from "./Recurrence";
 export { Refiner, type RefinerMap, type ReadonlyRefinerMap } from "./Refiner";

@@ -5,7 +5,7 @@ import { ActionButton, Dropdown, FocusZone, ICommandBarItemProps, IconButton, ID
 import { GripperDotsVerticalIcon } from '@fluentui/react-icons-mdl2';
 import { Entity, ErrorHandler, IAsyncData, inverseFilter, multifilter, ValidationRule } from 'common';
 import { EntityPanelBase, IEntityPanelProps, IDataPanelBaseState, ResponsiveGrid, GridRow, GridCol, LiveText, LiveUpdate, LiveTextField, IDataPanelBase, LiveRelationship, CalloutColorPicker, LiveToggle, InfoTooltip } from "common/components";
-import { Refiner, RefinerValue } from "model";
+import { ApprovalStatusRefinerTitle, Refiner, RefinerValue } from "model";
 import { withServices, ServicesProp, EventsServiceProp, EventsService, DirectoryService, DirectoryServiceProp } from 'services';
 import { ListItemTechnicals } from '../shared';
 
@@ -80,6 +80,10 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
         return super.hasChanges() || this.entity?.values.hasChanges();
     }
 
+    private get _isApprovalStatusRefiner(): boolean {
+        return this.entity?.title === ApprovalStatusRefinerTitle;
+    }
+
     protected validate(): boolean {
         return super.validate() &&
             this.entity?.values.filter(Entity.NotDeletedFilter).every(v => v.valid()) &&
@@ -88,6 +92,8 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
     }
 
     protected markEntityDeleted(): void {
+        if (this._isApprovalStatusRefiner) return;
+
         super.markEntityDeleted();
 
         this.entity.values.forEach(value => {
@@ -98,6 +104,11 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
 
     protected async persistChangesCore() {
         const { [EventsService]: events } = this.props.services;
+
+        if (this._isApprovalStatusRefiner) {
+            this.entity.revert();
+            return;
+        }
 
         try {
             const values = this.entity.values.filter(Entity.NotDeletedFilter).sort(this.entity.values.sorting.comparer);
@@ -122,6 +133,7 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
     }
 
     private readonly _onRefinerValueDragEnd = async (result: DropResult) => {
+        if (this._isApprovalStatusRefiner) return;
         if (!result.destination) return;
 
         const sourceIndex = result.source.index;
@@ -281,6 +293,7 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
         const { showValidationFeedback } = this.state;
         const entity = this.entity;
         const { enableColors, enableTags, values, customSort } = entity;
+        const readOnly = this._isApprovalStatusRefiner;
         const liveProps = {
             entity,
             showValidationFeedback,
@@ -299,6 +312,7 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                             maxLength={50}
                             rules={Refiner.TitleValidations}
                             autoFocus={entity.isNew}
+                            disabled={readOnly}
                         />
                     </GridCol>
                 </GridRow>
@@ -311,6 +325,7 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                             offText={strings.Field_Required.OffText}
                             tooltip={strings.Field_Required.Tooltip}
                             propertyName='required'
+                            disabled={readOnly}
                         />
                     </GridCol>
                     <GridCol sm={6} lg={4}>
@@ -321,6 +336,7 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                             offText={strings.Field_AllowMultiselect.OffText}
                             tooltip={strings.Field_AllowMultiselect.Tooltip}
                             propertyName='allowMultiselect'
+                            disabled={readOnly}
                         />
                     </GridCol>
                     <GridCol sm={6} lg={4}>
@@ -331,6 +347,7 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                             offText={strings.Field_InitialDisplay.OffText}
                             tooltip={strings.Field_InitialDisplay.Tooltip}
                             propertyName='initiallyExpanded'
+                            disabled={readOnly}
                         />
                     </GridCol>
                 </GridRow>
@@ -344,6 +361,7 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                             tooltip={strings.Field_UseColors.Tooltip}
                             propertyName='enableColors'
                             rules={[this._enableColorsValidation]}
+                            disabled={readOnly}
                         />
                     </GridCol>
                     <GridCol sm={6} lg={4}>
@@ -355,6 +373,7 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                             tooltip={strings.Field_UseTags.Tooltip}
                             propertyName='enableTags'
                             rules={[this._enableTagsValidation]}
+                            disabled={readOnly}
                         />
                     </GridCol>
                     <GridCol sm={6} lg={4}>
@@ -372,6 +391,7 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                             offText={strings.Field_CustomSort.OffText}
                             tooltip={strings.Field_CustomSort.Tooltip}
                             propertyName='customSort'
+                            disabled={readOnly}
                         />
                     </GridCol>
                 </GridRow>
@@ -384,6 +404,7 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                             offText={strings.Field_EditableByAdminsOnly.OffText}
                             tooltip={strings.Field_EditableByAdminsOnly.Tooltip}
                             propertyName='editableByAdminsOnly'
+                            disabled={readOnly}
                         />
                     </GridCol>
                     <GridCol sm={6} lg={4}>
@@ -392,6 +413,7 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                             options={this._defaultValueOptions(entity)}
                             selectedKey={this._defaultValue(entity)?.key || ''}
                             onChange={(ev, option) => this.updateField(refiner => this._setDefaultValue(refiner, option?.data as RefinerValue))}
+                            disabled={readOnly}
                             onRenderLabel={(dropdownProps, defaultRender) =>
                                 <Stack horizontal>
                                     <InfoTooltip text={strings.Field_DefaultValue.Tooltip}>
@@ -425,7 +447,7 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                                             };
 
                                             return (
-                                                <Draggable key={entity.key} draggableId={`refiner-${entity.key}`} index={index} isDragDisabled={isDeleted || !customSort}>
+                                                <Draggable key={entity.key} draggableId={`refiner-${entity.key}`} index={index} isDragDisabled={readOnly || isDeleted || !customSort}>
                                                     {({ innerRef, draggableProps, dragHandleProps }, { isDragging }) => (
                                                         <div ref={innerRef} {...draggableProps} className={styles.refinerValue}>
                                                             <LiveUpdate
@@ -436,7 +458,7 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                                                                 {renderLiveUpdateMark => renderLiveUpdateMark({ className: styles.liveUpdateMark })}
                                                             </LiveUpdate>
                                                             <Stack horizontal verticalAlign='center' tokens={{ childrenGap: 12 }}>
-                                                                {customSort &&
+                                                                {customSort && !readOnly &&
                                                                     <span {...dragHandleProps} aria-label={strings.Command_ReorderRefinerValue.AriaLabel}>
                                                                         <Text><GripperDotsVerticalIcon style={{ position: 'relative', top: -2 }} /></Text>
                                                                     </span>
@@ -449,14 +471,14 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                                                                                     {...liveProps}
                                                                                     propertyName='title'
                                                                                     placeholder={strings.Field_RefinerValue_Name.Placeholder}
-                                                                                    disabled={isDeleted}
+                                                                                    disabled={readOnly || isDeleted}
                                                                                     rules={RefinerValue.TitleValidations}
                                                                                     maxLength={50}
                                                                                     styles={titleFieldstyles}
                                                                                     liveUpdateMarkClassName={styles.titleLiveUpdateMark}
                                                                                 />
                                                                             </GridCol>
-                                                                            {enableColors &&
+                                                                            {enableColors && !readOnly &&
                                                                                 <GridCol sm={3} lg={2} className={styles.color}>
                                                                                     <LiveUpdate {...liveProps} propertyName='color' renderValue={color =>
                                                                                         <div
@@ -488,7 +510,7 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                                                                                         rules={RefinerValue.TagValidations}
                                                                                         placeholder={strings.Field_RefinerValue_Tag.Placeholder}
                                                                                         maxLength={3}
-                                                                                        disabled={isDeleted}
+                                                                                        disabled={readOnly || isDeleted}
                                                                                         prefix="["
                                                                                         suffix="]"
                                                                                         styles={tagFieldstyles}
@@ -496,7 +518,7 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                                                                                     />
                                                                                 </GridCol>
                                                                             }
-                                                                            {!isDragging &&
+                                                                            {!readOnly && !isDragging &&
                                                                                 <GridCol sm={5} lg={3} className={styles.commands}>
                                                                                     {multifilter(entity.events.get(), Entity.NotDeletedFilter, inverseFilter(Entity.NewAndGhostableFilter)).length > 0
                                                                                         ? <LiveToggle
@@ -547,12 +569,14 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
                                 )}
                             </Droppable>
                         </DragDropContext>
-                        <ActionButton iconProps={{ iconName: 'Add' }} onClick={() => {
-                            const value = new RefinerValue();
-                            const maxOrder = max(values.map(v => v.order));
-                            value.order = isFinite(maxOrder) ? maxOrder + 1 : 0;
-                            this.updateField(refiner => refiner.values.add(value));
-                        }}>{strings.Command_AddRefinerValue.Text}</ActionButton>
+                        {!readOnly &&
+                            <ActionButton iconProps={{ iconName: 'Add' }} onClick={() => {
+                                const value = new RefinerValue();
+                                const maxOrder = max(values.map(v => v.order));
+                                value.order = isFinite(maxOrder) ? maxOrder + 1 : 0;
+                                this.updateField(refiner => refiner.values.add(value));
+                            }}>{strings.Command_AddRefinerValue.Text}</ActionButton>
+                        }
                     </GridCol>
 
                 </GridRow>
@@ -578,7 +602,7 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
         const { [DirectoryService]: { currentUserIsSiteAdmin } } = this.props.services;
         const onEdit = () => { this.edit(); };
 
-        const canEdit = currentUserIsSiteAdmin;
+        const canEdit = currentUserIsSiteAdmin && !this._isApprovalStatusRefiner;
 
         const editCommand: ICommandBarItemProps = {
             key: 'edit',
@@ -624,6 +648,12 @@ class RefinerPanel extends EntityPanelBase<Refiner, IProps, IState> implements I
         };
 
         const canDelete = !isNew && currentUserIsSiteAdmin;
+
+        if (this._isApprovalStatusRefiner) {
+            return [
+                discardCommand
+            ];
+        }
 
         return [
             saveCommand,

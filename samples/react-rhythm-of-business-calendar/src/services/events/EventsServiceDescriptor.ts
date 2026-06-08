@@ -22,6 +22,7 @@ export interface IEventsService extends IService {
     track(approver: Approvers): void;
 
     persist(): Promise<void>;
+    ensureApprovalStatusRefiner(): Promise<void>;
 
     addToOutlook(event: Event): void;
 
