@@ -6,9 +6,6 @@ jest.mock('model', () => ({
 
 const moment = require('moment-timezone');
 const { Builder, keyForOccurrence } = require('./Builder');
-const {
-    normalizeInclusiveDateOnlyRange
-} = require('../../../services/events/ExternalEventDateRange');
 
 const timeZone = 'Pacific/Honolulu';
 
@@ -73,14 +70,16 @@ describe('Day view Builder', () => {
     });
 
     it('includes every day in an inclusive external date-only range', () => {
-        const range = normalizeInclusiveDateOnlyRange(
-            moment.tz('2026-05-30 00:00', timeZone),
-            moment.tz('2026-06-01 00:00', timeZone)
-        );
         const externalEvent = {
-            event: { key: 'external-event' },
-            start: range.start,
-            end: range.end,
+            event: {
+                key: 'external-event',
+                isExternal: true,
+                externalSourceSiteUrl: 'https://example.sharepoint.com/sites/calendar',
+                externalSourceListId: 'list-a',
+                externalItemId: 1
+            },
+            start: moment.tz('2026-05-30 00:00', timeZone),
+            end: moment.tz('2026-06-01 00:00', timeZone),
             isAllDay: true
         };
 

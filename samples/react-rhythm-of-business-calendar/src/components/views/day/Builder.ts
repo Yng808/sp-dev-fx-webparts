@@ -42,7 +42,17 @@ export class DayInfo {
             occurrence.start.isSame(occurrence.end) &&
             occurrence.start.isSame(dayStart, 'day');
 
-        if (overlapsDay || isZeroDurationAllDayEventStartingThisDay) {
+        const event = occurrence.event as typeof occurrence.event & IExternalEventIdentity;
+        const endsOnInclusiveExternalDate =
+            event.isExternal &&
+            occurrence.isAllDay &&
+            occurrence.end.isSame(dayStart, 'day');
+
+        if (
+            overlapsDay ||
+            isZeroDurationAllDayEventStartingThisDay ||
+            endsOnInclusiveExternalDate
+        ) {
             this.occurrences.push(occurrence);
         }
     }
