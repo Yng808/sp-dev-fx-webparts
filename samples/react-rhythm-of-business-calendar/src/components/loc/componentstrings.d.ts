@@ -129,6 +129,7 @@ declare module 'ComponentStrings' {
 
     interface IEventPanelStrings {
         NewEvent: string;
+        RequestFailureMessage: string;
         AllDay: string;
         SpecificStartAndEndTime: string;
         Field_Title: ITextFieldStrings;

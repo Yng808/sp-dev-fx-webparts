@@ -170,7 +170,7 @@ class EventPanel extends EntityPanelBase<Event, IProps, IState> implements IEven
                 console.warn(message, e);
                 return Promise.reject(PersistConcurrencyFailureMessage);
             } else {
-                throw e;
+                return Promise.reject(strings.RequestFailureMessage);
             }
         }
     }

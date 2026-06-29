@@ -139,6 +139,7 @@ define([], function () {
         },
         EventPanel: {
             NewEvent: "New event",
+            RequestFailureMessage: "Please contact the site administrator. Your request cannot be processed at this time.",
             AllDay: "All day event",
             SpecificStartAndEndTime: "Specific start and end time",
             Field_Title: { Label: "Title" },
