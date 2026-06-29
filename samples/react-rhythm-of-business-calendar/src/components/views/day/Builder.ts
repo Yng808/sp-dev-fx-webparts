@@ -1,6 +1,27 @@
 import { Moment } from "moment-timezone";
 import { EventOccurrence } from "model";
 
+interface IExternalEventIdentity {
+    isExternal?: boolean;
+    externalSourceSiteUrl?: string;
+    externalSourceListId?: string;
+    externalItemId?: number;
+}
+
+export const keyForOccurrence = (occurrence: EventOccurrence): string => {
+    const event = occurrence.event as typeof occurrence.event & IExternalEventIdentity;
+    const hasExternalIdentity =
+        event.isExternal &&
+        event.externalSourceSiteUrl &&
+        event.externalSourceListId &&
+        event.externalItemId !== undefined;
+    const eventKey = hasExternalIdentity
+        ? `external-${event.externalSourceSiteUrl}-${event.externalSourceListId}-${event.externalItemId}`
+        : occurrence.event.key;
+
+    return `${eventKey}-${occurrence.start.valueOf()}-${occurrence.end.valueOf()}`;
+};
+
 export class DayInfo {
     public readonly occurrences: EventOccurrence[] = [];
 
@@ -9,19 +30,22 @@ export class DayInfo {
     public include(occurrence: EventOccurrence) {
         const occurrenceTimeZone = occurrence.start.tz();
         const dayStart = this.date.clone().startOf('day').tz(occurrenceTimeZone, true);
-        const dayEnd = this.date.clone().endOf('day').tz(occurrenceTimeZone, true);
-    
-        const endsAtMidnightThisDay = // For all-day events ending at midnight, check if end equals the start of this day
-        occurrence.isAllDay && occurrence.end.hours() === 0 && occurrence.end.minutes() === 0 && occurrence.end.seconds() === 0 && occurrence.end.isSame(dayStart, 'day');
+        const nextDayStart = dayStart.clone().add(1, 'day');
 
-        if ( // Check if the event overlaps with the current day
-            (occurrence.start.isBefore(dayEnd) && occurrence.end.isAfter(dayStart)) || // Event spans into this day
-            occurrence.start.isSame(dayStart, 'day') || // Event starts on this day
-            endsAtMidnightThisDay // All-day event ending at midnight of this day
-        ) {
+        const overlapsDay =
+            occurrence.start.isBefore(nextDayStart) &&
+            occurrence.end.isAfter(dayStart);
+
+        // New all-day events can temporarily use the same timestamp for start and end.
+        const isZeroDurationAllDayEventStartingThisDay =
+            occurrence.isAllDay &&
+            occurrence.start.isSame(occurrence.end) &&
+            occurrence.start.isSame(dayStart, 'day');
+
+        if (overlapsDay || isZeroDurationAllDayEventStartingThisDay) {
             this.occurrences.push(occurrence);
         }
-    }    
+    }
 }
 
 export class Builder {

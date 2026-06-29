@@ -5,9 +5,11 @@ import { RefinerValue, Refiner } from 'model';
 import { Entity } from 'common';
 import { ITimeZoneService } from "common/services";
 import moment from 'moment-timezone';
+import { normalizeInclusiveDateOnlyRange } from './ExternalEventDateRange';
 
 export interface IExternalListItem {
-    Id: number;
+    Id?: number;
+    ID?: number;
     [key: string]: any;
 }
 
@@ -254,7 +256,7 @@ export class ExternalListDataService {
         (event as any).isExternal = true;
         (event as any).externalSourceListId = config.listId;
         (event as any).externalSourceSiteUrl = config.siteUrl;
-        (event as any).externalItemId = item.Id;
+        (event as any).externalItemId = item.Id ?? item.ID;
         (event as any).readOnly = true;
 
         const rawTitle = this._getValue(item, config.titleField) || '';
@@ -276,9 +278,10 @@ export class ExternalListDataService {
             const endMoment = endValue ? this._parseSharePointDate(endValue, siteTimeZone.momentId, config.dateOnly) : null;
 
             if (config.dateOnly) {
+                const range = normalizeInclusiveDateOnlyRange(startMoment, endMoment);
                 event.isAllDay = true;
-                event.start = startMoment;
-                event.end = endMoment ?? startMoment.clone().add(1, 'day');
+                event.start = range.start;
+                event.end = range.end;
             } else {
             const isStartMidnight = startMoment.hours() === 0 && startMoment.minutes() === 0 && startMoment.seconds() === 0;
             const isEndMidnight = endMoment && endMoment.hours() === 0 && endMoment.minutes() === 0 && endMoment.seconds() === 0;
