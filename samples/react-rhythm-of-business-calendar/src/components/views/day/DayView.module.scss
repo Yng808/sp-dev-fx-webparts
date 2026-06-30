@@ -6,3 +6,18 @@
     padding: 15px 10px 15px 30px;
     border-radius: 6px;
 }
+
+.emptyStallToggle {
+    margin: 10px;
+}
+
+.emptyStall {
+    background-color: #f3f4f6;
+    border: 1px dashed #7a8699;
+}
+
+.loadError {
+    display: block;
+    margin: 10px;
+    color: #a4262c;
+}

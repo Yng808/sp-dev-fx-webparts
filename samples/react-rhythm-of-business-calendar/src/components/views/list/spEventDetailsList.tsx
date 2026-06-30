@@ -163,8 +163,6 @@ export const fetchEventOccurrenceById = async (siteUrl: string, eventId: number)
 
 // Opens a prefilled Outlook Web compose window
 export function composeEmailInBrowser(to: string, subject: string, body: string) {
-  const url = `https://webmail.apps.mil/mail/deeplink/compose?to=${encodeURIComponent(
-    to
-  )}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  const url = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(to)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   window.open(url, '_blank');
 }
