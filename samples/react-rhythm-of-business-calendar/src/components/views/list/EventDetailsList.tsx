@@ -383,6 +383,13 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
         willChange: 'scroll-position' as const
     };
 
+    const groupStripeById = new Map<number, number>();
+    filteredEvents.forEach(event => {
+        if (!groupStripeById.has(event.groupID)) {
+            groupStripeById.set(event.groupID, groupStripeById.size % 2);
+        }
+    });
+
     return (
         <div className={isFullscreen ? "" : "container-fluid"} style={fullscreenStyles}>
             {/* Filters section */}
@@ -462,7 +469,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
             {/* table with sticky headers */}
             <div className="table-responsive" style={tableContainerStyles}>
-                <table className="table table-bordered table-striped" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
+                <table className="table table-bordered" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
                     <thead className="thead-dark sticky-top" style={{ zIndex: 10 }}>
                         <tr>
                             <th>Group Actions</th>
@@ -501,7 +508,10 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
                             }
 
                             return (
-                                <tr key={index}>
+                                <tr
+                                    key={event.id || index}
+                                    className={groupStripeById.get(event.groupID) === 1 ? styles.groupRowAlternate : styles.groupRow}
+                                >
                                     <td className={styles.tdWide}>
                                         <div>
                                             <button className={`btn btn-sm me-2 ${styles.emailButton}`} onClick={() => handleSendGroupEmail(event.groupID)}>Email</button>   

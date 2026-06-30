@@ -202,6 +202,15 @@ th {
   text-overflow: ellipsis;
 }
 
+/* Alternate by group rather than by individual record. */
+.groupRow > td {
+  background-color: #e3e2eb;
+}
+
+.groupRowAlternate > td {
+  background-color: #c5d0df;
+}
+
 // Group & Single Action Buttons
 .emailButton, .emailButton:hover {
   color: #000;
