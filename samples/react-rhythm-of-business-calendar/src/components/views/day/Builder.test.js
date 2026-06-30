@@ -74,6 +74,7 @@ describe('Day view Builder', () => {
             event: {
                 key: 'external-event',
                 isExternal: true,
+                externalConfigId: 'config-a',
                 externalSourceSiteUrl: 'https://example.sharepoint.com/sites/calendar',
                 externalSourceListId: 'list-a',
                 externalItemId: 1
@@ -109,6 +110,7 @@ describe('keyForOccurrence', () => {
                 id: 0,
                 key: 'external-event-a',
                 isExternal: true,
+                externalConfigId: 'config-a',
                 externalSourceSiteUrl: 'https://example.sharepoint.com/sites/calendar',
                 externalSourceListId: 'list-a',
                 externalItemId: 1
@@ -121,6 +123,7 @@ describe('keyForOccurrence', () => {
                 id: 0,
                 key: 'external-event-b',
                 isExternal: true,
+                externalConfigId: 'config-a',
                 externalSourceSiteUrl: 'https://example.sharepoint.com/sites/calendar',
                 externalSourceListId: 'list-a',
                 externalItemId: 2
@@ -138,6 +141,7 @@ describe('keyForOccurrence', () => {
         const externalIdentity = {
             id: 0,
             isExternal: true,
+            externalConfigId: 'config-a',
             externalSourceSiteUrl: 'https://example.sharepoint.com/sites/calendar',
             externalSourceListId: 'list-a'
         };
@@ -169,6 +173,38 @@ describe('keyForOccurrence', () => {
                 moment.tz('2026-06-28 12:00', timeZone)
             ).occurrences
         ).toEqual([first, second]);
+    });
+
+    it('distinguishes the same external item returned by different configurations', () => {
+        const start = moment.tz('2026-06-28 10:00', timeZone);
+        const end = start.clone().add(1, 'hour');
+        const externalIdentity = {
+            id: 0,
+            isExternal: true,
+            externalSourceSiteUrl: 'https://example.sharepoint.com/sites/calendar',
+            externalSourceListId: 'list-a',
+            externalItemId: 1
+        };
+        const first = {
+            event: {
+                ...externalIdentity,
+                key: 'first-object-key',
+                externalConfigId: 'config-a'
+            },
+            start,
+            end
+        };
+        const second = {
+            event: {
+                ...externalIdentity,
+                key: 'second-object-key',
+                externalConfigId: 'config-b'
+            },
+            start: start.clone(),
+            end: end.clone()
+        };
+
+        expect(keyForOccurrence(first)).not.toBe(keyForOccurrence(second));
     });
 
     it('distinguishes separate occurrences of the same recurring event', () => {

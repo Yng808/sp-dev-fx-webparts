@@ -3,6 +3,7 @@ import { EventOccurrence } from "model";
 
 interface IExternalEventIdentity {
     isExternal?: boolean;
+    externalConfigId?: string;
     externalSourceSiteUrl?: string;
     externalSourceListId?: string;
     externalItemId?: number;
@@ -12,11 +13,12 @@ export const keyForOccurrence = (occurrence: EventOccurrence): string => {
     const event = occurrence.event as typeof occurrence.event & IExternalEventIdentity;
     const hasExternalIdentity =
         event.isExternal &&
+       event.externalConfigId &&
         event.externalSourceSiteUrl &&
         event.externalSourceListId &&
         event.externalItemId !== undefined;
     const eventKey = hasExternalIdentity
-        ? `external-${event.externalSourceSiteUrl}-${event.externalSourceListId}-${event.externalItemId}`
+        ? `external-${event.externalConfigId}-${event.externalSourceSiteUrl}-${event.externalSourceListId}-${event.externalItemId}`
         : occurrence.event.key;
 
     return `${eventKey}-${occurrence.start.valueOf()}-${occurrence.end.valueOf()}`;
