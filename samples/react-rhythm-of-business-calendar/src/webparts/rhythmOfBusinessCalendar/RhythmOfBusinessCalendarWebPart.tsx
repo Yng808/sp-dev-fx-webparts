@@ -5,6 +5,7 @@ import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import { IPropertyPaneConfiguration, PropertyPaneCheckbox, PropertyPaneTextField } from '@microsoft/sp-property-pane';
 import { RhythmOfBusinessCalendarApp } from 'apps';
 import { FilterConfigContext } from 'components/shared/FilterConfigContext';
+import { EmailSettingsContext, IEmailSettings } from 'components/shared/EmailSettingsContext';
 
 import * as strings from 'RhythmOfBusinessCalendarWebPartStrings';
 import './RhythmOfBusinessCalendar.module.scss';
@@ -22,6 +23,10 @@ export interface IWebPartProps {
     showReadAheadDueDate: boolean;
     showDecisionBrief: boolean;
     showLocation: boolean;
+    emailSubjectPrefix: string;
+    emailPhone: string;
+    emailAddress: string;
+    emailSignature: string;
 }
 
 export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPart<IWebPartProps> {
@@ -39,6 +44,12 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
         const showReadAheadDueDate = this.properties.showReadAheadDueDate !== undefined ? this.properties.showReadAheadDueDate : true;
         const showDecisionBrief = this.properties.showDecisionBrief !== undefined ? this.properties.showDecisionBrief : true;
         const showLocation = this.properties.showLocation !== undefined ? this.properties.showLocation : true;
+        const emailSettings: IEmailSettings = {
+            subjectPrefix: this.properties.emailSubjectPrefix || '',
+            phone: this.properties.emailPhone || '',
+            email: this.properties.emailAddress || '',
+            signature: this.properties.emailSignature || ''
+        };
 
         ReactDom.render(
             <div>
@@ -48,9 +59,11 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
                 >
                     Download as PDF
                 </button> */}
-                <FilterConfigContext.Provider value={{ filterButtons, showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief, showLocation }}>
-                    <RhythmOfBusinessCalendarApp webpart={this} />
-                </FilterConfigContext.Provider>
+                <EmailSettingsContext.Provider value={emailSettings}>
+                    <FilterConfigContext.Provider value={{ filterButtons, showOPR, showAttendee, showReadAheadDueDate, showDecisionBrief, showLocation }}>
+                        <RhythmOfBusinessCalendarApp webpart={this} />
+                    </FilterConfigContext.Provider>
+                </EmailSettingsContext.Provider>
             </div>,
             this.domElement
         );
@@ -144,6 +157,26 @@ export default class RhythmOfBusinessCalendarWebPart extends BaseClientSideWebPa
                               PropertyPaneCheckbox('showLocation', { 
                                 text: "Show Location column on list view",
                                 checked: true                                
+                              })
+                            ]
+                          },
+                          {
+                            groupName: "Email Settings",
+                            groupFields: [
+                              PropertyPaneTextField('emailSubjectPrefix', {
+                                label: "Email subject prefix",
+                                description: "Text placed before the DV rank and surname."
+                              }),
+                              PropertyPaneTextField('emailPhone', {
+                                label: "Protocol phone number"
+                              }),
+                              PropertyPaneTextField('emailAddress', {
+                                label: "Protocol email address"
+                              }),
+                              PropertyPaneTextField('emailSignature', {
+                                label: "Email signature",
+                                multiline: true,
+                                resizable: true
                               })
                             ]
                           }

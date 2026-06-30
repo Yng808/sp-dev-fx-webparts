@@ -1,10 +1,10 @@
 import { Moment } from "moment-timezone";
-import { useCallback, useRef } from "react";
+import { useCallback, useContext, useRef } from "react";
 import { useForceUpdate } from "@fluentui/react-hooks";
 import { Event, IEvent } from "model";
 import { IEventPanel } from "../events";
 import { useDirectoryService } from 'services';
-import { EMAIL_PHONE } from "../views/list/EmailTemplate";
+import { EmailSettingsContext } from "../shared/EmailSettingsContext";
 
 const parseRequestorName = (title: string, email: string): { firstName: string; lastName: string; rank: string } => {
     const normalizedTitle = (title || '').trim();
@@ -65,6 +65,7 @@ const parseRequestorName = (title: string, email: string): { firstName: string; 
 
 export const useEventPanel = (anchorDate: Moment) => {
     const forceUpdate = useForceUpdate();
+    const emailSettings = useContext(EmailSettingsContext);
 
     const eventPanel = useRef<IEventPanel>();
     const directoryService = useDirectoryService();
@@ -76,8 +77,8 @@ export const useEventPanel = (anchorDate: Moment) => {
             event.dvVisiting = 'No';
             event.groupID = (Date.now() * 10000) + 621355968000000000;
             event.requestorOffice = 'Protocol';
-            event.requestorCellPhone = EMAIL_PHONE
-            event.requestorDutyPhone = EMAIL_PHONE
+            event.requestorCellPhone = emailSettings.phone;
+            event.requestorDutyPhone = emailSettings.phone;
             const currentUser = directoryService.currentUser;
 
             if (currentUser) {
@@ -90,7 +91,7 @@ export const useEventPanel = (anchorDate: Moment) => {
 
             await eventPanel.current.edit(event);
         } finally { forceUpdate(); }
-    }, [anchorDate, eventPanel, forceUpdate, directoryService]);
+    }, [anchorDate, eventPanel, forceUpdate, directoryService, emailSettings.phone]);
 
     const displayEvent = useCallback(async (event: IEvent) => {
         try {

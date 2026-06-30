@@ -5,6 +5,7 @@ import { sp } from '@pnp/sp';
 import { showAlert } from './AlertHost';
 import { fieldsChangedEmail } from './EmailTemplate';
 import { composeEmailInBrowser } from './spEventDetailsList';
+import { EmailSettingsContext } from '../../shared/EmailSettingsContext';
 
 interface EditPanelProps {
     isEditPanelOpen: boolean;
@@ -17,6 +18,7 @@ interface EditPanelProps {
 }
 
 export const EditPanel: FC<EditPanelProps> = ({ isEditPanelOpen, setIsEditPanelOpen, editGroupID, setEditGroupID, filteredEvents, setFilteredEvents, eventToEdit }) => {
+    const emailSettings = React.useContext(EmailSettingsContext);
     const [editFields, setEditFields] = useState({ dvPayGrade: '', dvRank: '', dvFirstName: '', dvSurname: '', jdirVisiting: '', dvVisiting: '', requestorRank: '', requestorFirstName: '', requestorLastName: '', requestorOffice: '', requestorDutyPhone: '', requestorCellPhone: '', requestorEmail: '' });
 
     useEffect(() => {
@@ -53,7 +55,7 @@ export const EditPanel: FC<EditPanelProps> = ({ isEditPanelOpen, setIsEditPanelO
         }
         // After updates succeed, send email if fields changed
         if (eventToEdit) {
-            const email = fieldsChangedEmail(eventToEdit, editFields, eventsToUpdate);
+            const email = fieldsChangedEmail(eventToEdit, editFields, eventsToUpdate, emailSettings);
             if (email) {
                 composeEmailInBrowser(email.to, email.subject, email.body);
             }

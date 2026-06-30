@@ -8,6 +8,7 @@ import { IDropdownOption } from '@fluentui/react';
 import { fetchParkingStalls, fetchBookedParkingForEvent, filterAvailableParking, formatParkingOptions, fetchOccupiedParkingDetails, composeEmailInBrowser, OccupiedStall, mapSharePointItemToEventOccurrence} from './spEventDetailsList';
 import { ConfirmDialog, showAlert } from './AlertHost';
 import { assignGroupEmail, noParkingAvailableEmail } from './EmailTemplate';
+import { EmailSettingsContext } from '../../shared/EmailSettingsContext';
 
 interface AssignPanelProps {
     isPanelOpen: boolean;
@@ -28,6 +29,7 @@ interface AssignPanelProps {
 }
 
 export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen, groupIDToDisplay, setGroupIDToDisplay, eventIdToDisplay, setEventIdToDisplay, filteredEvents, setLoadingSpots, onOpenPreview, timeChangeNotice, setTimeChangeNotice, dateChangeNotice, setDateChangeNotice, setFilteredEvents, onReplaceGroupEvents }) => {
+    const emailSettings = React.useContext(EmailSettingsContext);
     const [parkingStallsOptionsEach, setParkingStallsOptionsEach] = useState<{ [key: number]: IDropdownOption[] }>({});
     const [parkingMap, setParkingMap] = useState<{ [id: number]: string }>({});
     const [individualSelections, setIndividualSelections] = useState<{ [key: string]: number }>({});
@@ -349,12 +351,12 @@ export const AssignPanel: FC<AssignPanelProps> = ({ isPanelOpen, setIsPanelOpen,
                                 const allUnavailable = updatedEvents.every(ev => ev.parkingStalls === -1);
 
                                 if (allUnavailable) {
-                                const email = noParkingAvailableEmail(updatedEvents);
+                                const email = noParkingAvailableEmail(updatedEvents, emailSettings);
                                 composeEmailInBrowser(email.to, email.subject, email.body);
                                 } else {
                                 const updatedParkingMap = { ...parkingMap, [-1]: 'Unavailable' };
 
-                                const email = assignGroupEmail(updatedEvents, updatedParkingMap, timeChangeNotice || undefined, dateChangeNotice || undefined );
+                                const email = assignGroupEmail(updatedEvents, updatedParkingMap, emailSettings, timeChangeNotice || undefined, dateChangeNotice || undefined);
                                 composeEmailInBrowser(email.to, email.subject, email.body);
                                 }
 

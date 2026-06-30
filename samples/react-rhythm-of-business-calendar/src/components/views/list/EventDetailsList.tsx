@@ -13,12 +13,14 @@ import { ChangeDatesPanel } from './ChangeDatesPanel';
 import { showAlert, AlertHost, ConfirmDialog } from './AlertHost';
 import { cancelEventEmail, cancelGroupEmail, snapshotGroupEmail } from './EmailTemplate';
 import { CurrentParkingPanel } from './PreviewPanel';
+import { EmailSettingsContext } from '../../shared/EmailSettingsContext';
 
 interface EventDetailsListProps {
     cccurrences: readonly EventOccurrence[];
 }
 
 const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
+    const emailSettings = React.useContext(EmailSettingsContext);
     // Filter
     const [filteredEvents, setFilteredEvents] = useState<EventOccurrence[]>([...cccurrences]);
     const [startDate, setStartDate] = useState<string>('');
@@ -231,7 +233,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             return;
         }
         const mapWithUnavailable = { ...parkingMap, [-1]: 'Unavailable' };
-        const { to, subject, body } = snapshotGroupEmail(groupEvents, mapWithUnavailable);
+        const { to, subject, body } = snapshotGroupEmail(groupEvents, mapWithUnavailable, emailSettings);
         composeEmailInBrowser(to, subject, body);
     };
 
@@ -303,7 +305,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
             showAlert(`All events in group ${groupId} for ${event.dvRank} ${event.dvFirstName} ${event.dvSurname} cancelled successfully!`, 'success');
 
             if (groupEvents.length > 0) {
-                const email = cancelGroupEmail(groupEvents);
+                const email = cancelGroupEmail(groupEvents, emailSettings);
                 composeEmailInBrowser(email.to, email.subject, email.body);
             }
         } catch (error) {
@@ -334,7 +336,7 @@ const EventDetailsList: FC<EventDetailsListProps> = ({ cccurrences }) => {
 
             showAlert(`Event for ${event.dvRank} ${event.dvFirstName} ${event.dvSurname} cancelled successfully!`,'success');
 
-            const { to, subject, body } = cancelEventEmail(event);
+            const { to, subject, body } = cancelEventEmail(event, emailSettings);
             composeEmailInBrowser(to, subject, body);
         
         } catch (error) {
