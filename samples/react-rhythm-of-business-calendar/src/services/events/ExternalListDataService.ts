@@ -252,6 +252,7 @@ export class ExternalListDataService {
         const event = new Event();
         const siteTimeZone = this.timeZoneService.siteTimeZone;
         (event as any).isExternal = true;
+        (event as any).externalConfigId = config.id;
         (event as any).externalSourceListId = config.listId;
         (event as any).externalSourceSiteUrl = config.siteUrl;
         (event as any).externalItemId = item.Id;

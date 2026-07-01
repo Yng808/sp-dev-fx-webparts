@@ -5,7 +5,7 @@ import { useEventCommandActionButtons, useWindowSize } from '../../hooks';
 import { EventOverview, IEventCommands } from '../../events';
 import { IViewDescriptor } from '../IViewDescriptor';
 import { IViewProps } from '../IViewProps';
-import { Builder } from './Builder';
+import { Builder, keyForOccurrence } from './Builder';
 
 import * as strings from 'ComponentStrings';
 
@@ -68,7 +68,7 @@ const DayView: FC<IViewProps> = ({
             <FocusZone>
                 {dayInfo.occurrences.map((occurrence) => (
                     <EventCard
-                        key={`${occurrence.event.id}-${occurrence.start.format('L')}`}
+                        key={keyForOccurrence(occurrence)}
                         occurrence={occurrence}
                         commands={eventCommands}
                     />
