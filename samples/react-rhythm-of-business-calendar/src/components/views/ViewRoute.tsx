@@ -312,7 +312,7 @@ const ViewRoute: FC = () => {
                     iconProps: { iconName: showOnlyCurrentMonth ? 'CheckboxComposite' : 'Checkbox' },
                     onClick: () => setShowOnlyCurrentMonth(!showOnlyCurrentMonth)
                 },
-                userCanManageSettings && config.showRunTests && {
+                userCanManageSettings && currentUserIsSiteAdmin && config.showRunTests && {
                     key: 'run-tests',
                     text: 'Run Tests',
                     iconProps: { iconName: 'Play' },
