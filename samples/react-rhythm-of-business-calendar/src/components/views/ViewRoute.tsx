@@ -2,7 +2,7 @@ import React, { FC, useCallback, useContext, useEffect, useMemo, useRef, useStat
 import { IComponentStyles } from '@uifabric/foundation';
 import { useBoolean, useForceUpdate } from '@fluentui/react-hooks';
 import { ActionButton, CommandBar, ICommandBarItemProps, IconButton, IIconProps, IStackItemSlots, IStackTokens, Panel, PanelType, Stack, StackItem, Text, TooltipHost } from '@fluentui/react';
-import { BackEventListener } from 'common';
+import { BackEventListener, User } from 'common';
 import { AsyncDataComponent, DateRotator } from 'common/components';
 import { IEvent, RefinerValue } from 'model';
 import { useConfigurationService, useDirectoryService, useEventsService } from 'services';
@@ -42,7 +42,22 @@ const expandRefinerRailIconProps: IIconProps = { iconName: 'ClosePane' };
 
 const ViewRoute: FC = () => {
     const { active: config } = useConfigurationService();
-    const { currentUserIsSiteAdmin } = useDirectoryService();
+    const directory = useDirectoryService();
+    const { currentUserIsSiteAdmin } = directory;
+    const [currentUserIsSharePointSiteAdmin, setCurrentUserIsSharePointSiteAdmin] = useState(false);
+
+    useEffect(() => {
+        let active = true;
+        setCurrentUserIsSharePointSiteAdmin(false);
+
+        directory.siteAdmins().then(admins => {
+            if (active) { setCurrentUserIsSharePointSiteAdmin(admins.some(admin => User.equal(admin, directory.currentUser))); }
+        }).catch(error => { 
+            console.error('Unable to verify SharePoint site administrator status:', error); 
+        });
+
+        return () => { active = false; };
+    }, [directory]);
 
     const view = useView();
     const View = view.renderer;
@@ -312,7 +327,7 @@ const ViewRoute: FC = () => {
                     iconProps: { iconName: showOnlyCurrentMonth ? 'CheckboxComposite' : 'Checkbox' },
                     onClick: () => setShowOnlyCurrentMonth(!showOnlyCurrentMonth)
                 },
-                userCanManageSettings && currentUserIsSiteAdmin && config.showRunTests && {
+                currentUserIsSharePointSiteAdmin && config.showRunTests && {
                     key: 'run-tests',
                     text: 'Run Tests',
                     iconProps: { iconName: 'Play' },
@@ -333,6 +348,7 @@ const ViewRoute: FC = () => {
         },
         [
             userCanManageSettings,
+            currentUserIsSharePointSiteAdmin,
             config.showRunTests,
             userIsAnApprover,
             newEvent,
