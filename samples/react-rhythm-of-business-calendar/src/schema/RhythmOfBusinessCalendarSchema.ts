@@ -1,5 +1,5 @@
-import { AddListFieldUpgradeAction, DeleteListFieldUpgradeAction, IElementDefinitions, IListDefinition, buildLiveSchema } from "common/sharepoint";
-import { ConfigurationList, Field_ShowRunTests, IEventsListDefinition, EventsList, RefinersList, RefinerValuesList, ApproversList, IRefinersListDefinition, IRefinerValuesListDefinition,IApproversListDefinition,ExternalListsConfigList, Field_Color, Field_ListTitle, Field_RefinerValueId } from "./lists";
+import { AddListFieldUpgradeAction, IElementDefinitions, IListDefinition, buildLiveSchema } from "common/sharepoint";
+import { ConfigurationList, Field_ShowRunTests, IEventsListDefinition, EventsList, RefinersList, RefinerValuesList, ApproversList, IRefinersListDefinition, IRefinerValuesListDefinition,IApproversListDefinition,ExternalListsConfigList, Field_RefinerValueId } from "./lists";
 
 export const CurrentSchemaVersion: number = 1.1;
 
@@ -24,18 +24,6 @@ class AddExternalListRefinerValueIdFieldUpgradeAction extends AddListFieldUpgrad
     }
 }
 
-class DeleteExternalListListTitleFieldUpgradeAction extends DeleteListFieldUpgradeAction {
-    constructor() {
-        super(ExternalListsConfigList, Field_ListTitle);
-    }
-}
-
-class DeleteExternalListColorFieldUpgradeAction extends DeleteListFieldUpgradeAction {
-    constructor() {
-        super(ExternalListsConfigList, Field_Color);
-    }
-}
-
 export const RhythmOfBusinessCalendarSchema = buildLiveSchema<IRhythmOfBusinessCalendarSchema>({
     version: CurrentSchemaVersion,
     lists: [
@@ -52,9 +40,7 @@ export const RhythmOfBusinessCalendarSchema = buildLiveSchema<IRhythmOfBusinessC
             toVersion: 1.1,
             actions: [
                 new AddShowRunTestsFieldUpgradeAction(),
-                new AddExternalListRefinerValueIdFieldUpgradeAction(),
-                new DeleteExternalListListTitleFieldUpgradeAction(),
-                new DeleteExternalListColorFieldUpgradeAction()
+                new AddExternalListRefinerValueIdFieldUpgradeAction()
             ]
         }
     ],
